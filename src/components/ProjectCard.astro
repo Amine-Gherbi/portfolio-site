@@ -42,9 +42,13 @@ const imageSrc = hero ? `/assets/${slug}/${hero.file}` : "";
       <span class="updated-label">Updated {updatedLabel}</span>
       <span aria-hidden="true">{number}</span>
     </div>
-    <h2 id={headingId}>{project.title}</h2>
+    <h2 id={headingId}>
+      <a class="card-link" href={`/projects/${slug}`}>{project.title}</a>
+    </h2>
     <p class="one-liner"><em>{project.oneLiner}</em></p>
     <p class="stack">({project.stack.join(", ")})</p>
-    <div class="card-body"><slot /></div>
+    <p class="card-read">
+      <a href={`/projects/${slug}`}>Read the case study</a>
+    </p>
   </div>
 </article>

@@ -1,10 +1,10 @@
 import { defineCollection } from "astro:content";
-import { glob } from "astro/loaders";
-import { projectSchema } from "./lib/manifest";
+import { caseStudyMdxLoader } from "./lib/case-study-loader";
+import { caseStudySchema } from "./lib/case-study";
 
 const projects = defineCollection({
-  loader: glob({ pattern: "*.json", base: "./src/content/projects" }),
-  schema: projectSchema,
+  loader: caseStudyMdxLoader({ base: "./src/content/projects" }),
+  schema: caseStudySchema,
 });
 
 export const collections = { projects };

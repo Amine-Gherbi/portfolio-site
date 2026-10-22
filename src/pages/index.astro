@@ -1,5 +1,5 @@
 ---
-import { getCollection, render } from "astro:content";
+import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
 import ProjectCard from "../components/ProjectCard.astro";
 import { readProjectManifest } from "../lib/manifest";
@@ -12,10 +12,9 @@ entries.sort((a, b) => a.data.order - b.data.order);
 
 const cards = await Promise.all(
   entries.map(async (entry) => {
-    const { Content } = await render(entry);
     const manifest = await readProjectManifest(entry.id);
 
-    return { entry, Content, manifest };
+    return { entry, manifest };
   }),
 );
 
@@ -57,15 +56,13 @@ function formatUpdated(isoDate: string): string {
     </div>
     <div class="project-grid">
       {
-        cards.map(({ entry, Content, manifest }) => (
+        cards.map(({ entry, manifest }) => (
           <ProjectCard
             project={entry.data}
             slug={entry.id}
             manifest={manifest}
             updatedLabel={formatUpdated(entry.data.updatedAt)}
-          >
-            <Content />
-          </ProjectCard>
+          />
         ))
       }
     </div>

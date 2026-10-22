@@ -1,0 +1,106 @@
+---
+order: 2
+title: Merge Gate
+oneLiner: A policy check that keeps a red pull request out of main.
+stack:
+  - GitHub Actions
+  - TypeScript
+  - SQLite
+updatedAt: "2026-09-24"
+claim: >-
+  A pull request that fails the policy check cannot merge: the 2026-09-24 seeded
+  fixture blocked 1 of 1 red pull requests and let 0 red pull requests reach
+  main.
+problem: >-
+  Branch protection listed the policy job as advisory. A maintainer could merge
+  a red pull request after the job reported failure, and the failure could edit
+  its own rules file in the same change.
+constraint: >-
+  GitHub Actions only, with no third-party app and no server. The gate had to
+  fetch the pull request diff, evaluate a stored rule set, and post a required
+  check run.
+architecture: >-
+  The workflow triggers on pull_request, fetches the head SHA and diff through
+  the API, loads rules from SQLite, evaluates each rule, and posts a check run
+  named policy-gate. Branch protection requires that check on main.
+decisions:
+  - title: Required check, not a comment
+    choice: >-
+      Configure policy-gate as a required status check in branch protection.
+    rejected: >-
+      A bot comment that a maintainer can ignore. In the 2026-09-12 trial, 2 of
+      5 red pull requests merged after a comment-only run.
+    cost: >-
+      The repository owner must grant admin rights to edit branch protection,
+      and every merge waits for the check to finish.
+    evidence: >-
+      The seeded red pull request returns a failing check run, and main receives
+      0 merge commits.
+  - title: Rules stored in SQLite, not in the pull request
+    choice: >-
+      Load policy rules from a SQLite database owned by the platform team.
+    rejected: >-
+      Rules in a YAML file inside the repository. A red pull request could edit
+      the rule that judges it, and the gate would read the edited copy.
+    cost: >-
+      A rule change needs a migration and a platform review, so a team cannot
+      ship a rule in the same pull request as its code.
+    evidence: >-
+      The force-push fixture changes the repository YAML and the stored rules
+      still return the original verdict.
+  - title: Fail closed on timeout
+    choice: >-
+      Return a failing check when the gate cannot finish inside its timeout.
+    rejected: >-
+      Fail open on timeout. A slow runner would report success and let a red
+      pull request through.
+    cost: >-
+      A runner outage blocks all merges until the check is rerun; the block is
+      visible but expensive.
+    evidence: >-
+      The timeout fixture returns a failing conclusion and main stays unchanged.
+failures:
+  - date: "2026-08-29"
+    commit: "b7d9e10"
+    summary: >-
+      Commit b7d9e10 read the head SHA from the event payload. After a
+      force-push the payload pointed at the previous SHA, so the gate judged the
+      old diff and reported green on a red head.
+    processChange: >-
+      The workflow now fetches the head SHA through the API at check time,
+      asserts it matches the event, and the seed includes a force-push case.
+metrics:
+  - label: Red pull requests blocked
+    value: "1 of 1"
+    method: >-
+      Seeded fixture on 2026-09-24 with 1 pull request that deletes a required
+      test; counted failing policy-gate checks.
+    artifact: public/assets/merge-gate/manifest.json
+  - label: Red merges to main
+    value: "0"
+    method: >-
+      Same fixture; counted merge commits on main after a failing check across 1
+      run.
+    artifact: public/assets/merge-gate/manifest.json
+  - label: Policy rules evaluated
+    value: "7"
+    method: >-
+      Same fixture; counted rule rows loaded from SQLite for the pull request.
+    artifact: public/assets/merge-gate/manifest.json
+screenshots:
+  - file: shot-01.webp
+    caption: Blocked pull request where the policy-gate check reports failure and the merge button stays disabled.
+  - file: shot-02.webp
+    caption: Gate flow from pull request event to head SHA, rule load, verdict, and required check.
+  - file: shot-03.webp
+    caption: Rule matrix for the 7 policies loaded from SQLite.
+links:
+  - label: Repository
+    href: https://github.com/GHamine/merge-gate
+  - label: Committed snapshot
+    href: https://github.com/GHamine/merge-gate/tree/main/public/assets
+next:
+  - Add a second required check for the deployment job so a green policy run cannot merge a broken deploy.
+  - Record the evaluated rule version in the check summary so a reviewer can see which rules ran.
+  - Add a nightly run that replays the force-push fixture against the live branch protection settings.
+---

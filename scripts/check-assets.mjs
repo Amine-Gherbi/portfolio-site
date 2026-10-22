@@ -78,7 +78,7 @@ function validateManifest(manifest, slug) {
 let projectFiles;
 try {
   projectFiles = (await readdir(projectsDirectory))
-    .filter((file) => file.endsWith(".json"))
+    .filter((file) => file.endsWith(".mdx"))
     .sort();
 } catch (error) {
   console.error(`[assets] cannot read ${projectsDirectory}: ${error.message}`);
@@ -86,7 +86,7 @@ try {
 }
 
 if (projectFiles.length === 0) {
-  console.error(`[assets] no project JSON files found in ${projectsDirectory}`);
+  console.error(`[assets] no case-study MDX files found in ${projectsDirectory}`);
   process.exit(1);
 }
 
@@ -95,16 +95,8 @@ let ready = 0;
 let comingSoon = 0;
 
 for (const projectFile of projectFiles) {
-  const slug = path.basename(projectFile, ".json");
-  const projectPath = path.join(projectsDirectory, projectFile);
+  const slug = path.basename(projectFile, ".mdx");
   const manifestPath = path.join(assetsDirectory, slug, "manifest.json");
-
-  try {
-    JSON.parse(await readFile(projectPath, "utf8"));
-  } catch (error) {
-    failures.push(`${slug}: invalid project JSON (${error.message})`);
-    continue;
-  }
 
   if (!(await fileExists(manifestPath))) {
     console.log(`[assets] ${slug}: no manifest — card will say "coming soon"`);

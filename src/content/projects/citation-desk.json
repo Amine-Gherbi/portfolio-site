@@ -1,7 +1,0 @@
-{
-  "order": 3,
-  "title": "Citation Desk",
-  "oneLiner": "An answer desk that refuses to speak without a source.",
-  "stack": ["Python", "FastAPI", "SQLite"],
-  "updatedAt": "2026-10-14"
-}

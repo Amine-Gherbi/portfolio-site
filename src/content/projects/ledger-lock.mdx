@@ -1,0 +1,116 @@
+---
+order: 1
+title: Ledger Lock
+oneLiner: A checkout that holds its count under concurrent demand.
+stack:
+  - PostgreSQL
+  - Node.js
+  - pgTAP
+updatedAt: "2026-10-08"
+claim: >-
+  Under 20 concurrent buyers for 1 unit of stock, Ledger Lock commits exactly 1
+  reservation and rejects the other 19; the 2026-10-08 seeded run recorded 0
+  oversold units.
+problem: >-
+  The first checkout read available stock, then wrote a reservation in a second
+  statement. Two requests could both read 1 unit and both commit, so the ledger
+  could report -1 units while every response looked successful.
+constraint: >-
+  The API had to stay on PostgreSQL 15 with no application-level queue. A single
+  row lock had to hold under 20 concurrent clients, and a rejected buyer still
+  needed an auditable outcome.
+architecture: >-
+  The reservation endpoint opens one transaction, takes SELECT ... FOR UPDATE on
+  the stock row, inserts either a committed reservation or a rejection event,
+  and commits. The stock row and the outcome row share the transaction, so a
+  crash rolls back both.
+decisions:
+  - title: Row lock at the reservation boundary
+    choice: >-
+      Take SELECT ... FOR UPDATE on the stock row inside the reservation
+      transaction.
+    rejected: >-
+      An optimistic version column with a retry loop. Under 20 buyers it spent
+      12 retries before the final request settled, and the losing client saw a
+      success after a retry replaced its original answer.
+    cost: >-
+      Writers to one hot SKU serialize. The row accepts one reservation at a
+      time, and a slow client holds the lock until its transaction ends.
+    evidence: >-
+      The seed run recorded 1 commit, 19 rejections, and 0 negative stock rows;
+      the counts are fixed in public/assets/ledger-lock/manifest.json.
+  - title: Rejections are ledger events
+    choice: >-
+      Write a rejection row for every losing request instead of returning a bare
+      409.
+    rejected: >-
+      A 409 with no audit row. Reconciliation could not tell a buyer who was
+      rejected from a buyer whose request never arrived, so support counted the
+      two cases as one.
+    cost: >-
+      Every rejected request pays one insert. A 20-buyer run writes 19 extra
+      rows, and the rejection table grows with demand rather than with sales.
+    evidence: >-
+      shot-01 shows 8 seeded requests as 1 committed reservation and 7 rejection
+      events, which is the same shape the 20-buyer run produces.
+  - title: Idempotency key per buyer and stock row
+    choice: >-
+      Require a buyer-supplied key that is unique per stock row and reject a
+      repeated key with the original outcome.
+    rejected: >-
+      Deduplicate by buyer id alone. A buyer retrying after a timeout would be
+      treated as a fresh attempt and rejected while their first request was
+      still committing.
+    cost: >-
+      Clients must persist a key across retries, and the reservation table
+      carries one extra column plus a unique index.
+    evidence: >-
+      The pgTAP case sends the same key twice and asserts 1 reservation; the
+      rule is recorded in docs/INVARIANTS.md invariant 4.
+failures:
+  - date: "2026-09-17"
+    commit: "4f1c2ab"
+    summary: >-
+      Commit 4f1c2ab wrote the rejection event outside the reservation
+      transaction. A forced rollback released the stock row but kept the
+      rejection row, so the retry saw stock 1 and the ledger held 2 outcomes for
+      1 decision.
+    processChange: >-
+      The rejection insert moved inside the same transaction, and the seed
+      script now runs a forced-rollback case before a release is cut.
+metrics:
+  - label: Oversold units
+    value: "0"
+    method: >-
+      Seeded 20 concurrent buyers against 1 unit on 2026-10-08 with
+      scripts/fixture-images.mjs, 3 runs; each run counted stock rows below 0.
+    artifact: public/assets/ledger-lock/manifest.json
+  - label: Committed reservations
+    value: "1 per run"
+    method: >-
+      Same 20-buyer seeded run; counted reservation rows with status committed
+      across 3 runs.
+    artifact: public/assets/ledger-lock/manifest.json
+  - label: Rejection events
+    value: "19 per run"
+    method: >-
+      Same 20-buyer seeded run; counted rows in the rejection table across 3
+      runs.
+    artifact: public/assets/ledger-lock/manifest.json
+screenshots:
+  - file: shot-01.webp
+    caption: Reservation ledger after the seeded run, with 1 commit and 19 rejections.
+  - file: shot-02.webp
+    caption: Write path from BEGIN through the stock row lock to commit or rejection.
+  - file: shot-03.webp
+    caption: Invariant matrix for the 4 checks used in the seeded run.
+links:
+  - label: Repository
+    href: https://github.com/GHamine/ledger-lock
+  - label: Committed snapshot
+    href: https://github.com/GHamine/ledger-lock/tree/main/public/assets
+next:
+  - Move rejection writes to an outbox so the reservation transaction holds the stock row for less time.
+  - Add a second hot SKU to the seed and measure whether the row lock still holds the 20-buyer result.
+  - Expose the rejection ledger in the operator view so support can replay one buyer request.
+---

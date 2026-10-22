@@ -1,0 +1,217 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import { readProjectManifest } from "../../lib/manifest";
+import {
+  assertCaseStudy,
+  formatUpdated,
+  SECTION_ORDER,
+} from "../../lib/case-study";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("projects");
+  return entries
+    .sort((a, b) => a.data.order - b.data.order)
+    .map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const study = entry.data;
+assertCaseStudy(study, entry.id);
+
+const manifest = await readProjectManifest(entry.id);
+const screenshots = study.screenshots.map((screenshot, index) => {
+  const shot = manifest?.shots[index + 1];
+  return { ...screenshot, shot };
+});
+
+const updatedLabel = formatUpdated(study.updatedAt);
+const number = String(study.order).padStart(2, "0");
+---
+
+<Base title={study.title} description={study.oneLiner}>
+  <article class="case-study">
+    <header id="claim" data-section="claim" class="case-header">
+      <div class="case-topline">
+        <a class="case-back" href="/">Case index</a>
+        <span class="case-title">{study.title} / {number} of 03</span>
+      </div>
+      <p class="kicker">01 / Claim</p>
+      <h1>{study.claim}</h1>
+      <p class="case-oneliner"><em>{study.oneLiner}</em></p>
+      <div class="case-meta">
+        <p class="stack">({study.stack.join(", ")})</p>
+        <p class="updated-label">Updated {updatedLabel}</p>
+      </div>
+    </header>
+
+    <nav class="section-nav" aria-label="Case study sections">
+      <ol>
+        {
+          SECTION_ORDER.map((section, index) => (
+            <li>
+              <a href={`#${section.id}`}>
+                <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                {section.label}
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+
+    <section id="problem" data-section="problem" class="case-section">
+      <p class="kicker">02 / Problem</p>
+      <h2>Problem</h2>
+      <p>{study.problem}</p>
+    </section>
+
+    <section id="constraint" data-section="constraint" class="case-section">
+      <p class="kicker">03 / Constraint</p>
+      <h2>Constraint</h2>
+      <p>{study.constraint}</p>
+    </section>
+
+    <section id="architecture" data-section="architecture" class="case-section">
+      <p class="kicker">04 / Architecture</p>
+      <h2>Architecture</h2>
+      <p>{study.architecture}</p>
+    </section>
+
+    <section id="decisions" data-section="decisions" class="case-section">
+      <p class="kicker">05 / Three decisions</p>
+      <h2>Three decisions</h2>
+      <ol class="decision-list">
+        {
+          study.decisions.map((decision, index) => (
+            <li class="decision">
+              <p class="decision-index" aria-hidden="true">D{index + 1}</p>
+              <h3>{decision.title}</h3>
+              <p>
+                <span class="decision-label">Decision</span>
+                {decision.choice}
+              </p>
+              <p>
+                <span class="decision-label">Rejected alternative</span>
+                {decision.rejected}
+              </p>
+              <p>
+                <span class="decision-label">Cost</span>
+                {decision.cost}
+              </p>
+              <p>
+                <span class="decision-label">Evidence</span>
+                {decision.evidence}
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+
+    <section id="failure" data-section="failure" class="case-section">
+      <p class="kicker">06 / What broke</p>
+      <h2>What broke</h2>
+      {
+        study.failures.map((failure) => (
+          <article class="failure">
+            <p class="failure-meta">
+              <time datetime={failure.date}>{failure.date}</time>
+              <span aria-hidden="true"> / </span>
+              commit <code>{failure.commit}</code>
+            </p>
+            <p>{failure.summary}</p>
+            <p>
+              <span class="decision-label">Process change</span>
+              {failure.processChange}
+            </p>
+          </article>
+        ))
+      }
+    </section>
+
+    <section id="metrics" data-section="metrics" class="case-section">
+      <p class="kicker">07 / Metrics and method</p>
+      <h2>Metrics and method</h2>
+      <div class="metric-scroll">
+        <table class="metric-table">
+          <caption>Measured results and the method behind each value.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Metric</th>
+              <th scope="col">Value</th>
+              <th scope="col">Method</th>
+              <th scope="col">Artifact</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              study.metrics.map((metric) => (
+                <tr>
+                  <th scope="row">{metric.label}</th>
+                  <td class="metric-value">{metric.value}</td>
+                  <td>{metric.method}</td>
+                  <td><code>{metric.artifact}</code></td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="screenshots" data-section="screenshots" class="case-section">
+      <p class="kicker">08 / Screenshots</p>
+      <h2>Screenshots</h2>
+      <div class="screenshot-grid">
+        {
+          screenshots.map(({ caption, shot }) =>
+            shot ? (
+              <figure class="screenshot">
+                <img
+                  src={`/assets/${entry.id}/${shot.file}`}
+                  srcset={`/assets/${entry.id}/${shot.file} ${shot.width}w`}
+                  sizes="(min-width: 960px) 33vw, 100vw"
+                  width={shot.width}
+                  height={shot.height}
+                  alt={shot.alt}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <figcaption>{caption}</figcaption>
+              </figure>
+            ) : (
+              <figure class="screenshot screenshot-missing">
+                <div class="screenshot-placeholder">Snapshot not yet published</div>
+                <figcaption>{caption}</figcaption>
+              </figure>
+            ),
+          )
+        }
+      </div>
+    </section>
+
+    <section id="links" data-section="links" class="case-section">
+      <p class="kicker">09 / Demo and repository</p>
+      <h2>Demo and repository</h2>
+      <ul class="case-links">
+        {
+          study.links.map((link) => (
+            <li>
+              <a href={link.href} rel="noreferrer">{link.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section id="next" data-section="next" class="case-section">
+      <p class="kicker">10 / What I would do next</p>
+      <h2>What I would do next</h2>
+      <ul class="next-list">
+        {study.next.map((step) => <li>{step}</li>)}
+      </ul>
+      <p class="case-return"><a href="/">Back to the case index</a></p>
+    </section>
+  </article>
+</Base>
