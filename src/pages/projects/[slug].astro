@@ -7,6 +7,7 @@ import {
   formatUpdated,
   SECTION_ORDER,
 } from "../../lib/case-study";
+import { SITE_URL } from "../../lib/site";
 
 export async function getStaticPaths() {
   const entries = await getCollection("projects");
@@ -27,9 +28,30 @@ const screenshots = study.screenshots.map((screenshot, index) => {
 
 const updatedLabel = formatUpdated(study.updatedAt);
 const number = String(study.order).padStart(2, "0");
+
+const creativeWork = {
+  "@context": "https://schema.org",
+  "@type": "CreativeWork",
+  name: study.title,
+  headline: study.claim,
+  abstract: study.oneLiner,
+  dateModified: study.updatedAt,
+  url: `${SITE_URL}/projects/${entry.id}/`,
+  author: {
+    "@type": "Person",
+    name: "GHamine",
+    url: `${SITE_URL}/`,
+  },
+  keywords: study.stack.join(", "),
+};
 ---
 
-<Base title={study.title} description={study.oneLiner}>
+<Base
+  title={study.title}
+  description={study.oneLiner}
+  jsonLd={creativeWork}
+  ogImage={`/og/${entry.id}.png`}
+>
   <article class="case-study">
     <header id="claim" data-section="claim" class="case-header">
       <div class="case-topline">

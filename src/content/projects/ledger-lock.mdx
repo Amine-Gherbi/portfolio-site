@@ -17,8 +17,8 @@ problem: >-
   could report -1 units while every response looked successful.
 constraint: >-
   The API had to stay on PostgreSQL 15 with no application-level queue. A single
-  row lock had to hold under 20 concurrent clients, and a rejected buyer still
-  needed an auditable outcome.
+  row lock had to hold under the 20 concurrent clients in the seed, and a
+  rejected buyer still needed an auditable outcome.
 architecture: >-
   The reservation endpoint opens one transaction, takes SELECT ... FOR UPDATE on
   the stock row, inserts either a committed reservation or a rejection event,

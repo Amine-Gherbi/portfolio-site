@@ -868,3 +868,260 @@ main {
     font-size: 27px;
   }
 }
+
+/* Editorial pages: about, resume, colophon */
+
+.site-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-nav a {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.site-nav a:hover {
+  color: var(--ink);
+}
+
+.prose-page {
+  width: min(100%, var(--project-grid));
+  margin: 0 auto;
+  padding: 72px 32px 96px;
+}
+
+.page-header {
+  max-width: 1040px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.page-header h1 {
+  margin-top: 20px;
+  font-size: clamp(2.4rem, 5vw, 4.4rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.prose-body {
+  max-width: var(--measure);
+  padding-top: 32px;
+}
+
+.prose-body p {
+  color: #35322d;
+}
+
+.prose-body p + p {
+  margin-top: 20px;
+}
+
+.prose-body a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.prose-body code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+}
+
+.prose-body ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #35322d;
+}
+
+.prose-body li + li {
+  margin-top: 8px;
+}
+
+.prose-body h2 {
+  font-size: 28px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.prose-body h3 {
+  font-size: 21px;
+  line-height: 1.2;
+}
+
+.colophon-line {
+  padding: 20px;
+  border: 1px solid var(--rule);
+  background: #f3f0ea;
+  color: var(--ink);
+}
+
+.colophon-section {
+  margin-top: 48px;
+}
+
+.colophon-section h2 {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.colophon-section p {
+  margin-top: 16px;
+}
+
+.colophon-list {
+  margin: 16px 0 0;
+}
+
+.colophon-list > div {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.colophon-list dt {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.colophon-list dd {
+  margin: 0;
+  color: #35322d;
+}
+
+.resume-header {
+  max-width: 1040px;
+}
+
+.resume-role {
+  margin-top: 12px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.resume-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 16px;
+}
+
+.resume-contact a {
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.resume-download {
+  margin-top: 24px;
+}
+
+.resume-download a {
+  display: inline-block;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--ink);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.resume-section {
+  margin-top: 40px;
+}
+
+.resume-section:first-child {
+  margin-top: 0;
+}
+
+.resume-section h2 {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.resume-section > p {
+  margin-top: 14px;
+}
+
+.resume-section > ul {
+  margin-top: 14px;
+}
+
+.resume-system {
+  margin-top: 24px;
+}
+
+.resume-system h3 {
+  margin-top: 0;
+}
+
+.resume-meta {
+  margin-top: 4px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.resume-system ul {
+  margin-top: 10px;
+}
+
+.resume-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  padding-left: 0 !important;
+  list-style: none;
+}
+
+.resume-skills li {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.resume-source {
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .site-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .site-nav {
+    order: 3;
+    width: 100%;
+  }
+
+  .prose-page {
+    padding-top: 48px;
+  }
+
+  .colophon-list > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}

@@ -1,0 +1,77 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base
+  title="Colophon"
+  description="What an agent produced, what the supervisor verified, and how this static site is built."
+  ogImage="/og/home.png"
+>
+  <article class="prose-page">
+    <header class="page-header">
+      <p class="kicker">Colophon</p>
+      <h1>Who made this, and what was checked.</h1>
+    </header>
+
+    <div class="prose-body">
+      <p class="colophon-line">
+        An agent (Claude Code 2.1.308, deepseek-v4.1-flash) wrote every file
+        under <code>src/</code>, <code>scripts/</code> and
+        <code>public/assets/</code>; the supervisor wrote the positioning
+        sentence, the task card and its definition of done, the asset-manifest
+        rules, <code>CLAUDE.md</code> and <code>docs/INVARIANTS.md</code>, and
+        verified <code>npm run verify</code> and the three case-study failure
+        modes by hand.
+      </p>
+      <p>
+        The full account is in the <a href="/docs/BUILD-LOG.md">build log</a>
+        (<code>docs/BUILD-LOG.md</code>).
+      </p>
+
+      <section class="colophon-section" aria-labelledby="colophon-build">
+        <h2 id="colophon-build">Build</h2>
+        <dl class="colophon-list">
+          <div>
+            <dt>Framework</dt>
+            <dd>Astro 5, static output, no adapters</dd>
+          </div>
+          <div>
+            <dt>Styles</dt>
+            <dd>Tailwind v4 through @tailwindcss/vite, plus one global stylesheet</dd>
+          </div>
+          <div>
+            <dt>Content</dt>
+            <dd>Three committed case-study snapshots, validated at build time</dd>
+          </div>
+          <div>
+            <dt>Social images</dt>
+            <dd>4 PNG files rendered at build time with satori and @resvg/resvg-js from system fonts</dd>
+          </div>
+          <div>
+            <dt>Resume</dt>
+            <dd>1 PDF generated from src/data/resume.json with pdf-lib, no headless browser</dd>
+          </div>
+          <div>
+            <dt>Client JS</dt>
+            <dd>0 KB; the site ships no scripts and no tracking</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="colophon-section" aria-labelledby="colophon-verify">
+        <h2 id="colophon-verify">Verification</h2>
+        <p>
+          <code>npm run verify</code> runs Astro's type check, <code>tsc
+          --noEmit</code>, the asset and content contracts, the copy audit, the
+          static accessibility audit, the JavaScript budget and the build. A
+          failing check exits non-zero.
+        </p>
+        <p>
+          Lighthouse and axe have not been run in this environment because no
+          browser is available. <code>README.md</code> records the exact
+          commands a reviewer can run.
+        </p>
+      </section>
+    </div>
+  </article>
+</Base>

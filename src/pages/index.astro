@@ -3,6 +3,7 @@ import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
 import ProjectCard from "../components/ProjectCard.astro";
 import { readProjectManifest } from "../lib/manifest";
+import { SITE_URL } from "../lib/site";
 
 const positioningSentence =
   "I build full-stack systems and can prove their correctness: 20 concurrent buyers never oversell, a red PR never merges, and no answer ships without a citation.";
@@ -28,11 +29,25 @@ const updatedFormatter = new Intl.DateTimeFormat("en-GB", {
 function formatUpdated(isoDate: string): string {
   return updatedFormatter.format(new Date(`${isoDate}T00:00:00.000Z`));
 }
+
+const person = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "GHamine",
+  url: `${SITE_URL}/`,
+  jobTitle: "Systems engineer",
+  description:
+    "Full-stack engineer who states each system as a falsifiable claim and ships the measurement with it.",
+  knowsAbout: ["PostgreSQL", "GitHub Actions", "Retrieval systems"],
+  sameAs: ["https://github.com/GHamine"],
+};
 ---
 
 <Base
   title="Engineering case index"
   description="Three full-stack systems, each stated as a falsifiable claim and shown against a committed snapshot."
+  jsonLd={person}
+  ogImage="/og/home.png"
 >
   <header class="hero">
     <div class="hero-topline">

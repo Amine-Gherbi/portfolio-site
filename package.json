@@ -8,18 +8,25 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "npm run build:resume && astro build",
     "preview": "astro preview",
+    "build:resume": "node scripts/build-resume-pdf.mjs",
     "check:assets": "node scripts/check-assets.mjs",
     "check:content": "node scripts/check-content.mjs",
+    "check:copy": "node scripts/check-copy.mjs",
+    "check:a11y": "node scripts/check-a11y.mjs",
+    "check:js": "node scripts/check-js-budget.mjs",
     "sync:assets": "node scripts/sync-assets.mjs",
     "test:assets": "node --test tests/asset-contract.test.mjs",
     "fixtures": "node scripts/fixture-images.mjs",
-    "verify": "astro check && tsc --noEmit && npm run check:assets && npm run check:content && astro build && node scripts/check-content.mjs --dist"
+    "verify": "astro check && tsc --noEmit && npm run check:assets && npm run check:content && npm run check:copy && npm run build:resume && astro build && node scripts/check-content.mjs --dist && node scripts/check-copy.mjs --dist && npm run check:a11y && npm run check:js"
   },
   "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^5.18.2",
+    "pdf-lib": "^1.17.1",
+    "satori": "^0.63.2",
     "sharp": "^0.35.5",
     "tailwindcss": "^4.3.3",
     "yaml": "^2.9.1",
@@ -28,6 +35,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
     "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
     "typescript": "^5.9.3"
   }
 }

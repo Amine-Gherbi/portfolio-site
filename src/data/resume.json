@@ -1,0 +1,56 @@
+{
+  "name": "GHamine",
+  "role": "Systems engineer",
+  "generatedAt": "2026-10-23",
+  "summary": "I build full-stack systems and measure whether their stated invariants hold. The three case studies on this site ship the fixture, the artifact path and the limits behind every number.",
+  "contact": [
+    { "label": "GitHub", "value": "github.com/GHamine", "href": "https://github.com/GHamine" },
+    { "label": "Site", "value": "ghamine.dev", "href": "https://ghamine.dev" }
+  ],
+  "skills": [
+    "PostgreSQL",
+    "SQLite / FTS5",
+    "Node.js",
+    "TypeScript",
+    "Python / FastAPI",
+    "GitHub Actions",
+    "pgTAP",
+    "Astro"
+  ],
+  "systems": [
+    {
+      "title": "Ledger Lock",
+      "meta": "PostgreSQL, Node.js, pgTAP",
+      "bullets": [
+        "Held 1 unit of stock against 20 concurrent buyers: 1 committed reservation, 19 rejection events, 0 oversold units across 3 seeded runs.",
+        "Moved the rejection insert inside the reservation transaction after commit 4f1c2ab left 2 outcomes for 1 decision; the seed now runs a forced-rollback case before each release."
+      ]
+    },
+    {
+      "title": "Merge Gate",
+      "meta": "GitHub Actions, TypeScript, SQLite",
+      "bullets": [
+        "Blocked 1 of 1 red pull requests and let 0 red merges reach main by making policy-gate a required check backed by rules stored in SQLite.",
+        "Fetches the head SHA at check time after commit b7d9e10 judged the previous SHA on a force-push; the fixture now includes that case."
+      ]
+    },
+    {
+      "title": "Citation Desk",
+      "meta": "Python, FastAPI, SQLite",
+      "bullets": [
+        "Returned 12 of 12 answers with a resolvable passage id on the 12-question fixture, with 0 uncited answers shipped and 3 explicit refusals.",
+        "Replaced embeddings with FTS5 retrieval: 1 correct answer lost, 400 MB model download and 3 s cold start removed."
+      ]
+    }
+  ],
+  "verification": [
+    "npm run verify runs astro check, tsc, the asset and content contracts, the copy and accessibility audits, the JS budget, and a static build.",
+    "Every numeric claim links to a committed artifact under public/assets/<slug>/.",
+    "The site ships no client-side JavaScript and no tracking."
+  ],
+  "limits": [
+    "The fixtures are seeded and small: 1 unit, 1 pull request, 12 questions.",
+    "The measurements prove the stated invariants hold on those fixtures, not that they hold at production scale.",
+    "The repositories are snapshots; the case pages do not call live services."
+  ]
+}

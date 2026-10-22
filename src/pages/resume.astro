@@ -1,0 +1,77 @@
+---
+import Base from "../layouts/Base.astro";
+import resume from "../data/resume.json";
+---
+
+<Base
+  title="Resume"
+  description={`${resume.name}, ${resume.role}. Selected systems with measured results and their limits.`}
+  ogImage="/og/home.png"
+>
+  <article class="prose-page resume-page">
+    <header class="page-header resume-header">
+      <p class="kicker">Resume / updated {resume.generatedAt}</p>
+      <h1>{resume.name}</h1>
+      <p class="resume-role">{resume.role}</p>
+      <p class="resume-contact">
+        {
+          resume.contact.map((entry) => (
+            <a href={entry.href} rel="noreferrer">{entry.value}</a>
+          ))
+        }
+      </p>
+      <p class="resume-download">
+        <a href="/resume.pdf" download>Download the PDF</a>
+      </p>
+    </header>
+
+    <div class="prose-body">
+      <section class="resume-section" aria-labelledby="resume-summary">
+        <h2 id="resume-summary">Summary</h2>
+        <p>{resume.summary}</p>
+      </section>
+
+      <section class="resume-section" aria-labelledby="resume-systems">
+        <h2 id="resume-systems">Selected systems</h2>
+        {
+          resume.systems.map((system) => (
+            <article class="resume-system">
+              <h3>{system.title}</h3>
+              <p class="resume-meta">{system.meta}</p>
+              <ul>
+                {system.bullets.map((bullet) => <li>{bullet}</li>)}
+              </ul>
+            </article>
+          ))
+        }
+      </section>
+
+      <section class="resume-section" aria-labelledby="resume-skills">
+        <h2 id="resume-skills">Skills</h2>
+        <ul class="resume-skills">
+          {resume.skills.map((skill) => <li>{skill}</li>)}
+        </ul>
+      </section>
+
+      <section class="resume-section" aria-labelledby="resume-verification">
+        <h2 id="resume-verification">Verification</h2>
+        <ul>
+          {resume.verification.map((item) => <li>{item}</li>)}
+        </ul>
+      </section>
+
+      <section class="resume-section" aria-labelledby="resume-limits">
+        <h2 id="resume-limits">Limits</h2>
+        <ul>
+          {resume.limits.map((limit) => <li>{limit}</li>)}
+        </ul>
+      </section>
+
+      <p class="resume-source">
+        The <a href="/resume.pdf" download>PDF</a> is generated from
+        <code>src/data/resume.json</code> by <code>scripts/build-resume-pdf.mjs</code>
+        during <code>npm run build</code>.
+      </p>
+    </div>
+  </article>
+</Base>
