@@ -1,0 +1,18 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base
+  title="Page not found"
+  description="The requested page is not part of this case index."
+>
+  <section class="not-found" aria-labelledby="not-found-heading">
+    <p class="kicker">Error 404</p>
+    <h1 id="not-found-heading">Page not found.</h1>
+    <p class="not-found-copy">
+      The address does not match a page in this index. The three case studies
+      are listed on the home page.
+    </p>
+    <a class="return-link" href="/">Return to the case index</a>
+  </section>
+</Base>

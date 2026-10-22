@@ -1,0 +1,17 @@
+{
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "stripe@claude-plugins-official": false,
+    "claude-security@claude-plugins-official": false,
+    "commit-commands@claude-plugins-official": false,
+    "pyright-lsp@claude-plugins-official": false,
+    "deepeval@claude-plugins-official": false
+  },
+  "enabledMcpjsonServers": ["playwright"],
+  "permissions": {
+    "allow": ["Bash(npm:*)", "Bash(npx:*)", "Bash(git:*)", "Bash(node:*)"],
+    "deny": ["Read(.env)", "Edit(.env)", "Bash(git push --force:*)"]
+  }
+}

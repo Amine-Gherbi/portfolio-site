@@ -1,0 +1,31 @@
+{
+  "project": "ledger-lock",
+  "generatedAt": "2026-10-08T00:00:00.000Z",
+  "seeded": true,
+  "shots": [
+    {
+      "file": "hero.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Ledger Lock cover: run summary showing 20 concurrent buyers, one unit of stock, and zero oversold units."
+    },
+    {
+      "file": "shot-01.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Ledger Lock event ledger with eight seeded buyer requests, one committed reservation, and seven rejections."
+    },
+    {
+      "file": "shot-02.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Ledger Lock write path from BEGIN through row lock to commit or reject."
+    },
+    {
+      "file": "shot-03.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Ledger Lock evidence matrix mapping four invariant checks to committed artifacts."
+    }
+  ]
+}

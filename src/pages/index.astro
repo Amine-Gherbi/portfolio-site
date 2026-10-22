@@ -1,0 +1,86 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../layouts/Base.astro";
+import ProjectCard from "../components/ProjectCard.astro";
+import { readProjectManifest } from "../lib/manifest";
+
+const positioningSentence =
+  "I build full-stack systems and can prove their correctness: 20 concurrent buyers never oversell, a red PR never merges, and no answer ships without a citation.";
+
+const entries = await getCollection("projects");
+entries.sort((a, b) => a.data.order - b.data.order);
+
+const cards = await Promise.all(
+  entries.map(async (entry) => {
+    const { Content } = await render(entry);
+    const manifest = await readProjectManifest(entry.id);
+
+    return { entry, Content, manifest };
+  }),
+);
+
+const updatedFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+function formatUpdated(isoDate: string): string {
+  return updatedFormatter.format(new Date(`${isoDate}T00:00:00.000Z`));
+}
+---
+
+<Base
+  title="Engineering case index"
+  description="Three full-stack systems, each stated as a falsifiable claim and shown against a committed snapshot."
+>
+  <header class="hero">
+    <div class="hero-topline">
+      <span class="kicker">Portfolio / 2026</span>
+      <span class="kicker">Three case studies</span>
+    </div>
+    <h1>{positioningSentence}</h1>
+    <div class="hero-foot">
+      <p class="hero-note">
+        Each case study states a claim, the measurement behind it, and the
+        conditions where the claim stops holding.
+      </p>
+      <p class="hero-index" aria-hidden="true">01—03</p>
+    </div>
+  </header>
+
+  <section class="work" aria-labelledby="work-heading">
+    <div class="section-head">
+      <h2 id="work-heading">Selected systems</h2>
+      <p class="section-meta">Updated from committed snapshots</p>
+    </div>
+    <div class="project-grid">
+      {
+        cards.map(({ entry, Content, manifest }) => (
+          <ProjectCard
+            project={entry.data}
+            slug={entry.id}
+            manifest={manifest}
+            updatedLabel={formatUpdated(entry.data.updatedAt)}
+          >
+            <Content />
+          </ProjectCard>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="method" aria-labelledby="method-heading">
+    <div class="method-inner">
+      <p class="kicker">Method</p>
+      <h2 id="method-heading">Claims first, evidence second.</h2>
+      <p>
+        Every case begins with a sentence that can fail. The page then shows the
+        measurement that supports it, the source snapshot behind that
+        measurement, and the limits that keep the result honest.
+      </p>
+      <a href="#main">Back to the index</a>
+    </div>
+  </section>
+</Base>

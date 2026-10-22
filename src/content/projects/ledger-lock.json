@@ -1,0 +1,7 @@
+{
+  "order": 1,
+  "title": "Ledger Lock",
+  "oneLiner": "A checkout that holds its count under concurrent demand.",
+  "stack": ["PostgreSQL", "Node.js", "pgTAP"],
+  "updatedAt": "2026-10-08"
+}

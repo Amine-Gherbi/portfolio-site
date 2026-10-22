@@ -1,0 +1,50 @@
+---
+import type { ManifestShot, Project, ProjectManifest } from "../lib/manifest";
+
+interface Props {
+  project: Project;
+  slug: string;
+  manifest: ProjectManifest | null;
+  updatedLabel: string;
+}
+
+const { project, slug, manifest, updatedLabel } = Astro.props;
+const hero: ManifestShot | undefined = manifest?.shots[0];
+const number = String(project.order).padStart(2, "0");
+const headingId = `project-${slug}`;
+const imageSrc = hero ? `/assets/${slug}/${hero.file}` : "";
+---
+
+<article class="project-card reveal" aria-labelledby={headingId}>
+  {
+    hero ? (
+      <figure class="card-media">
+        <img
+          src={imageSrc}
+          srcset={`${imageSrc} ${hero.width}w`}
+          sizes="(min-width: 1120px) 356px, (min-width: 641px) 46vw, 100vw"
+          width={hero.width}
+          height={hero.height}
+          alt={hero.alt}
+          loading="lazy"
+          decoding="async"
+        />
+        <span class="card-number" aria-hidden="true">{number}</span>
+      </figure>
+    ) : (
+      <div class="card-coming-soon">
+        <span>Coming soon</span>
+      </div>
+    )
+  }
+  <div class="card-copy">
+    <div class="card-topline">
+      <span class="updated-label">Updated {updatedLabel}</span>
+      <span aria-hidden="true">{number}</span>
+    </div>
+    <h2 id={headingId}>{project.title}</h2>
+    <p class="one-liner"><em>{project.oneLiner}</em></p>
+    <p class="stack">({project.stack.join(", ")})</p>
+    <div class="card-body"><slot /></div>
+  </div>
+</article>

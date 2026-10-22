@@ -1,0 +1,31 @@
+{
+  "project": "citation-desk",
+  "generatedAt": "2026-10-14T00:00:00.000Z",
+  "seeded": true,
+  "shots": [
+    {
+      "file": "hero.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Citation Desk cover: run summary showing 18 seed questions, 18 cited answers, and zero uncited claims."
+    },
+    {
+      "file": "shot-01.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Citation Desk answer ledger with eight seeded questions, source counts, and cited or refused verdicts."
+    },
+    {
+      "file": "shot-02.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Citation Desk answer path from retrieval through claim binding to a verified cited response."
+    },
+    {
+      "file": "shot-03.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Citation Desk evidence matrix mapping four source-discipline checks to committed artifacts."
+    }
+  ]
+}

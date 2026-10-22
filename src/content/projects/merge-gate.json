@@ -1,0 +1,7 @@
+{
+  "order": 2,
+  "title": "Merge Gate",
+  "oneLiner": "A policy check that keeps a red pull request out of main.",
+  "stack": ["GitHub Actions", "TypeScript", "SQLite"],
+  "updatedAt": "2026-09-24"
+}

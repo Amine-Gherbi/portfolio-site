@@ -1,0 +1,46 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+const pageTitle = `${title} · GHamine`;
+const metaDescription =
+  description ??
+  "An engineering case index: three systems, each stated as a claim and shown against a committed snapshot.";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#faf9f7" />
+    <meta name="description" content={metaDescription} />
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="wordmark" href="/" aria-label="GHamine, home">GHamine</a>
+        <span class="site-meta">Systems engineering / case index</span>
+      </header>
+      <main id="main" tabindex="-1">
+        <slot />
+      </main>
+      <footer class="site-footer">
+        <div class="footer-inner">
+          <p class="footer-note">
+            Case studies are reproduced from snapshots committed to this repository.
+          </p>
+          <p class="footer-note">Static site · no tracking</p>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

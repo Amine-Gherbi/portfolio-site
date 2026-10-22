@@ -1,0 +1,29 @@
+{
+  "name": "portfolio-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22 <23"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check:assets": "node scripts/check-assets.mjs",
+    "fixtures": "node scripts/fixture-images.mjs",
+    "verify": "astro check && tsc --noEmit && npm run check:assets && astro build"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^5.18.2",
+    "sharp": "^0.35.5",
+    "tailwindcss": "^4.3.3",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@types/node": "^26.6.5",
+    "typescript": "^5.9.3"
+  }
+}

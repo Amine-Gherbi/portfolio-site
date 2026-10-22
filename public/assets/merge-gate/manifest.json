@@ -1,0 +1,31 @@
+{
+  "project": "merge-gate",
+  "generatedAt": "2026-09-24T00:00:00.000Z",
+  "seeded": true,
+  "shots": [
+    {
+      "file": "hero.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Merge Gate cover: run summary showing 48 policy checks, six required checks, and zero red merges."
+    },
+    {
+      "file": "shot-01.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Merge Gate decision ledger with eight seeded pull requests and their check counts and verdicts."
+    },
+    {
+      "file": "shot-02.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Merge Gate policy path from webhook receipt through required checks to a merge decision."
+    },
+    {
+      "file": "shot-03.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Merge Gate evidence matrix mapping four policy checks to committed artifacts."
+    }
+  ]
+}
