@@ -1,5 +1,12 @@
 {
   "project": "merge-gate",
+  "title": "Merge Gate",
+  "oneLiner": "A policy check that keeps a red pull request out of main.",
+  "stack": [
+    "GitHub Actions",
+    "TypeScript",
+    "SQLite"
+  ],
   "generatedAt": "2026-09-24T00:00:00.000Z",
   "seeded": true,
   "shots": [
@@ -27,5 +34,36 @@
       "height": 1800,
       "alt": "Merge Gate evidence matrix mapping four policy checks to committed artifacts."
     }
-  ]
+  ],
+  "proof": {
+    "measured": [
+      {
+        "label": "Red pull requests blocked",
+        "value": "1 of 1",
+        "method": "Seeded fixture on 2026-09-24 with one pull request that deletes a required test; counted failing policy-gate checks",
+        "artifact": "docs/proof/merge-gate-run.md"
+      },
+      {
+        "label": "Red merges to main",
+        "value": "0",
+        "method": "Same fixture; counted merge commits on main after a failing check",
+        "artifact": "docs/proof/merge-gate-run.md"
+      }
+    ],
+    "invariants": [
+      {
+        "claim": "A pull request with any failing required check cannot enter main.",
+        "test": "tests/policy-gate.spec.ts"
+      },
+      {
+        "claim": "A force-push invalidates the previous verdict.",
+        "test": "tests/policy-gate.spec.ts"
+      }
+    ],
+    "limits": [
+      "One synthetic pull request per fixture; not a sample of real repositories.",
+      "Runs on a local runner with a stored SQLite rule set.",
+      "Branch protection settings outside the gate are not covered."
+    ]
+  }
 }

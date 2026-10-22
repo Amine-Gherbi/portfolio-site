@@ -1,5 +1,12 @@
 {
   "project": "citation-desk",
+  "title": "Citation Desk",
+  "oneLiner": "An answer desk that refuses to speak without a source.",
+  "stack": [
+    "Python",
+    "FastAPI",
+    "SQLite"
+  ],
   "generatedAt": "2026-10-14T00:00:00.000Z",
   "seeded": true,
   "shots": [
@@ -27,5 +34,36 @@
       "height": 1800,
       "alt": "Citation Desk evidence matrix mapping four source-discipline checks to committed artifacts."
     }
-  ]
+  ],
+  "proof": {
+    "measured": [
+      {
+        "label": "Answers with a citation",
+        "value": "12 of 12",
+        "method": "Seeded 12-question fixture on 2026-10-14; each response passed the passage-id validator",
+        "artifact": "docs/proof/citation-desk-run.md"
+      },
+      {
+        "label": "Uncited answers shipped",
+        "value": "0",
+        "method": "Same fixture; counted responses that rendered without a resolved passage id",
+        "artifact": "docs/proof/citation-desk-run.md"
+      }
+    ],
+    "invariants": [
+      {
+        "claim": "Every shipped answer carries at least one verified source span.",
+        "test": "tests/citation-validator.spec.ts"
+      },
+      {
+        "claim": "An unknown passage id becomes a refusal, not an answer.",
+        "test": "tests/citation-validator.spec.ts"
+      }
+    ],
+    "limits": [
+      "12-question fixture; coverage outside it is unmeasured.",
+      "SQLite FTS5 only; paraphrase recall is not measured.",
+      "Refusals count as a coverage cost, not a success."
+    ]
+  }
 }

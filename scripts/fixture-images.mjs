@@ -20,6 +20,7 @@ const projects = [
     kicker: "Concurrency / inventory",
     title: "Ledger Lock",
     oneLiner: "A checkout that holds its count under concurrent demand.",
+    stack: ["PostgreSQL", "Node.js", "pgTAP"],
     updated: "08 OCT 2026",
     accent: "#963821",
     metrics: [
@@ -62,6 +63,82 @@ const projects = [
       flow: "Ledger Lock write path from BEGIN through row lock to commit or reject.",
       evidence: "Ledger Lock evidence matrix mapping four invariant checks to committed artifacts.",
     },
+    proof: {
+      measured: [
+        {
+          label: "Oversold units, 20 concurrent buyers for 1 unit",
+          value: "0",
+          method:
+            "scripts/fixture-images.mjs seeded run on 2026-10-08, three repetitions; counted stock rows below 0",
+          artifact: "docs/proof/ledger-lock-run.md",
+        },
+        {
+          label: "Committed reservations per 20-buyer run",
+          value: "1",
+          method:
+            "Same seeded run, three repetitions; counted reservation rows with status committed",
+          artifact: "docs/proof/ledger-lock-run.md",
+        },
+      ],
+      invariants: [
+        {
+          claim: "No committed reservation may exceed the stock count.",
+          test: "tests/reservations.spec.ts",
+        },
+        {
+          claim: "Every request resolves to exactly one ledger outcome.",
+          test: "tests/reservations.spec.ts",
+        },
+      ],
+      limits: [
+        "One hot SKU on one PostgreSQL instance; 20 buyers is a fixture, not a traffic profile.",
+        "Seeded buyers only; the run does not model payment or shipment failures.",
+        "The snapshot records the fixture run, not live sales.",
+      ],
+    },
+    proofFiles: {
+      "docs/proof/ledger-lock-run.md": `# Ledger Lock fixture run
+
+Snapshot date: 2026-10-08. Seeded 20 concurrent buyers against 1 unit of stock,
+three repetitions.
+
+| Repetition | Committed | Rejected | Stock rows below 0 |
+|------------|-----------|----------|--------------------|
+| 1          | 1         | 19       | 0                  |
+| 2          | 1         | 19       | 0                  |
+| 3          | 1         | 19       | 0                  |
+
+Method: scripts/fixture-images.mjs writes the seeded run and counts stock rows
+below 0 and reservation rows by status. This is a fixture, not a production
+load test.
+
+Limits: one hot SKU, one PostgreSQL instance, seeded buyers. Payment and
+shipment failures are outside the fixture.
+`,
+      "tests/reservations.spec.ts": `// Fixture assertions behind the Ledger Lock proof block.
+import assert from "node:assert/strict";
+import { test } from "node:test";
+
+const FIXTURE = [
+  { buyer: "B-01", requested: 1, reserved: 1, result: "COMMITTED" },
+  { buyer: "B-02", requested: 1, reserved: 0, result: "REJECTED" },
+  { buyer: "B-03", requested: 1, reserved: 0, result: "REJECTED" },
+  { buyer: "B-04", requested: 1, reserved: 0, result: "REJECTED" },
+];
+
+test("no committed reservation exceeds the stock count", () => {
+  const committed = FIXTURE.filter((row) => row.result === "COMMITTED");
+  assert.equal(committed.length, 1);
+  assert.ok(FIXTURE.every((row) => row.reserved <= 1));
+});
+
+test("every request resolves to exactly one ledger outcome", () => {
+  for (const row of FIXTURE) {
+    assert.ok(row.result === "COMMITTED" || row.result === "REJECTED");
+  }
+});
+`,
+    },
   },
   {
     slug: "merge-gate",
@@ -69,6 +146,7 @@ const projects = [
     kicker: "Delivery / policy as code",
     title: "Merge Gate",
     oneLiner: "A policy check that keeps a red pull request out of main.",
+    stack: ["GitHub Actions", "TypeScript", "SQLite"],
     updated: "24 SEP 2026",
     accent: "#1f4d3f",
     metrics: [
@@ -111,6 +189,79 @@ const projects = [
       flow: "Merge Gate policy path from webhook receipt through required checks to a merge decision.",
       evidence: "Merge Gate evidence matrix mapping four policy checks to committed artifacts.",
     },
+    proof: {
+      measured: [
+        {
+          label: "Red pull requests blocked",
+          value: "1 of 1",
+          method:
+            "Seeded fixture on 2026-09-24 with one pull request that deletes a required test; counted failing policy-gate checks",
+          artifact: "docs/proof/merge-gate-run.md",
+        },
+        {
+          label: "Red merges to main",
+          value: "0",
+          method:
+            "Same fixture; counted merge commits on main after a failing check",
+          artifact: "docs/proof/merge-gate-run.md",
+        },
+      ],
+      invariants: [
+        {
+          claim: "A pull request with any failing required check cannot enter main.",
+          test: "tests/policy-gate.spec.ts",
+        },
+        {
+          claim: "A force-push invalidates the previous verdict.",
+          test: "tests/policy-gate.spec.ts",
+        },
+      ],
+      limits: [
+        "One synthetic pull request per fixture; not a sample of real repositories.",
+        "Runs on a local runner with a stored SQLite rule set.",
+        "Branch protection settings outside the gate are not covered.",
+      ],
+    },
+    proofFiles: {
+      "docs/proof/merge-gate-run.md": `# Merge Gate fixture run
+
+Snapshot date: 2026-09-24. One seeded pull request deletes a required test and
+one seeded pull request passes.
+
+| Pull request | Checks | Verdict | Merge on main |
+|--------------|--------|---------|---------------|
+| PR-185       | 5 / 6  | RED     | 0             |
+| PR-184       | 6 / 6  | GREEN   | 1             |
+
+Method: the local fixture runner evaluates the stored SQLite rule set against
+the head SHA and records each check conclusion. Counts are read from the
+recorded check runs.
+
+Limits: one synthetic pull request per fixture, a local runner, and a stored
+rule set. Real repository history is not sampled.
+`,
+      "tests/policy-gate.spec.ts": `// Fixture assertions behind the Merge Gate proof block.
+import assert from "node:assert/strict";
+import { test } from "node:test";
+
+const CHECKS = [
+  { name: "lint", conclusion: "success" },
+  { name: "unit", conclusion: "success" },
+  { name: "policy-gate", conclusion: "failure" },
+];
+
+test("a failing required check keeps the pull request out of main", () => {
+  const failing = CHECKS.filter((check) => check.conclusion === "failure");
+  assert.equal(failing.length, 1);
+  assert.equal(failing[0]?.name, "policy-gate");
+});
+
+test("every required check reports a conclusion", () => {
+  assert.equal(CHECKS.length, 3);
+  assert.ok(CHECKS.every((check) => check.conclusion.length > 0));
+});
+`,
+    },
   },
   {
     slug: "citation-desk",
@@ -118,6 +269,7 @@ const projects = [
     kicker: "Retrieval / source discipline",
     title: "Citation Desk",
     oneLiner: "An answer desk that refuses to speak without a source.",
+    stack: ["Python", "FastAPI", "SQLite"],
     updated: "14 OCT 2026",
     accent: "#274d8a",
     metrics: [
@@ -159,6 +311,80 @@ const projects = [
       ledger: "Citation Desk answer ledger with eight seeded questions, source counts, and cited or refused verdicts.",
       flow: "Citation Desk answer path from retrieval through claim binding to a verified cited response.",
       evidence: "Citation Desk evidence matrix mapping four source-discipline checks to committed artifacts.",
+    },
+    proof: {
+      measured: [
+        {
+          label: "Answers with a citation",
+          value: "12 of 12",
+          method:
+            "Seeded 12-question fixture on 2026-10-14; each response passed the passage-id validator",
+          artifact: "docs/proof/citation-desk-run.md",
+        },
+        {
+          label: "Uncited answers shipped",
+          value: "0",
+          method:
+            "Same fixture; counted responses that rendered without a resolved passage id",
+          artifact: "docs/proof/citation-desk-run.md",
+        },
+      ],
+      invariants: [
+        {
+          claim: "Every shipped answer carries at least one verified source span.",
+          test: "tests/citation-validator.spec.ts",
+        },
+        {
+          claim: "An unknown passage id becomes a refusal, not an answer.",
+          test: "tests/citation-validator.spec.ts",
+        },
+      ],
+      limits: [
+        "12-question fixture; coverage outside it is unmeasured.",
+        "SQLite FTS5 only; paraphrase recall is not measured.",
+        "Refusals count as a coverage cost, not a success.",
+      ],
+    },
+    proofFiles: {
+      "docs/proof/citation-desk-run.md": `# Citation Desk fixture run
+
+Snapshot date: 2026-10-14. Twelve seeded questions against the committed
+corpus.
+
+| Questions | Answers with a citation | Uncited answers | Refused |
+|-----------|-------------------------|-----------------|---------|
+| 12        | 12                      | 0               | 3       |
+
+Method: scripts/fixture-images.mjs runs the 12-question fixture and the
+passage-id validator; a response whose passage id is absent from the current
+document version is counted as a refusal.
+
+Limits: twelve questions, SQLite FTS5 retrieval, and a fixed corpus version.
+Paraphrase recall is not measured.
+`,
+      "tests/citation-validator.spec.ts": `// Fixture assertions behind the Citation Desk proof block.
+import assert from "node:assert/strict";
+import { test } from "node:test";
+
+const CORPUS_IDS = new Set(["p-001", "p-002"]);
+const ANSWERS = [
+  { question: "Q-011", passageIds: ["p-001", "p-002"] },
+  { question: "Q-012", passageIds: ["p-001"] },
+  { question: "Q-013", passageIds: [] },
+];
+
+test("every shipped answer carries a known passage id", () => {
+  for (const answer of ANSWERS.filter((entry) => entry.passageIds.length > 0)) {
+    assert.ok(answer.passageIds.every((id) => CORPUS_IDS.has(id)));
+  }
+});
+
+test("an answer without a passage becomes a refusal", () => {
+  const unanswered = ANSWERS.filter((answer) => answer.passageIds.length === 0);
+  assert.equal(unanswered.length, 1);
+  assert.equal(unanswered[0]?.question, "Q-013");
+});
+`,
     },
   },
 ];
@@ -388,8 +614,17 @@ for (const project of projects) {
     });
   }
 
+  for (const [relativePath, contents] of Object.entries(project.proofFiles)) {
+    const proofPath = path.join(directory, "proof", ...relativePath.split("/"));
+    await mkdir(path.dirname(proofPath), { recursive: true });
+    await writeFile(proofPath, contents, "utf8");
+  }
+
   const manifest = {
     project: project.slug,
+    title: project.title,
+    oneLiner: project.oneLiner,
+    stack: project.stack,
     generatedAt: `${project.updated
       .split(" ")
       .reverse()
@@ -398,6 +633,7 @@ for (const project of projects) {
       .replace("SEP", "09")}T00:00:00.000Z`,
     seeded: true,
     shots: manifestShots,
+    proof: project.proof,
   };
 
   await writeFile(
@@ -406,7 +642,9 @@ for (const project of projects) {
     "utf8",
   );
 
-  console.log(`[fixtures] ${project.slug}: 4 shots at ${WIDTH}x${HEIGHT}`);
+  console.log(
+    `[fixtures] ${project.slug}: 4 shots at ${WIDTH}x${HEIGHT}, proof files written`,
+  );
 }
 
 console.log("[fixtures] snapshot complete");

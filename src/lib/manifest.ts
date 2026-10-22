@@ -1,6 +1,11 @@
 import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
+import {
+  describeIssues,
+  projectManifestSchema,
+  resolveInside,
+} from "./manifest-schema.mjs";
 
 const isoDate = z
   .string()
@@ -16,36 +21,11 @@ export const projectSchema = z.object({
 
 export type Project = z.infer<typeof projectSchema>;
 
-const shotSchema = z.object({
-  file: z.string().regex(/^(hero|shot-0[1-3])\.webp$/),
-  width: z.literal(2880),
-  height: z.literal(1800),
-  alt: z.string().min(1),
-});
-
-const shotOrder = ["hero.webp", "shot-01.webp", "shot-02.webp", "shot-03.webp"];
-
-export const projectManifestSchema = z
-  .object({
-    project: z.string().min(1),
-    generatedAt: z.string().datetime(),
-    seeded: z.literal(true),
-    shots: z.array(shotSchema).length(4),
-  })
-  .superRefine((manifest, context) => {
-    manifest.shots.forEach((shot, index) => {
-      if (shot.file !== shotOrder[index]) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `shot ${index + 1} must be ${shotOrder[index]}`,
-          path: ["shots", index, "file"],
-        });
-      }
-    });
-  });
+export { projectManifestSchema };
 
 export type ProjectManifest = z.infer<typeof projectManifestSchema>;
 export type ManifestShot = ProjectManifest["shots"][number];
+export type ManifestProof = ProjectManifest["proof"];
 
 const assetsRoot = path.join(process.cwd(), "public", "assets");
 
@@ -57,16 +37,32 @@ function isMissingFile(error: unknown): boolean {
   );
 }
 
-function describeIssues(issues: z.ZodIssue[]): string {
-  return issues
-    .map((issue) => `${issue.path.join(".") || "manifest"}: ${issue.message}`)
-    .join("; ");
+async function assertProofFile(
+  proofRoot: string,
+  relativePath: string,
+  field: string,
+  manifestPath: string,
+): Promise<void> {
+  const resolved = resolveInside(proofRoot, relativePath);
+  if (resolved === null) {
+    throw new Error(
+      `Invalid asset manifest at ${manifestPath}: ${field} is not a safe repo-relative path ("${relativePath}")`,
+    );
+  }
+  try {
+    await access(resolved);
+  } catch (error) {
+    throw new Error(
+      `Asset manifest references a missing proof file at ${field}: expected ${resolved} (copied from ${relativePath} by sync:assets)`,
+      { cause: error },
+    );
+  }
 }
 
 /**
  * Reads the committed snapshot manifest for a project. A missing manifest is a
- * supported state and returns null; a malformed manifest or absent shot is a
- * hard build failure.
+ * supported state and returns null; a malformed manifest, an absent shot or an
+ * absent proof artifact is a hard build failure.
  */
 export async function readProjectManifest(
   slug: string,
@@ -112,6 +108,24 @@ export async function readProjectManifest(
         cause: error,
       });
     }
+  }
+
+  const proofRoot = path.join(assetsRoot, slug, "proof");
+  for (const [index, measured] of parsed.data.proof.measured.entries()) {
+    await assertProofFile(
+      proofRoot,
+      measured.artifact,
+      `proof.measured[${index}].artifact`,
+      manifestPath,
+    );
+  }
+  for (const [index, invariant] of parsed.data.proof.invariants.entries()) {
+    await assertProofFile(
+      proofRoot,
+      invariant.test,
+      `proof.invariants[${index}].test`,
+      manifestPath,
+    );
   }
 
   return parsed.data;

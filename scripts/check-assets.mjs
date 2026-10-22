@@ -1,21 +1,36 @@
 #!/usr/bin/env node
 /**
- * Validates committed asset manifests.
+ * Validates committed asset manifests against the full snapshot contract.
  *
  * Missing manifest: a supported "coming soon" state, exit 0.
- * Invalid manifest or missing shot: a hard failure, exit 1.
+ * Invalid manifest, absent shot, or absent proof artifact: a hard failure,
+ * exit 1, with the offending field named.
+ *
+ * Environment overrides exist for tests only:
+ *   ASSET_PROJECTS_DIR  directory holding <slug>.mdx (default src/content/projects)
+ *   ASSET_ROOT          directory holding <slug>/manifest.json (default public/assets)
  */
 import { access, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import sharp from "sharp";
+import {
+  describeIssues,
+  projectManifestSchema,
+  resolveInside,
+  SHOT_HEIGHT,
+  SHOT_WIDTH,
+} from "../src/lib/manifest-schema.mjs";
 
 const ROOT = process.cwd();
-const projectsDirectory = path.join(ROOT, "src", "content", "projects");
-const assetsDirectory = path.join(ROOT, "public", "assets");
-const SHOT_ORDER = ["hero.webp", "shot-01.webp", "shot-02.webp", "shot-03.webp"];
+const projectsDirectory = process.env.ASSET_PROJECTS_DIR
+  ? path.resolve(ROOT, process.env.ASSET_PROJECTS_DIR)
+  : path.join(ROOT, "src", "content", "projects");
+const assetsDirectory = process.env.ASSET_ROOT
+  ? path.resolve(ROOT, process.env.ASSET_ROOT)
+  : path.join(ROOT, "public", "assets");
 
-function isObject(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
+const relativeToRepo = (target) =>
+  path.relative(ROOT, target).split(path.sep).join("/");
 
 async function fileExists(filePath) {
   try {
@@ -26,51 +41,75 @@ async function fileExists(filePath) {
   }
 }
 
-function validateManifest(manifest, slug) {
+async function inspectShot(filePath) {
+  try {
+    const metadata = await sharp(filePath).metadata();
+    return metadata;
+  } catch {
+    return null;
+  }
+}
+
+async function checkProofFiles(manifest, slug, assetDirectory) {
+  const errors = [];
+  const proofRoot = path.join(assetDirectory, "proof");
+
+  for (const [index, measured] of manifest.proof.measured.entries()) {
+    const field = `proof.measured[${index}].artifact`;
+    const resolved = resolveInside(proofRoot, measured.artifact);
+    if (resolved === null) {
+      errors.push(`${field} is not a safe repo-relative path: "${measured.artifact}"`);
+      continue;
+    }
+    if (!(await fileExists(resolved))) {
+      errors.push(
+        `${field} is absent from the snapshot: ${relativeToRepo(resolved)} (source path "${measured.artifact}")`,
+      );
+    }
+  }
+
+  for (const [index, invariant] of manifest.proof.invariants.entries()) {
+    const field = `proof.invariants[${index}].test`;
+    const resolved = resolveInside(proofRoot, invariant.test);
+    if (resolved === null) {
+      errors.push(`${field} is not a safe repo-relative path: "${invariant.test}"`);
+      continue;
+    }
+    if (!(await fileExists(resolved))) {
+      errors.push(
+        `${field} is absent from the snapshot: ${relativeToRepo(resolved)} (source path "${invariant.test}")`,
+      );
+    }
+  }
+
+  return errors;
+}
+
+async function checkShots(manifest, slug, assetDirectory) {
   const errors = [];
 
-  if (!isObject(manifest)) {
-    return ["manifest must be a JSON object"];
-  }
-
-  if (manifest.project !== slug) {
-    errors.push(`project is "${String(manifest.project)}", expected "${slug}"`);
-  }
-
-  if (typeof manifest.generatedAt !== "string" || Number.isNaN(Date.parse(manifest.generatedAt))) {
-    errors.push("generatedAt must be an ISO timestamp");
-  }
-
-  if (manifest.seeded !== true) {
-    errors.push("seeded must be true");
-  }
-
-  if (!Array.isArray(manifest.shots)) {
-    errors.push("shots must be an array");
-    return errors;
-  }
-
-  if (manifest.shots.length !== SHOT_ORDER.length) {
-    errors.push(`shots must contain exactly ${SHOT_ORDER.length} entries`);
-  }
-
-  manifest.shots.forEach((shot, index) => {
-    const prefix = `shots[${index}]`;
-    if (!isObject(shot)) {
-      errors.push(`${prefix} must be an object`);
-      return;
+  for (const [index, shot] of manifest.shots.entries()) {
+    const field = `shots[${index}].file`;
+    const shotPath = path.join(assetDirectory, shot.file);
+    if (!(await fileExists(shotPath))) {
+      errors.push(`${field} is absent from disk: ${relativeToRepo(shotPath)}`);
+      continue;
     }
 
-    if (shot.file !== SHOT_ORDER[index]) {
-      errors.push(`${prefix}.file must be "${SHOT_ORDER[index]}", got "${String(shot.file)}"`);
+    const metadata = await inspectShot(shotPath);
+    if (metadata === null) {
+      errors.push(`${field} is not a readable image: ${relativeToRepo(shotPath)}`);
+      continue;
     }
-    if (shot.width !== 2880 || shot.height !== 1800) {
-      errors.push(`${prefix} must declare 2880x1800`);
+    if (metadata.format !== "webp") {
+      errors.push(`${field} must be WebP, found ${String(metadata.format)}`);
     }
-    if (typeof shot.alt !== "string" || shot.alt.trim() === "") {
-      errors.push(`${prefix}.alt must be a non-empty string`);
+    if (metadata.width !== SHOT_WIDTH || metadata.height !== SHOT_HEIGHT) {
+      errors.push(
+        `${field} is ${String(metadata.width)}x${String(metadata.height)}, expected ${SHOT_WIDTH}x${SHOT_HEIGHT}`,
+      );
     }
-  });
+  }
 
   return errors;
 }
@@ -96,7 +135,8 @@ let comingSoon = 0;
 
 for (const projectFile of projectFiles) {
   const slug = path.basename(projectFile, ".mdx");
-  const manifestPath = path.join(assetsDirectory, slug, "manifest.json");
+  const assetDirectory = path.join(assetsDirectory, slug);
+  const manifestPath = path.join(assetDirectory, "manifest.json");
 
   if (!(await fileExists(manifestPath))) {
     console.log(`[assets] ${slug}: no manifest — card will say "coming soon"`);
@@ -108,31 +148,32 @@ for (const projectFile of projectFiles) {
   try {
     manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   } catch (error) {
-    failures.push(`${slug}: invalid manifest JSON (${error.message})`);
+    failures.push(`${slug}: manifest.json: invalid JSON (${error.message})`);
     continue;
   }
 
-  const errors = validateManifest(manifest, slug);
-
-  if (Array.isArray(manifest?.shots)) {
-    for (const [index, shot] of manifest.shots.entries()) {
-      if (!isObject(shot) || typeof shot.file !== "string") {
-        continue;
-      }
-
-      const shotPath = path.join(assetsDirectory, slug, shot.file);
-      if (!(await fileExists(shotPath))) {
-        errors.push(`shots[${index}].file is absent from disk: ${shotPath}`);
-      } else if (!/\.webp$/i.test(shot.file)) {
-        errors.push(`shots[${index}].file must be a .webp image`);
-      }
-    }
+  const parsed = projectManifestSchema.safeParse(manifest);
+  if (!parsed.success) {
+    failures.push(`${slug}: ${describeIssues(parsed.error.issues)}`);
+    continue;
   }
+
+  const errors = [];
+  if (parsed.data.project !== slug) {
+    errors.push(
+      `project is "${parsed.data.project}", expected "${slug}" (the directory name wins)`,
+    );
+  }
+
+  errors.push(...(await checkShots(parsed.data, slug, assetDirectory)));
+  errors.push(...(await checkProofFiles(parsed.data, slug, assetDirectory)));
 
   if (errors.length > 0) {
     failures.push(`${slug}: ${errors.join("; ")}`);
   } else {
-    console.log(`[assets] ${slug}: manifest valid, 4 shots present`);
+    console.log(
+      `[assets] ${slug}: manifest valid, 4 shots present, ${parsed.data.proof.measured.length} measurements and ${parsed.data.proof.invariants.length} invariants backed by files`,
+    );
     ready += 1;
   }
 }

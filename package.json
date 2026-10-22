@@ -12,6 +12,8 @@
     "preview": "astro preview",
     "check:assets": "node scripts/check-assets.mjs",
     "check:content": "node scripts/check-content.mjs",
+    "sync:assets": "node scripts/sync-assets.mjs",
+    "test:assets": "node --test tests/asset-contract.test.mjs",
     "fixtures": "node scripts/fixture-images.mjs",
     "verify": "astro check && tsc --noEmit && npm run check:assets && npm run check:content && astro build && node scripts/check-content.mjs --dist"
   },
