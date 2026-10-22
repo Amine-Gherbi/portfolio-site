@@ -1,0 +1,49 @@
+verify transcript — portfolio-site (P1)
+machine: Windows 11, git-bash, node v22.23.4, npm 10.9.9
+date:    2026-10-22T23:22:07+01:00
+commit:  014a0b8
+command: npm run verify
+exit:    0
+---
+
+> portfolio-site@0.1.0 verify
+> astro check && tsc --noEmit && npm run check:assets && astro build
+
+[2m23:13:13[22m [34m[content][39m Syncing content
+[2m23:13:14[22m [34m[content][39m Synced content
+[2m23:13:14[22m [34m[types][39m Generated [2m1.17s[22m
+[2m23:13:14[22m [34m[check][39m Getting diagnostics for Astro files in P:\portfolio\portfolio-site...
+Result (9 files): 
+- 0 errors
+- 0 warnings
+- 0 hints
+
+
+> portfolio-site@0.1.0 check:assets
+> node scripts/check-assets.mjs
+
+[assets] citation-desk: manifest valid, 4 shots present
+[assets] ledger-lock: manifest valid, 4 shots present
+[assets] merge-gate: manifest valid, 4 shots present
+[assets] 3 ready, 0 without a manifest; snapshot check passed
+[2m23:13:29[22m [34m[content][39m Syncing content
+[2m23:13:29[22m [34m[content][39m Synced content
+[2m23:13:29[22m [34m[types][39m Generated [2m1.13s[22m
+[2m23:13:29[22m [34m[build][39m output: [34m"static"[39m
+[2m23:13:29[22m [34m[build][39m mode: [34m"static"[39m
+[2m23:13:29[22m [34m[build][39m directory: [34mP:\portfolio\portfolio-site\dist\[39m
+[2m23:13:29[22m [34m[build][39m Collecting build info...
+[2m23:13:29[22m [34m[build][39m [32m✓ Completed in 1.17s.[39m
+[2m23:13:29[22m [34m[build][39m Building static entrypoints...
+[2m23:13:31[22m [34m[vite][39m [32m✓ built in 1.78s[39m
+[2m23:13:31[22m [34m[build][39m [32m✓ Completed in 1.86s.[39m
+
+[42m[30m generating static routes [39m[49m
+[2m23:13:31[22m [32m▶[39m src/pages/404.astro
+[2m23:13:31[22m   [34m└─[39m [2m/404.html[22m [2m(+16ms)[22m 
+[2m23:13:31[22m [32m▶[39m src/pages/index.astro
+[2m23:13:31[22m   [34m└─[39m [2m/index.html[22m [2m(+16ms)[22m 
+[2m23:13:31[22m [32m✓ Completed in 82ms.
+[39m
+[2m23:13:31[22m [34m[build][39m 2 page(s) built in [1m3.16s[22m
+[2m23:13:31[22m [34m[build][39m [1mComplete![22m
