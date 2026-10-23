@@ -12,6 +12,7 @@
   ],
   "generatedAt": "2026-10-23T00:54:59.444Z",
   "seeded": true,
+  "previewCommand": "bash scripts/demo.sh",
   "shots": [
     {
       "file": "hero.webp",

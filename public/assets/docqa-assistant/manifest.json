@@ -1,79 +1,81 @@
 {
   "project": "docqa-assistant",
-  "title": "Document Q&A assistant",
-  "oneLiner": "A PDF question-answering system that refuses when it cannot cite the source.",
+  "title": "Marginalia",
+  "oneLiner": "Ask a question about a PDF corpus and get claims whose quotes are verbatim, highlighted on the page, with an inspectable retrieval trace and a calibrated refusal.",
   "stack": [
     "Python 3.12",
     "FastAPI",
     "PostgreSQL 16 + pgvector",
     "React + Vite",
-    "PDF.js"
+    "PDF.js",
+    "ONNX Runtime"
   ],
-  "generatedAt": "2026-10-23T03:08:27+00:00",
+  "generatedAt": "2026-10-23T23:26:49+00:00",
   "seeded": true,
+  "previewCommand": "uv run docqa serve --port 8788  # then, in a second shell: npm --prefix ui run dev",
   "shots": [
     {
       "file": "hero.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Ask page with an offline cached answer, the cited span highlighted in the PDF pane, and the retrieval trace drawer open."
+      "alt": "Marginalia over the Sentence-BERT paper: citation 2 selected, its verbatim quote highlighted on PDF page 2 with a margin marker, and the matching source row in the answer pane. Seeded offline demo data; no model call."
     },
     {
       "file": "shot-01.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Eval page showing the committed report, gate values, denominators, and Wilson intervals."
+      "alt": "Citation view for the sentence-embedding question: the selected source quote is highlighted on PDF page 3, beside claims 1-3 and the source list. Seeded offline demo data; no model call."
     },
     {
       "file": "shot-02.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Failure gallery: three cases where a naive answer would be wrong, with the passages and numbers behind each verdict."
+      "alt": "Retrieval trail at the second-pass cross-encoder section: rerank rank, score, calibrated evidence probability, kept status, then the final context and decision. Recorded demo trace, not a live request."
     },
     {
       "file": "shot-03.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Cross-encoder rerank section of the trace drawer: rerank rank, score, calibrated probability, and kept/dropped for each candidate."
+      "alt": "Evaluation view of the committed eval-report.json: 2 of 5 checks met, counts and denominators, Wilson 95% ranges, report date 2026-10-23, and the stage where each question stopped."
     }
   ],
   "proof": {
     "measured": [
       {
-        "label": "retrieval recall@8, production",
-        "value": "18/24 (75.0%), Wilson 95% [55.1%, 88.0%], gate PASS",
-        "method": "bash scripts/live.sh eval on Windows 11 Pro, ONNX CPU, 2026-10-23",
+        "label": "retrieval recall@8, production (hybrid + RRF + rerank)",
+        "value": "18/24 (75.0%), Wilson 95% [55.1%, 88.0%]",
+        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU; 2026-10-23",
         "artifact": "eval-report.json"
       },
       {
-        "label": "answer rate, production",
-        "value": "8/24 (33.3%), Wilson 95% [18.0%, 53.3%], gate FAIL",
-        "method": "bash scripts/live.sh eval on Windows 11 Pro, ONNX CPU, 2026-10-23",
+        "label": "answer rate, production, free endpoint",
+        "value": "8/24 (33.3%), Wilson 95% [18.0%, 53.3%] - gate FAIL",
+        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU; 2026-10-23",
         "artifact": "eval-report.json"
       },
       {
         "label": "unanswerable refusal, production",
-        "value": "6/6 (100.0%), Wilson 95% [61.0%, 100.0%], gate PASS",
-        "method": "bash scripts/live.sh eval on Windows 11 Pro, ONNX CPU, 2026-10-23",
-        "artifact": "docs/EVAL.md"
-      },
-      {
-        "label": "citation precision, rule-based",
-        "value": "7/9 (77.8%), Wilson 95% [45.3%, 93.7%], gate FAIL",
-        "method": "bash scripts/live.sh eval; rule-based checker, not a model judge, 2026-10-23",
+        "value": "6/6 (100.0%), Wilson 95% [61.0%, 100.0%]",
+        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU; 2026-10-23",
         "artifact": "eval-report.json"
       },
       {
-        "label": "faithfulness, rule-based",
-        "value": "7/9 (77.8%), Wilson 95% [45.3%, 93.7%], gate FAIL",
-        "method": "bash scripts/live.sh eval; rule-based checker, not a model judge, 2026-10-23",
+        "label": "citation precision and faithfulness, rule-based",
+        "value": "7/9 (77.8%), Wilson 95% [45.3%, 93.7%] each - gates FAIL",
+        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU; 2026-10-23",
         "artifact": "eval-report.json"
       },
       {
-        "label": "recall@3, deliberately weakened vector-only retriever",
-        "value": "15/24 (62.5%), Wilson 95% [42.7%, 78.8%], gate FAIL",
-        "method": "uv run docqa eval --ablate vector-only; committed ablation report",
-        "artifact": "eval-report-ablation.json"
+        "label": "production eval run cost",
+        "value": "778.6 s; 30 questions; 26 model requests; 0 retries; 0 rate limits",
+        "method": "bash scripts/live.sh eval; provenance.run in eval-report.json; 2026-10-23",
+        "artifact": "docs/ENV.md"
+      },
+      {
+        "label": "forced-generation diagnostic (not a gate run)",
+        "value": "8/24 (33.3%), Wilson 95% [18.0%, 53.3%]; gate_run false",
+        "method": "bash scripts/live.sh eval --force-generation; openai-compatible:openai-fast; 2026-10-23",
+        "artifact": "eval-report-forced.json"
       }
     ],
     "invariants": [
@@ -98,7 +100,7 @@
         "test": "tests/test_eval.py"
       },
       {
-        "claim": "The judge model differs from the generator and is pinned by exact id.",
+        "claim": "The judge model differs from the generator and is pinned by exact id; its reliability is unverified.",
         "test": "tests/test_judge_check.py"
       },
       {
@@ -109,8 +111,8 @@
     "limits": [
       "The eval set is 30 questions (24 answerable, 6 unanswerable), not the planned 100; intervals are wide.",
       "Citation precision and faithfulness are rule-based, rest on n=9, and reach down to 45.3%.",
-      "The calibration is fitted in-sample on the same 30 gold questions the eval runs.",
-      "There is no hosted URL, k6 is not installed, and the free endpoint has no SLA."
+      "The calibration is fitted in-sample on the same 30 eval questions.",
+      "Local only: no hosted URL, k6 is not installed, and the free endpoint has no SLA. The screenshots use recorded demo answers."
     ]
   }
 }

@@ -8,32 +8,34 @@
     "PostgreSQL",
     "Stripe"
   ],
-  "generatedAt": "2026-10-23T01:41:39+01:00",
+  "generatedAt": "2026-10-24T00:33:59+01:00",
   "seeded": true,
+  "demoLogin": "demo@kestrel.test / demo-password-123",
+  "previewCommand": "npm run dev",
   "shots": [
     {
       "file": "hero.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Left: terminal output of 20 concurrent checkouts on stock 5 — five 201s, fifteen 409s, stock 0, five open reservations. Right: the signed-in checkout page showing the server-computed total."
+      "alt": "Product page for the Technics SL-1200 MK5: studio photograph on the left, buy box with price, variant, quantity and the Add to cart action on the right."
     },
     {
       "file": "shot-01.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Catalog grid of seeded products with category badges, descriptions and from-prices in integer cents."
+      "alt": "Headphones category at 1440x900: brand, price and availability filters in the left rail, a four-column product grid with ink prices, and a sort control."
     },
     {
       "file": "shot-02.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Cart with two seeded variants, per-line prices, stock and a total recomputed by the server on every request."
+      "alt": "Cart table with Item, Price, Quantity and Total headers, two seeded lines at quantity 2 and 1, a server-computed order summary, and one accent checkout action."
     },
     {
       "file": "shot-03.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Admin order console showing the order state machine and a seeded REFUND_REQUIRED order with its snapshotted line items."
+      "alt": "Admin orders console showing the two seeded orders with customer, total, status and age columns, and a single accent Filter action."
     }
   ],
   "proof": {
