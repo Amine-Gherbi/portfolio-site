@@ -6,7 +6,9 @@ import { readProjectManifest } from "../lib/manifest";
 import { SITE_URL } from "../lib/site";
 
 const positioningSentence =
-  "I am a full-stack developer who builds web applications with TypeScript, Next.js, PostgreSQL and Python, with a focus on backends that produce verifiable output.";
+  "I build full-stack web systems for teams that need to prove their software works.";
+
+const coreStack = ["TypeScript", "Next.js", "PostgreSQL", "Python"];
 
 const entries = await getCollection("projects");
 entries.sort((a, b) => a.data.order - b.data.order);
@@ -39,7 +41,7 @@ const person = {
   email: "meh.amine.gherbi@gmail.com",
   description:
     "Full-stack developer in Biskra, Algeria, working with TypeScript, Next.js, PostgreSQL and Python.",
-  knowsAbout: ["TypeScript", "Next.js", "PostgreSQL", "Python"],
+  knowsAbout: coreStack,
 };
 ---
 
@@ -50,24 +52,14 @@ const person = {
   ogImage="/og/home.png"
 >
   <header class="hero">
-    <div class="hero-topline">
-      <span class="kicker">Portfolio / 2026</span>
-      <span class="kicker">Three case studies</span>
-    </div>
     <h1>{positioningSentence}</h1>
-    <div class="hero-foot">
-      <p class="hero-note">
-        Each case study describes a system, the measurement behind it, and the
-        conditions where the result stops holding.
-      </p>
-      <p class="hero-index" aria-hidden="true">01—03</p>
-    </div>
+    <p class="hero-stack">{coreStack.join(", ")}</p>
   </header>
 
-  <section class="work" aria-labelledby="work-heading">
+  <section id="work" class="work" aria-labelledby="work-heading">
     <div class="section-head">
-      <h2 id="work-heading">Selected systems</h2>
-      <p class="section-meta">Updated from committed snapshots</p>
+      <h2 id="work-heading">Selected work</h2>
+      <p class="section-meta">Three case studies</p>
     </div>
     <div class="project-grid">
       {
@@ -99,18 +91,5 @@ const person = {
       social security system and counter fraud across three organisations. The
       backend runs on Hyperledger Fabric and the frontend is built with Next.js.
     </p>
-  </section>
-
-  <section class="method" aria-labelledby="method-heading">
-    <div class="method-inner">
-      <p class="kicker">Method</p>
-      <h2 id="method-heading">Claims first, evidence second.</h2>
-      <p>
-        Every case begins with a sentence that can fail. The page then shows the
-        measurement that supports it, the source snapshot behind that
-        measurement, and the limits that keep the result honest.
-      </p>
-      <a href="#main">Back to the index</a>
-    </div>
   </section>
 </Base>

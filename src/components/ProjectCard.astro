@@ -15,21 +15,20 @@ const headingId = `project-${slug}`;
 const imageSrc = hero ? `/assets/${slug}/${hero.file}` : "";
 ---
 
-<article class="project-card reveal" aria-labelledby={headingId}>
+<article class="project-card" aria-labelledby={headingId}>
   {
     hero ? (
       <figure class="card-media">
         <img
           src={imageSrc}
           srcset={`${imageSrc} ${hero.width}w`}
-          sizes="(min-width: 1120px) 356px, (min-width: 641px) 46vw, 100vw"
+          sizes="(min-width: 1120px) 336px, (min-width: 641px) 46vw, 100vw"
           width={hero.width}
           height={hero.height}
           alt={hero.alt}
-          loading="lazy"
+          loading={project.order === 1 ? "eager" : "lazy"}
           decoding="async"
         />
-        <span class="card-number" aria-hidden="true">{number}</span>
       </figure>
     ) : (
       <div class="card-coming-soon">
@@ -38,15 +37,15 @@ const imageSrc = hero ? `/assets/${slug}/${hero.file}` : "";
     )
   }
   <div class="card-copy">
-    <div class="card-topline">
-      <span class="updated-label">Updated {updatedLabel}</span>
-      <span aria-hidden="true">{number}</span>
+    <div class="card-meta">
+      <span>Case {number}</span>
+      <span>Updated {updatedLabel}</span>
     </div>
     <h2 id={headingId}>
       <a class="card-link" href={`/projects/${slug}/`}>{project.title}</a>
     </h2>
-    <p class="one-liner"><em>{project.oneLiner}</em></p>
-    <p class="stack">({project.stack.join(", ")})</p>
+    <p class="one-liner">{project.oneLiner}</p>
+    <p class="stack">{project.stack.join(", ")}</p>
     <p class="card-read">
       <a href={`/projects/${slug}/`}>Read the case study</a>
     </p>

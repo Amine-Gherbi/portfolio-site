@@ -4,97 +4,21 @@ import Base from "../layouts/Base.astro";
 
 <Base
   title="Colophon"
-  description="What an agent produced, what the supervisor verified, and how this static site is built."
+  description="Built with Claude Code, reviewed by me. Build log and image credits."
   ogImage="/og/home.png"
 >
-  <article class="prose-page">
+  <article class="prose-page colophon-page">
     <header class="page-header">
-      <p class="kicker">Colophon</p>
-      <h1>Who made this, and what was checked.</h1>
+      <h1>Colophon</h1>
     </header>
 
-    <div class="prose-body">
-      <p class="colophon-line">
-        An agent (Claude Code 2.1.308, deepseek-v4.1-flash) wrote every file
-        under <code>src/</code>, <code>scripts/</code> and
-        <code>public/assets/</code>. In the integration phase it imported the
-        three real snapshots and wrote the case-study prose from each source
-        repository's <code>docs/PROOF.md</code> and <code>docs/INVARIANTS.md</code>.
-        The supervisor wrote the positioning sentence, the task card and its
-        definition of done, the asset-manifest rules, <code>CLAUDE.md</code> and
-        <code>docs/INVARIANTS.md</code>, and verified the earlier phase's
-        <code>npm run verify</code> and the three case-study failure modes by
-        hand.
-      </p>
-      <p class="colophon-line">
-        The opening sentence names the role and the kind of system rather than
-        quoting a measurement. It is set as a constant in
-        <code>src/pages/index.astro</code>, so changing it is an explicit code
-        change.
-      </p>
+    <div class="prose-body colophon-lines">
+      <p>Built with Claude Code, reviewed by me.</p>
       <p>
-        The full account is in the <a href="/docs/BUILD-LOG.md">build log</a>
-        (<code>docs/BUILD-LOG.md</code>).
+        The full account is in
+        <a href="/docs/BUILD-LOG.md">docs/BUILD-LOG.md</a>.
       </p>
-
-      <section class="colophon-section" aria-labelledby="colophon-build">
-        <h2 id="colophon-build">Build</h2>
-        <dl class="colophon-list">
-          <div>
-            <dt>Framework</dt>
-            <dd>Astro 5, static output, no adapters</dd>
-          </div>
-          <div>
-            <dt>Styles</dt>
-            <dd>Tailwind v4 through @tailwindcss/vite, plus one global stylesheet</dd>
-          </div>
-          <div>
-            <dt>Content</dt>
-            <dd>Three committed case-study snapshots, validated at build time</dd>
-          </div>
-          <div>
-            <dt>Thesis</dt>
-            <dd>A text-only page, with no repository card because no public repository exists</dd>
-          </div>
-          <div>
-            <dt>Measurements</dt>
-            <dd>Every metric value is read from the committed manifest and links to its proof file; test counts appear as gate checks, not metrics</dd>
-          </div>
-          <div>
-            <dt>Social images</dt>
-            <dd>4 PNG files rendered at build time with satori and @resvg/resvg-js from system fonts</dd>
-          </div>
-          <div>
-            <dt>Resume</dt>
-            <dd>1 PDF generated from src/data/resume.json with pdf-lib, no headless browser</dd>
-          </div>
-          <div>
-            <dt>Client JS</dt>
-            <dd>0 KB; the site ships no scripts and no tracking</dd>
-          </div>
-          <div>
-            <dt>Deployment</dt>
-            <dd>Local only: the built site is served on 127.0.0.1 for review, and no public deployment was made</dd>
-          </div>
-        </dl>
-      </section>
-
-      <section class="colophon-section" aria-labelledby="colophon-verify">
-        <h2 id="colophon-verify">Verification</h2>
-        <p>
-          <code>npm run verify</code> runs Astro's type check, <code>tsc
-          --noEmit</code>, the asset and content contracts, the copy audit, the
-          static accessibility audit, the JavaScript budget and the build. A
-          failing check exits non-zero. The exit status of the integration run
-          is recorded in <code>docs/BUILD-LOG.md</code>.
-        </p>
-        <p>
-          Lighthouse and axe were not run. The final index was served from
-          <code>dist/</code> on 127.0.0.1 and captured with a headless browser;
-          that capture shows the page renders, not that it passes an
-          accessibility audit.
-        </p>
-      </section>
+      <p>Image credits: seeded snapshots from the source repositories.</p>
     </div>
   </article>
 </Base>

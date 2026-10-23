@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import { NAV_ROUTES, SITE_NAME, SITE_URL } from "../lib/site";
+import resume from "../data/resume.json";
 
 interface Props {
   title: string;
@@ -17,6 +18,17 @@ const metaDescription =
 const site = Astro.site ?? new URL(SITE_URL);
 const canonical = new URL(Astro.url.pathname, site).toString();
 const socialImage = new URL(ogImage ?? "/og/home.png", site).toString();
+const currentPath = Astro.url.pathname;
+
+function isCurrent(path: string): boolean {
+  const target = path.split("#")[0] ?? path;
+
+  if (target === "/") {
+    return currentPath === "/" || currentPath.startsWith("/projects/");
+  }
+
+  return currentPath === target || currentPath.startsWith(target);
+}
 ---
 
 <!doctype html>
@@ -58,19 +70,28 @@ const socialImage = new URL(ogImage ?? "/og/home.png", site).toString();
     <a class="skip-link" href="#main">Skip to content</a>
     <div class="page-shell">
       <header class="site-header">
-        <a class="wordmark" href="/" aria-label="Mohamed L'Amine Gherbi, home"
-          >Mohamed L'Amine Gherbi</a
-        >
+        <div class="identity">
+          <a class="wordmark" href="/" aria-label={`${SITE_NAME}, home`}
+            >{SITE_NAME}</a
+          >
+          <span class="site-role">{resume.role}</span>
+        </div>
         <nav class="site-nav" aria-label="Site">
           <ul>
             {
               NAV_ROUTES.map((route) => (
-                <li><a href={route.path}>{route.label}</a></li>
+                <li>
+                  <a
+                    href={route.path}
+                    aria-current={isCurrent(route.path) ? "page" : undefined}
+                  >
+                    {route.label}
+                  </a>
+                </li>
               ))
             }
           </ul>
         </nav>
-        <span class="site-meta">Full-stack developer / case index</span>
       </header>
       <main id="main" tabindex="-1">
         <slot />
@@ -78,9 +99,9 @@ const socialImage = new URL(ogImage ?? "/og/home.png", site).toString();
       <footer class="site-footer">
         <div class="footer-inner">
           <p class="footer-note">
-            Case studies are reproduced from snapshots committed to this repository.
+            Case studies are reproduced from snapshots committed to this
+            repository. Static site, no tracking.
           </p>
-          <p class="footer-note">Static site · no tracking</p>
         </div>
       </footer>
     </div>
