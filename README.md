@@ -1,6 +1,15 @@
 # portfolio-site
 
-A static editorial hub stating one falsifiable engineering claim and proving it with three case studies. Astro 5, Tailwind v4, committed JSON/MDX content, no client-side JavaScript.
+A static editorial hub that states one falsifiable engineering claim and proves it with three case studies. Astro 5, Tailwind v4, committed JSON/MDX content, no client-side JavaScript.
+
+Nothing is published yet. [docs/DEPLOY.md](docs/DEPLOY.md) is the five-step path to a static host.
+
+## Run locally
+
+```sh
+npm install
+npm run dev          # http://localhost:4321
+```
 
 ## Commands
 
@@ -58,9 +67,9 @@ SITE_URL=https://example.com npm run build
 
 `robots.txt` is static and points at the same origin, `https://portfolio.example/sitemap.xml`; edit it when the origin changes.
 
-## Lighthouse and axe: not run
+## Lighthouse and axe
 
-There is no browser in the environment where this build was verified, so neither Lighthouse nor axe was executed. Both results are unverified. Run them against a preview server:
+Lighthouse 13.5.0 (default mobile configuration) was run against `http://localhost:4321/` served by `npm run preview` on 2026-10-23: performance 100, accessibility 100, best practices 100, SEO 100; LCP 0.9 s, CLS 0. Axe has not been run, so that result is unverified. Re-run both against a preview server:
 
 ```sh
 npm run build
@@ -74,6 +83,7 @@ Repeat `npx @axe-core/cli` for `/about/`, `/resume/`, `/colophon/`, and each `/p
 
 ## Docs
 
+- `docs/DEPLOY.md` — five steps to publish a static build, with the host settings
 - `docs/INVARIANTS.md` — rules that must not break
 - `docs/BUILD-LOG.md` — what the agent produced and what the supervisor checked
 - `docs/INTERVIEW.md` — drill questions
