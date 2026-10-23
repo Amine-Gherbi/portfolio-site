@@ -3,12 +3,11 @@ order: 2
 title: CI/CD deployment pipeline
 oneLiner: Pull-request gates, a Docker image and a local release lane with a recorded rollback.
 stack:
-  - GitHub Actions
-  - Docker Buildx
+  - Docker
   - Trivy
-  - cosign
   - Fastify
   - PostgreSQL
+  - GitHub Actions (workflow written, never run)
 updatedAt: "2026-10-23"
 claim: >-
   The local release lane rolled back a build after its smoke gate failed, and

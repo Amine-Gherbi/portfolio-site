@@ -15,7 +15,7 @@ export const projectSchema = z.object({
   order: z.number().int().positive(),
   title: z.string().min(1).max(80),
   oneLiner: z.string().min(1).max(180),
-  stack: z.array(z.string().min(1).max(40)).min(1).max(6),
+  stack: z.array(z.string().min(1).max(48)).min(1).max(6),
   updatedAt: isoDate,
 });
 

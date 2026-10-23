@@ -144,7 +144,7 @@ export const projectManifestSchema = z
     title: requiredText("title", 80),
     oneLiner: requiredText("oneLiner", 180),
     stack: z
-      .array(requiredText("stack[]", 40))
+      .array(requiredText("stack[]", 48))
       .min(1, "stack must contain at least one entry")
       .max(6, "stack must contain at most 6 entries"),
     generatedAt: z
