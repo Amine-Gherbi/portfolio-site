@@ -1,59 +1,92 @@
 {
-  "name": "GHamine",
-  "role": "Systems engineer",
+  "name": "Mohamed L'Amine Gherbi",
+  "role": "Full-stack developer",
+  "location": "Biskra, Algeria",
   "generatedAt": "2026-10-23",
-  "summary": "I build full-stack systems and measure whether their stated invariants hold. Each case study on this site carries the artifact path and the limits behind every number.",
+  "summary": "Master's graduate in Software Engineering and Distributed Systems. Backend-oriented full-stack developer working with TypeScript, Next.js, PostgreSQL and Python, with an interest in DevOps and in integrating language models into products that need verifiable output.",
   "contact": [
-    { "label": "GitHub", "value": "github.com/GHamine", "href": "https://github.com/GHamine" },
-    { "label": "Site", "value": "ghamine.dev", "href": "https://ghamine.dev" }
-  ],
-  "skills": [
-    "PostgreSQL",
-    "Node.js",
-    "TypeScript",
-    "Next.js",
-    "Python / FastAPI",
-    "pgvector",
-    "GitHub Actions",
-    "Docker",
-    "Stripe",
-    "Astro"
-  ],
-  "systems": [
     {
-      "title": "Full-Stack E-Commerce Platform",
-      "meta": "Next.js, TypeScript, PostgreSQL, Stripe",
-      "bullets": [
-        "20 concurrent checkouts against stock 5 produced 5 orders, 15 rejections, stock 0 and 5 open reservations; a conditional UPDATE and CHECK (stock >= 0) prevent oversell.",
-        "50 VUs x 5 iterations on k6: 250 checkouts with 0% errors and p95 2.66 s on a Next.js dev server. The five-minute profile was not run, and the load report states that."
-      ]
-    },
-    {
-      "title": "CI/CD pipeline with gates that actually block",
-      "meta": "GitHub Actions, Docker Buildx, Trivy, cosign, Fastify, PostgreSQL",
-      "bullets": [
-        "Eight PR gates feed one required ci-ok check; a structural check found 9 jobs and 0 unpinned uses. No Actions run exists, so red-PR blocking is not measured.",
-        "A release whose POST /invoices returned 500 failed the smoke gate and rolled back to the previous release; deploy.log records the order with timestamps."
-      ]
-    },
-    {
-      "title": "DocQA Assistant",
-      "meta": "Python, FastAPI, PostgreSQL + pgvector, React",
-      "bullets": [
-        "recall@8 18/24 (75.0%, Wilson 95% [55.1%, 88.0%]) on a 24-answerable eval set; the committed report fails answer rate, citation precision and faithfulness gates and exits 6.",
-        "Every claim needs an in-context citation whose quote is a normalised substring of the cited chunk; tests/test_citations.py fails if an uncited claim survives. Answer quality under a generator model is not measured because no model key exists."
-      ]
+      "label": "Email",
+      "value": "meh.amine.gherbi@gmail.com",
+      "href": "mailto:meh.amine.gherbi@gmail.com"
     }
   ],
-  "verification": [
-    "npm run verify runs astro check, tsc, the asset and content contracts, the copy and accessibility audits, the JS budget, and a static build.",
-    "Every metric on a case page is read from public/assets/<slug>/manifest.json and links to its committed artifact.",
-    "The site ships no client-side JavaScript and no tracking."
+  "education": [
+    {
+      "credential": "Master's in Software Engineering and Distributed Systems (GLSD)",
+      "institution": "University Mohamed Khider Biskra",
+      "years": "2023-2025"
+    },
+    {
+      "credential": "Licence (Bachelor's) in Computer Science",
+      "institution": "University Mohamed Khider Biskra",
+      "years": "2019-2023"
+    },
+    {
+      "credential": "Baccalaureate in Experimental Sciences",
+      "institution": "Bedjaoui Mohamed High School",
+      "years": "2019"
+    }
   ],
-  "limits": [
-    "The e-commerce load run used 250 checkouts on one Windows machine, not the planned production profile.",
-    "The CI repository has no remote: workflow structure is verified, Actions execution is not.",
-    "DocQA has no generator model key; answers use the extractive fallback and three eval gates fail.",
-    "The deployments are local only; no public URL exists for any of the three systems."
-  ]
+  "experience": [
+    {
+      "role": "Freelance full-stack developer",
+      "organisation": "Self-employed",
+      "location": "Biskra (remote)",
+      "period": "January 2025 - present"
+    }
+  ],
+  "skills": [
+    "Python",
+    "JavaScript",
+    "TypeScript",
+    "HTML",
+    "CSS",
+    "SQL",
+    "Java",
+    "C",
+    "C++",
+    "Bash",
+    "React",
+    "Next.js",
+    "FastAPI",
+    "Django",
+    "PostgreSQL",
+    "MySQL",
+    "MongoDB",
+    "Tailwind CSS",
+    "shadcn/ui",
+    "Git",
+    "GitHub",
+    "Docker",
+    "Linux",
+    "LLM APIs"
+  ],
+  "languages": [
+    "Arabic (native)",
+    "English (professional)",
+    "French (limited working)"
+  ],
+  "projects": [
+    {
+      "slug": "ecommerce-platform",
+      "title": "E-commerce platform",
+      "line": "Search, authentication, cart and Stripe test checkout with server-side price validation."
+    },
+    {
+      "slug": "cicd-pipeline",
+      "title": "CI/CD deployment pipeline",
+      "line": "Pull-request checks and tests, Docker image builds, and deploys of successful builds to a staging environment."
+    },
+    {
+      "slug": "docqa-assistant",
+      "title": "Document Q&A assistant",
+      "line": "Ask questions in natural language about uploaded PDFs and get answers with source citations."
+    }
+  ],
+  "thesis": {
+    "title": "Enhancing the Integrity of Algeria's Social Security System: Addressing Fraudulent Activities through Blockchain Technology",
+    "summary": "A blockchain platform built to strengthen the integrity of Algeria's social security system and counter fraud across three organisations. Hyperledger Fabric backend, Next.js frontend.",
+    "href": "/projects/thesis/"
+  }
 }

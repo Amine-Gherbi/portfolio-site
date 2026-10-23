@@ -146,27 +146,76 @@ drawLines(wrap(resume.summary, regular, 10, CONTENT_WIDTH), {
   leading: 1.5,
 });
 
-heading("Selected systems");
-for (const system of resume.systems) {
-  ensure(80);
+heading("Experience");
+for (const entry of resume.experience) {
+  ensure(56);
   y -= 6;
-  page.drawText(ascii(system.title), { x: MARGIN, y, size: 13, font: bold, color: INK });
+  page.drawText(ascii(entry.role), { x: MARGIN, y, size: 12.5, font: bold, color: INK });
+  y -= 14;
+  page.drawText(ascii(`${entry.organisation} / ${entry.location}`), {
+    x: MARGIN,
+    y,
+    size: 9.5,
+    font: italic,
+    color: MUTED,
+  });
   y -= 13;
-  page.drawText(ascii(system.meta), { x: MARGIN, y, size: 9, font: italic, color: MUTED });
-  y -= 4;
-  for (const bullet of system.bullets) {
-    const lines = wrap(bullet, regular, 10, CONTENT_WIDTH - 14);
-    lines.forEach((line, index) => {
-      ensure(15);
-      y -= 14;
-      if (index === 0) {
-        page.drawText("-", { x: MARGIN + 2, y, size: 10, font: regular, color: MUTED });
-      }
-      page.drawText(line, { x: MARGIN + 14, y, size: 10, font: regular, color: INK });
-    });
-  }
+  page.drawText(ascii(entry.period), { x: MARGIN, y, size: 9.5, font: regular, color: MUTED });
   y -= 8;
 }
+
+heading("Education");
+for (const entry of resume.education) {
+  ensure(48);
+  for (const line of wrap(entry.credential, bold, 10.5, CONTENT_WIDTH)) {
+    y -= 14;
+    page.drawText(line, { x: MARGIN, y, size: 10.5, font: bold, color: INK });
+  }
+  y -= 13;
+  page.drawText(ascii(`${entry.institution} / ${entry.years}`), {
+    x: MARGIN,
+    y,
+    size: 9.5,
+    font: regular,
+    color: MUTED,
+  });
+  y -= 8;
+}
+
+heading("Projects");
+for (const project of resume.projects) {
+  ensure(60);
+  y -= 6;
+  page.drawText(ascii(project.title), { x: MARGIN, y, size: 11.5, font: bold, color: INK });
+  y -= 14;
+  for (const line of wrap(project.line, regular, 10, CONTENT_WIDTH)) {
+    ensure(14);
+    y -= 14;
+    page.drawText(line, { x: MARGIN, y, size: 10, font: regular, color: INK });
+  }
+  y -= 3;
+  page.drawText(ascii(`Case study: /projects/${project.slug}/`), {
+    x: MARGIN,
+    y,
+    size: 8.5,
+    font: regular,
+    color: MUTED,
+  });
+  y -= 10;
+}
+
+heading("Master's thesis");
+for (const line of wrap(resume.thesis.title, bold, 11, CONTENT_WIDTH)) {
+  ensure(15);
+  y -= 14;
+  page.drawText(line, { x: MARGIN, y, size: 11, font: bold, color: INK });
+}
+y -= 4;
+drawLines(wrap(resume.thesis.summary, regular, 10, CONTENT_WIDTH), {
+  font: regular,
+  size: 10,
+  leading: 1.5,
+});
 
 heading("Skills");
 drawLines(wrap(resume.skills.join(" / "), regular, 10, CONTENT_WIDTH), {
@@ -175,33 +224,12 @@ drawLines(wrap(resume.skills.join(" / "), regular, 10, CONTENT_WIDTH), {
   leading: 1.5,
 });
 
-heading("Verification");
-for (const line of resume.verification) {
-  const lines = wrap(line, regular, 10, CONTENT_WIDTH - 14);
-  lines.forEach((wrapped, index) => {
-    ensure(15);
-    y -= 14;
-    if (index === 0) {
-      page.drawText("-", { x: MARGIN + 2, y, size: 10, font: regular, color: MUTED });
-    }
-    page.drawText(wrapped, { x: MARGIN + 14, y, size: 10, font: regular, color: INK });
-  });
-  y -= 2;
-}
-
-heading("Limits");
-for (const line of resume.limits) {
-  const lines = wrap(line, regular, 10, CONTENT_WIDTH - 14);
-  lines.forEach((wrapped, index) => {
-    ensure(15);
-    y -= 14;
-    if (index === 0) {
-      page.drawText("-", { x: MARGIN + 2, y, size: 10, font: regular, color: MUTED });
-    }
-    page.drawText(wrapped, { x: MARGIN + 14, y, size: 10, font: regular, color: INK });
-  });
-  y -= 2;
-}
+heading("Languages");
+drawLines(wrap(resume.languages.join(" / "), regular, 10, CONTENT_WIDTH), {
+  font: regular,
+  size: 10,
+  leading: 1.5,
+});
 
 ensure(30);
 y -= 24;

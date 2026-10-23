@@ -1,46 +1,72 @@
 ---
 import Base from "../layouts/Base.astro";
+import resume from "../data/resume.json";
 ---
 
 <Base
   title="About"
-  description="How the three case studies were built, what they measure, and what the verification gate checks."
+  description={`${resume.name}, ${resume.role} in ${resume.location}. Education, experience, skills and languages.`}
   ogImage="/og/home.png"
 >
   <article class="prose-page">
     <header class="page-header">
       <p class="kicker">About</p>
-      <h1>Claims that a command can check.</h1>
+      <h1>{resume.name}</h1>
+      <p class="resume-role">{resume.role} / {resume.location}</p>
     </header>
 
     <div class="prose-body">
+      <p>{resume.summary}</p>
       <p>
-        This site carries three case studies. Each starts with a claim that can
-        fail and ends with the artifact and limits behind it. The e-commerce
-        platform ran 20 concurrent checkouts against stock 5 and recorded 5
-        orders, 15 rejections and stock 0. The pipeline feeds eight PR gates into
-        one required ci-ok check, and its smoke gate rolled back a build whose
-        POST /invoices returned 500; no Actions run exists, so red-PR blocking
-        is not measured. DocQA scores recall@8 18/24 on its eval set, and three
-        production gates fail in the committed report.
+        The three case studies cover an e-commerce checkout, a CI/CD
+        deployment pipeline and a document Q&amp;A assistant. The Master's
+        thesis on blockchain and social security is on
+        <a href="/projects/thesis/">its own page</a>.
       </p>
+
+      <section class="resume-section" aria-labelledby="about-education">
+        <h2 id="about-education">Education</h2>
+        <ul class="resume-education">
+          {
+            resume.education.map((entry) => (
+              <li>
+                <strong>{entry.credential}</strong>, {entry.institution},{" "}
+                <span class="resume-years">{entry.years}</span>.
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="resume-section" aria-labelledby="about-experience">
+        <h2 id="about-experience">Experience</h2>
+        {
+          resume.experience.map((entry) => (
+            <p>
+              {entry.role}, {entry.organisation}, {entry.location}.{" "}
+              {entry.period}.
+            </p>
+          ))
+        }
+      </section>
+
+      <section class="resume-section" aria-labelledby="about-skills">
+        <h2 id="about-skills">Skills</h2>
+        <ul class="resume-skills">
+          {resume.skills.map((skill) => <li>{skill}</li>)}
+        </ul>
+      </section>
+
+      <section class="resume-section" aria-labelledby="about-languages">
+        <h2 id="about-languages">Languages</h2>
+        <ul class="resume-skills">
+          {resume.languages.map((language) => <li>{language}</li>)}
+        </ul>
+      </section>
+
       <p>
-        I work on the parts that decide whether a system is correct:
-        transaction boundaries, required checks, retrieval contracts. The
-        choice of database or framework matters less than the invariant the
-        system must hold, so each page names the invariant first and the tool
-        second.
-      </p>
-      <p>
-        The case pages are rebuilt from committed snapshots. <code>npm run
-        verify</code> runs the type check, the asset and content contracts, the
-        copy and accessibility audits, the JavaScript budget and a static
-        build. When a cited artifact is missing, the build fails.
-      </p>
-      <p>
-        I am looking for a team where correctness is a requirement and a
-        failing test is a useful result. The <a href="/resume/">resume</a> and
-        the <a href="/colophon/">colophon</a> carry the rest.
+        Email <a href="mailto:meh.amine.gherbi@gmail.com">meh.amine.gherbi@gmail.com</a>.
+        The full CV is on the <a href="/resume/">resume page</a>.
       </p>
     </div>
   </article>

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ghamine.dev/sitemap.xml
+Sitemap: https://portfolio.example/sitemap.xml

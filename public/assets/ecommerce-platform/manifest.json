@@ -1,7 +1,7 @@
 {
   "project": "ecommerce-platform",
-  "title": "Full-Stack E-Commerce Platform",
-  "oneLiner": "Server-validated checkout, reservation-based stock, idempotent webhooks.",
+  "title": "E-commerce platform",
+  "oneLiner": "Search, authentication, cart and Stripe test checkout with server-side price validation.",
   "stack": [
     "Next.js",
     "TypeScript",
@@ -86,7 +86,7 @@
       "k6 ran for 1 minute with 250 checkouts instead of the planned 5 minutes, so the p99 is a 250-sample estimate.",
       "Payments are Stripe test mode at most; without a key the PaymentIntent is a local pi_local_* value and no card is charged.",
       "No partial refunds, tax engine, shipping rates or email delivery — the refund path is all-or-nothing.",
-      "The cart is not cleared after checkout, and the demo does not model fulfilment beyond the admin status console."
+      "The cart is not cleared after checkout, and the storefront does not model fulfilment beyond the admin status console."
     ]
   }
 }

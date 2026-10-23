@@ -6,7 +6,7 @@ import { readProjectManifest } from "../lib/manifest";
 import { SITE_URL } from "../lib/site";
 
 const positioningSentence =
-  "I build full-stack systems and publish the measurement: 20 concurrent buyers on stock 5 produce 5 orders and stock 0, 9 CI jobs feed one ci-ok check, and an answer with no citation is dropped.";
+  "I am a full-stack developer who builds web applications with TypeScript, Next.js, PostgreSQL and Python, with a focus on backends that produce verifiable output.";
 
 const entries = await getCollection("projects");
 entries.sort((a, b) => a.data.order - b.data.order);
@@ -33,19 +33,19 @@ function formatUpdated(isoDate: string): string {
 const person = {
   "@context": "https://schema.org",
   "@type": "Person",
-  name: "GHamine",
+  name: "Mohamed L'Amine Gherbi",
   url: `${SITE_URL}/`,
-  jobTitle: "Systems engineer",
+  jobTitle: "Full-stack developer",
+  email: "meh.amine.gherbi@gmail.com",
   description:
-    "Full-stack engineer who states each system as a falsifiable claim and ships the measurement with it.",
-  knowsAbout: ["PostgreSQL", "GitHub Actions", "Retrieval systems"],
-  sameAs: ["https://github.com/GHamine"],
+    "Full-stack developer in Biskra, Algeria, working with TypeScript, Next.js, PostgreSQL and Python.",
+  knowsAbout: ["TypeScript", "Next.js", "PostgreSQL", "Python"],
 };
 ---
 
 <Base
-  title="Engineering case index"
-  description="Three full-stack systems, each stated as a falsifiable claim and shown against a committed snapshot."
+  title="Full-stack developer"
+  description="Three case studies: an e-commerce platform, a CI/CD deployment pipeline and a document Q&A assistant."
   jsonLd={person}
   ogImage="/og/home.png"
 >
@@ -57,8 +57,8 @@ const person = {
     <h1>{positioningSentence}</h1>
     <div class="hero-foot">
       <p class="hero-note">
-        Each case study states a claim, the measurement behind it, and the
-        conditions where the claim stops holding.
+        Each case study describes a system, the measurement behind it, and the
+        conditions where the result stops holding.
       </p>
       <p class="hero-index" aria-hidden="true">01—03</p>
     </div>
@@ -81,6 +81,24 @@ const person = {
         ))
       }
     </div>
+  </section>
+
+  <section class="work thesis-note" aria-labelledby="thesis-heading">
+    <div class="section-head">
+      <h2 id="thesis-heading">Master's thesis</h2>
+      <p class="section-meta">Text only</p>
+    </div>
+    <p class="thesis-line">
+      <a href="/projects/thesis/"
+        >Enhancing the Integrity of Algeria's Social Security System:
+        Addressing Fraudulent Activities through Blockchain Technology</a
+      >
+    </p>
+    <p class="thesis-summary">
+      A blockchain platform built to strengthen the integrity of Algeria's
+      social security system and counter fraud across three organisations. The
+      backend runs on Hyperledger Fabric and the frontend is built with Next.js.
+    </p>
   </section>
 
   <section class="method" aria-labelledby="method-heading">

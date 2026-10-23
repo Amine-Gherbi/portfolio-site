@@ -1,7 +1,7 @@
 ---
 order: 2
-title: CI/CD pipeline with gates that actually block
-oneLiner: "Eight PR gates feed one required ci-ok check; a multi-stage image is scanned in CI, and a local release lane waits for health and records a real rollback."
+title: CI/CD deployment pipeline
+oneLiner: Pull-request checks and tests, Docker image builds, and deploys of successful builds to a staging environment.
 stack:
   - GitHub Actions
   - Docker Buildx
@@ -117,8 +117,6 @@ links:
     href: /assets/cicd-pipeline/proof/deploy.log
   - label: Workflow structure check
     href: /assets/cicd-pipeline/proof/docs/evidence/workflow-structure.txt
-  - label: GitHub profile
-    href: https://github.com/GHamine
 next:
   - Add a git remote and capture the first Actions run, including a red PR.
   - Build the image on a host with a Docker daemon and record the Trivy result.

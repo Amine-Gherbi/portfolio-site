@@ -1,7 +1,7 @@
 ---
 order: 3
-title: DocQA Assistant
-oneLiner: Ask a question about a PDF corpus and get claims that point at highlighted spans, with an inspectable retrieval trace and a calibrated refusal.
+title: Document Q&A assistant
+oneLiner: Ask questions in natural language about uploaded PDFs and get answers with source citations.
 stack:
   - Python 3.12
   - FastAPI
@@ -125,8 +125,6 @@ links:
     href: /assets/docqa-assistant/proof/eval-report.json
   - label: Eval method and gates
     href: /assets/docqa-assistant/proof/docs/EVAL.md
-  - label: GitHub profile
-    href: https://github.com/GHamine
 next:
   - Refit eval/calibration.json on a larger human gold set and re-run the harness unchanged.
   - Configure a generator model key and measure answer quality without the extractive fallback.

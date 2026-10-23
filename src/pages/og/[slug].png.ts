@@ -14,10 +14,10 @@ export async function getStaticPaths() {
     params: { slug: "home" },
     props: {
       copy: {
-        eyebrow: "Engineering case index / 2026",
-        title: "I build full-stack systems and publish the measurement.",
-        body: "20 buyers on stock 5 create 5 orders and stock 0. 9 CI jobs feed one ci-ok check. Uncited answers are dropped.",
-        footer: "Three case studies, each with a committed snapshot",
+        eyebrow: "Full-stack developer / 2026",
+        title: "Web applications built with TypeScript, Next.js, PostgreSQL and Python.",
+        body: "Three case studies, each with a committed snapshot and the limits behind it.",
+        footer: "Biskra, Algeria",
       },
     },
   };

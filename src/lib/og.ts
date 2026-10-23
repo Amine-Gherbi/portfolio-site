@@ -113,7 +113,7 @@ function card(copy: OgCopy, family: string): ReactNode {
               color: "#5b5852",
             },
             children: [
-              { type: "span", props: { children: "GHamine" } },
+              { type: "span", props: { children: "Mohamed L'Amine Gherbi" } },
               { type: "span", props: { children: copy.eyebrow } },
             ],
           },
@@ -169,7 +169,7 @@ function card(copy: OgCopy, family: string): ReactNode {
             },
             children: [
               { type: "span", props: { children: copy.footer } },
-              { type: "span", props: { children: "ghamine.dev" } },
+              { type: "span", props: { children: "Full-stack developer" } },
             ],
           },
         },

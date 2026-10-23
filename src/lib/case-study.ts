@@ -94,7 +94,7 @@ export const SECTION_ORDER = [
   { id: "failure", label: "What broke" },
   { id: "metrics", label: "Metrics and method" },
   { id: "screenshots", label: "Screenshots" },
-  { id: "links", label: "Demo and repository" },
+  { id: "links", label: "Links and artifacts" },
   { id: "next", label: "What I would do next" },
 ] as const;
 

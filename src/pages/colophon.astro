@@ -27,12 +27,10 @@ import Base from "../layouts/Base.astro";
         hand.
       </p>
       <p class="colophon-line">
-        The positioning sentence changed in the integration phase. Its original
-        clause "a red PR never merges" had no artifact: the pipeline repository
-        has no remote and no GitHub Actions run exists. The agent replaced it
-        with "9 CI jobs feed one ci-ok check", which the committed workflow
-        structure check records. The change is recorded in
-        <code>docs/BUILD-LOG.md</code>.
+        The opening sentence names the role and the kind of system rather than
+        quoting a measurement. It is set as a constant in
+        <code>src/pages/index.astro</code>, so changing it is an explicit code
+        change.
       </p>
       <p>
         The full account is in the <a href="/docs/BUILD-LOG.md">build log</a>
@@ -53,6 +51,10 @@ import Base from "../layouts/Base.astro";
           <div>
             <dt>Content</dt>
             <dd>Three committed case-study snapshots, validated at build time</dd>
+          </div>
+          <div>
+            <dt>Thesis</dt>
+            <dd>A text-only page, with no repository card because no public repository exists</dd>
           </div>
           <div>
             <dt>Measurements</dt>

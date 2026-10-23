@@ -3,9 +3,9 @@
  * social metadata all derive from it. Override with SITE_URL at build time
  * (astro.config.mjs reads the same variable) when deploying to another host.
  */
-export const SITE_URL = process.env.SITE_URL ?? "https://ghamine.dev";
+export const SITE_URL = process.env.SITE_URL ?? "https://portfolio.example";
 
-export const SITE_NAME = "GHamine";
+export const SITE_NAME = "Mohamed L'Amine Gherbi";
 
 export const NAV_ROUTES = [
   { path: "/about/", label: "About" },

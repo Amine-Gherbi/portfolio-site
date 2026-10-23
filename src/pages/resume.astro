@@ -5,18 +5,18 @@ import resume from "../data/resume.json";
 
 <Base
   title="Resume"
-  description={`${resume.name}, ${resume.role}. Selected systems with measured results and their limits.`}
+  description={`${resume.name}, ${resume.role} in ${resume.location}. Education, experience, skills and languages.`}
   ogImage="/og/home.png"
 >
   <article class="prose-page resume-page">
     <header class="page-header resume-header">
       <p class="kicker">Resume / updated {resume.generatedAt}</p>
       <h1>{resume.name}</h1>
-      <p class="resume-role">{resume.role}</p>
+      <p class="resume-role">{resume.role} / {resume.location}</p>
       <p class="resume-contact">
         {
           resume.contact.map((entry) => (
-            <a href={entry.href} rel="noreferrer">{entry.value}</a>
+            <a href={entry.href}>{entry.value}</a>
           ))
         }
       </p>
@@ -31,19 +31,53 @@ import resume from "../data/resume.json";
         <p>{resume.summary}</p>
       </section>
 
-      <section class="resume-section" aria-labelledby="resume-systems">
-        <h2 id="resume-systems">Selected systems</h2>
+      <section class="resume-section" aria-labelledby="resume-experience">
+        <h2 id="resume-experience">Experience</h2>
         {
-          resume.systems.map((system) => (
+          resume.experience.map((entry) => (
             <article class="resume-system">
-              <h3>{system.title}</h3>
-              <p class="resume-meta">{system.meta}</p>
-              <ul>
-                {system.bullets.map((bullet) => <li>{bullet}</li>)}
-              </ul>
+              <h3>{entry.role}</h3>
+              <p class="resume-meta">{entry.organisation} / {entry.location}</p>
+              <p class="resume-meta">{entry.period}</p>
             </article>
           ))
         }
+      </section>
+
+      <section class="resume-section" aria-labelledby="resume-education">
+        <h2 id="resume-education">Education</h2>
+        <ul class="resume-education">
+          {
+            resume.education.map((entry) => (
+              <li>
+                <strong>{entry.credential}</strong>, {entry.institution},{" "}
+                <span class="resume-years">{entry.years}</span>.
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="resume-section" aria-labelledby="resume-projects">
+        <h2 id="resume-projects">Projects</h2>
+        {
+          resume.projects.map((project) => (
+            <article class="resume-system">
+              <h3>
+                <a href={`/projects/${project.slug}/`}>{project.title}</a>
+              </h3>
+              <p>{project.line}</p>
+            </article>
+          ))
+        }
+      </section>
+
+      <section class="resume-section" aria-labelledby="resume-thesis">
+        <h2 id="resume-thesis">Master's thesis</h2>
+        <p>
+          <a href={resume.thesis.href}>{resume.thesis.title}</a>
+        </p>
+        <p>{resume.thesis.summary}</p>
       </section>
 
       <section class="resume-section" aria-labelledby="resume-skills">
@@ -53,17 +87,10 @@ import resume from "../data/resume.json";
         </ul>
       </section>
 
-      <section class="resume-section" aria-labelledby="resume-verification">
-        <h2 id="resume-verification">Verification</h2>
-        <ul>
-          {resume.verification.map((item) => <li>{item}</li>)}
-        </ul>
-      </section>
-
-      <section class="resume-section" aria-labelledby="resume-limits">
-        <h2 id="resume-limits">Limits</h2>
-        <ul>
-          {resume.limits.map((limit) => <li>{limit}</li>)}
+      <section class="resume-section" aria-labelledby="resume-languages">
+        <h2 id="resume-languages">Languages</h2>
+        <ul class="resume-skills">
+          {resume.languages.map((language) => <li>{language}</li>)}
         </ul>
       </section>
 

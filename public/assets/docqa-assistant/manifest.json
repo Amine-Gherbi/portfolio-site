@@ -1,7 +1,7 @@
 {
   "project": "docqa-assistant",
-  "title": "DocQA Assistant",
-  "oneLiner": "Ask a question about a PDF corpus and get claims that point at highlighted spans, with an inspectable retrieval trace and a calibrated refusal.",
+  "title": "Document Q&A assistant",
+  "oneLiner": "Ask questions in natural language about uploaded PDFs and get answers with source citations.",
   "stack": [
     "Python 3.12",
     "FastAPI",
@@ -16,7 +16,7 @@
       "file": "hero.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Ask page with an offline demo answer, the cited span highlighted in the PDF pane, and the retrieval trace drawer open."
+      "alt": "Ask page with an offline cached answer, the cited span highlighted in the PDF pane, and the retrieval trace drawer open."
     },
     {
       "file": "shot-01.webp",
@@ -110,7 +110,7 @@
       "No generator model key on this machine: answers use the labelled extractive fallback, and the answer-rate gate fails at 5/24.",
       "The eval set is 30 questions (24 answerable), not the planned 100; the Wilson intervals are correspondingly wide.",
       "Judge reliability (Cohen's kappa) is unverified: eval/judge.yaml is pinned, but no judge endpoint or human anchor set exists.",
-      "Local only: no hosted URL, no demo video, and the k6 concurrency scenario is unverified because k6 is not installed on this machine.",
+      "Local only: no hosted URL, and the k6 concurrency scenario is unverified because k6 is not installed on this machine.",
       "The corpus PDFs are not committed; this snapshot is reproducible only after scripts/fetch-corpus has materialised the locked files."
     ]
   }

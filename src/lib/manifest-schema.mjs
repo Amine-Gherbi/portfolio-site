@@ -112,6 +112,19 @@ const proofSchema = z.object({
     .min(3, "proof.limits must contain at least 3 entries"),
 });
 
+/**
+ * A demo block is optional and never required for a snapshot to be valid. A
+ * project may describe how it is previewed locally, but a missing demo is not
+ * a contract failure and an invalid one still is.
+ */
+const demoSchema = z
+  .object({
+    demoUrl: z.string().url("demo.demoUrl must be an absolute URL").optional(),
+    demoLogin: z.unknown().optional(),
+    previewCommand: requiredText("demo.previewCommand").optional(),
+  })
+  .partial();
+
 const shotSchema = z.object({
   file: z
     .string()
@@ -143,6 +156,10 @@ export const projectManifestSchema = z
     seeded: z.literal(true, {
       errorMap: () => ({ message: "seeded must be true" }),
     }),
+    demo: demoSchema.optional(),
+    demoUrl: z.string().url("demoUrl must be an absolute URL").optional(),
+    demoLogin: z.unknown().optional(),
+    previewCommand: requiredText("previewCommand").optional(),
     shots: z
       .array(shotSchema)
       .length(4, "shots must contain exactly 4 entries"),

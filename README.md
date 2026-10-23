@@ -50,13 +50,13 @@ The resume PDF is drawn directly with `pdf-lib` from `src/data/resume.json`, the
 
 ## Public origin
 
-`astro.config.mjs` sets `site` to `https://ghamine.dev`. Override it for another host:
+`astro.config.mjs` sets `site` to the reserved placeholder `https://portfolio.example` because no deployment URL exists. Override it for another host:
 
 ```sh
 SITE_URL=https://example.com npm run build
 ```
 
-`robots.txt` is static and still points at `https://ghamine.dev/sitemap.xml`; edit it when the origin changes.
+`robots.txt` is static and points at the same origin, `https://portfolio.example/sitemap.xml`; edit it when the origin changes.
 
 ## Lighthouse and axe: not run
 
