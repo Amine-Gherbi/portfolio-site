@@ -36,12 +36,12 @@ const METHOD_SIGNAL =
   /\b(method|measured|measure|recorded|counted|seeded|seed|fixture|run|runs|tested|asserts|asserted|commit|snapshot|manifest|artifact|validator|sample)\b/i;
 
 const IDENTIFIER_DIGITS = [
-  /\bpostgresql\s+\d+/gi,
+  /\bpostgresql\s+\d+(?:\.\d+)*/gi,
   /\bfts\d+\b/gi,
-  /\bhttp\s+\d+/gi,
+  /\bhttp\s+\d+(?:\.\d+)*/gi,
   /\bsha[- ]?\d+/gi,
-  /\bnode(?:\.js)?\s+\d+/gi,
-  /\bpython\s+\d+/gi,
+  /\bnode(?:\.js)?\s+\d+(?:\.\d+)*/gi,
+  /\bpython\s+\d+(?:\.\d+)*/gi,
 ];
 
 const SKIP_KEYS = new Set(["artifact", "href", "file", "commit", "updatedAt", "date", "order"]);

@@ -1,0 +1,117 @@
+{
+  "project": "docqa-assistant",
+  "title": "DocQA Assistant",
+  "oneLiner": "Ask a question about a PDF corpus and get claims that point at highlighted spans, with an inspectable retrieval trace and a calibrated refusal.",
+  "stack": [
+    "Python 3.12",
+    "FastAPI",
+    "PostgreSQL 16 + pgvector",
+    "React + Vite",
+    "PDF.js"
+  ],
+  "generatedAt": "2026-10-23T03:08:27+00:00",
+  "seeded": true,
+  "shots": [
+    {
+      "file": "hero.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Ask page with an offline demo answer, the cited span highlighted in the PDF pane, and the retrieval trace drawer open."
+    },
+    {
+      "file": "shot-01.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Eval page showing the committed report, gate values, denominators, and Wilson intervals."
+    },
+    {
+      "file": "shot-02.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Failure gallery: three cases where a naive answer would be wrong, with the passages and numbers behind each verdict."
+    },
+    {
+      "file": "shot-03.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Cross-encoder rerank section of the trace drawer: rerank rank, score, calibrated probability, and kept/dropped for each candidate."
+    }
+  ],
+  "proof": {
+    "measured": [
+      {
+        "label": "recall@8, production (hybrid + RRF + rerank)",
+        "value": "18/24 (75.0%), Wilson 95% [55.1%, 88.0%]",
+        "method": "uv run docqa eval; Windows 11 Pro 10.0.26200, ONNX CPU; 2026-10-23",
+        "artifact": "eval-report.json"
+      },
+      {
+        "label": "unanswerable refusal, production",
+        "value": "6/6 (100%), Wilson 95% [61.0%, 100%]",
+        "method": "uv run docqa eval; Windows 11 Pro 10.0.26200, ONNX CPU; 2026-10-23",
+        "artifact": "docs/EVAL.md"
+      },
+      {
+        "label": "answer rate, production (extractive fallback, no model key)",
+        "value": "5/24 (20.8%), Wilson 95% [9.2%, 40.5%]",
+        "method": "uv run docqa eval; Windows 11 Pro 10.0.26200, ONNX CPU; 2026-10-23",
+        "artifact": "eval-report.json"
+      },
+      {
+        "label": "recall@3, deliberately weakened vector-only retriever",
+        "value": "15/24 (62.5%), gate FAIL",
+        "method": "uv run docqa eval --ablate vector-only; Windows 11 Pro 10.0.26200, ONNX CPU; 2026-10-23",
+        "artifact": "eval-report-ablation.json"
+      },
+      {
+        "label": "retrieval pipeline p95 latency, 20 warm calls",
+        "value": "2825.9 ms",
+        "method": "uv run python scripts/ablation.py; Windows 11 Pro, 12 logical CPUs, ONNX CPU; 2026-10-23",
+        "artifact": "docs/ABLATION.md"
+      },
+      {
+        "label": "chunk token cap on the pinned corpus",
+        "value": "max 430 tokens; 0 clipped vectors",
+        "method": "uv run docqa ingest data/corpus/*.pdf; Windows 11 Pro 10.0.26200; 2026-10-23",
+        "artifact": "docs/CORPUS.md"
+      }
+    ],
+    "invariants": [
+      {
+        "claim": "A chunk longer than 448 model tokens fails ingest instead of storing a truncated vector.",
+        "test": "tests/test_chunking.py"
+      },
+      {
+        "claim": "A claim without an in-context citation, or whose quote is not a normalised substring of the cited chunk, is dropped.",
+        "test": "tests/test_citations.py"
+      },
+      {
+        "claim": "Ingest refuses a PDF whose SHA-256 differs from corpus.lock.json.",
+        "test": "tests/test_lock.py"
+      },
+      {
+        "claim": "The refusal threshold comes from eval/calibration.json at boot and is never hand-tuned.",
+        "test": "tests/test_refusal.py"
+      },
+      {
+        "claim": "Every rate carries a Wilson 95% interval and its denominator; the earliest failed stage is recorded per question.",
+        "test": "tests/test_eval.py"
+      },
+      {
+        "claim": "The judge model differs from the generator and is pinned by exact id.",
+        "test": "tests/test_judge_check.py"
+      },
+      {
+        "claim": "ONNX work runs in a worker thread behind Semaphore(2).",
+        "test": "tests/test_embedder.py"
+      }
+    ],
+    "limits": [
+      "No generator model key on this machine: answers use the labelled extractive fallback, and the answer-rate gate fails at 5/24.",
+      "The eval set is 30 questions (24 answerable), not the planned 100; the Wilson intervals are correspondingly wide.",
+      "Judge reliability (Cohen's kappa) is unverified: eval/judge.yaml is pinned, but no judge endpoint or human anchor set exists.",
+      "Local only: no hosted URL, no demo video, and the k6 concurrency scenario is unverified because k6 is not installed on this machine.",
+      "The corpus PDFs are not committed; this snapshot is reproducible only after scripts/fetch-corpus has materialised the locked files."
+    ]
+  }
+}

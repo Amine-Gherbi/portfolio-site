@@ -1,0 +1,134 @@
+---
+order: 3
+title: DocQA Assistant
+oneLiner: Ask a question about a PDF corpus and get claims that point at highlighted spans, with an inspectable retrieval trace and a calibrated refusal.
+stack:
+  - Python 3.12
+  - FastAPI
+  - PostgreSQL 16 + pgvector
+  - React + Vite
+  - PDF.js
+updatedAt: "2026-10-23"
+claim: >-
+  On the 24 answerable questions in the committed eval set, the recorded
+  recall@8 is 18/24 (75.0%), and the same report fails three production gates,
+  so the eval command exits 6.
+problem: >-
+  A retrieval answer is easy to make plausible and hard to make checkable. A
+  claim can name a passage that was never retrieved, quote text that is not in
+  the cited chunk, or survive a question the corpus cannot answer. Without a
+  measured refusal path, the system answers anyway.
+constraint: >-
+  No generator model key exists on the build machine, so answers use a labelled
+  extractive fallback. The eval set is 30 questions with 24 answerable, not the
+  planned 100, and the corpus PDFs are fetched from a pinned manifest rather
+  than committed.
+architecture: >-
+  Ingest pins page offsets and refuses a PDF whose SHA-256 differs from
+  corpus.lock.json. Retrieval is hybrid: embeddings and lexical search fused by
+  reciprocal rank, then a cross-encoder rerank. The answer path validates every
+  claim against its cited chunk, loads a calibrated refusal threshold at boot,
+  and drops claims that fail. The eval harness prints Wilson intervals with
+  denominators, records the earliest failed stage per question, and exits
+  non-zero when a gate fails.
+decisions:
+  - title: An uncited claim is dropped, not repaired
+    choice: >-
+      Validate each claim against the citations in the model context, require a
+      quote that is a normalised substring of the cited chunk, and drop the
+      claim when either check fails.
+    rejected: >-
+      Generate first, then attach the nearest retrieved passage to every claim.
+      A citation added after generation can point at a passage the claim never
+      used.
+    cost: >-
+      The refusal threshold rejects 19 of 24 answerable questions before
+      generation, so the answer rate is 5/24 and the user sees refusals where a
+      looser system would guess.
+    evidence: >-
+      tests/test_citations.py covers the rejection path, and the answer-rate,
+      citation-precision and faithfulness gates fail in the committed report.
+  - title: The refusal threshold is calibrated, never hand-tuned
+    choice: >-
+      Load the threshold from eval/calibration.json at boot and keep the
+      calibration provenance in the report.
+    rejected: >-
+      Lower the threshold until the answer-rate gate passes. That would trade a
+      visible failing gate for an invisible increase in wrong answers.
+    cost: >-
+      The provisional threshold was fitted on self-retrieval sentences, so on
+      human phrasing it refuses 19 of the 24 answerable questions; a refit is
+      owed before the answer rate is meaningful.
+    evidence: >-
+      tests/test_refusal.py asserts the threshold comes from the calibration
+      file, and docs/EVAL.md records the threshold and its fit set.
+  - title: The failing eval report is committed
+    choice: >-
+      Commit eval-report.json with the failing gates, let the command exit 6,
+      and label the extractive fallback wherever an answer appears.
+    rejected: >-
+      Relax the gates or omit the failing metrics so the eval exits 0. A green
+      gate that hides the measured quality is worse than a red one.
+    cost: >-
+      Three production gates stay red until a model key and a calibrated
+      threshold exist, and every reader sees the failure.
+    evidence: >-
+      eval-report.json is the artifact for the recall, refusal and answer-rate
+      measurements; tests/test_eval.py checks gate failure, intervals and
+      stage attribution.
+failures:
+  - date: "2026-10-23"
+    commit: "0509111"
+    summary: >-
+      The production eval exits 6: answer rate 5/24, citation precision 3/15
+      and faithfulness 2/15. The provisional calibration refuses 19/24
+      answerable questions before generation, and no generator model key
+      exists.
+    processChange: >-
+      The failing report is committed and the command exits non-zero; the UI
+      labels the extractive fallback; the next action is to refit the
+      calibration on a larger human gold set, not to lower the gates.
+metrics:
+  - label: recall@8, production (hybrid + RRF + rerank)
+    value: 18/24 (75.0%), Wilson 95% [55.1%, 88.0%]
+    method: uv run docqa eval on Windows 11 Pro with ONNX CPU, committed eval-report.json.
+    artifact: public/assets/docqa-assistant/proof/eval-report.json
+  - label: unanswerable refusal, production
+    value: 6/6 (100%), Wilson 95% [61.0%, 100%]
+    method: uv run docqa eval on Windows 11 Pro with ONNX CPU, recorded in docs/EVAL.md.
+    artifact: public/assets/docqa-assistant/proof/docs/EVAL.md
+  - label: answer rate, production (extractive fallback, no model key)
+    value: 5/24 (20.8%), Wilson 95% [9.2%, 40.5%]
+    method: uv run docqa eval on Windows 11 Pro with ONNX CPU, committed eval-report.json.
+    artifact: public/assets/docqa-assistant/proof/eval-report.json
+  - label: recall@3, deliberately weakened vector-only retriever
+    value: 15/24 (62.5%), gate FAIL
+    method: uv run docqa eval --ablate vector-only, committed eval-report-ablation.json.
+    artifact: public/assets/docqa-assistant/proof/eval-report-ablation.json
+  - label: retrieval pipeline p95 latency, 20 warm calls
+    value: 2825.9 ms
+    method: uv run python scripts/ablation.py on Windows 11 with ONNX CPU, recorded in docs/ABLATION.md.
+    artifact: public/assets/docqa-assistant/proof/docs/ABLATION.md
+  - label: chunk token cap on the pinned corpus
+    value: max 430 tokens; 0 clipped vectors
+    method: uv run docqa ingest data/corpus/*.pdf, recorded in docs/CORPUS.md.
+    artifact: public/assets/docqa-assistant/proof/docs/CORPUS.md
+screenshots:
+  - file: shot-01.webp
+    caption: Eval page showing the committed report, gate values, denominators and Wilson intervals.
+  - file: shot-02.webp
+    caption: Failure gallery with cases where a naive answer would be wrong, plus the passages behind each verdict.
+  - file: shot-03.webp
+    caption: Cross-encoder rerank section of the trace drawer with rank, score, calibrated probability and kept or dropped.
+links:
+  - label: Eval report
+    href: /assets/docqa-assistant/proof/eval-report.json
+  - label: Eval method and gates
+    href: /assets/docqa-assistant/proof/docs/EVAL.md
+  - label: GitHub profile
+    href: https://github.com/GHamine
+next:
+  - Refit eval/calibration.json on a larger human gold set and re-run the harness unchanged.
+  - Configure a generator model key and measure answer quality without the extractive fallback.
+  - Measure judge reliability with a human anchor set before claiming any judge score.
+---

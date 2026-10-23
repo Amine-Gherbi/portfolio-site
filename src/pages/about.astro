@@ -16,11 +16,13 @@ import Base from "../layouts/Base.astro";
     <div class="prose-body">
       <p>
         This site carries three case studies. Each starts with a claim that can
-        fail and ends with the fixture, artifact and limits behind it. Ledger
-        Lock holds 1 unit of stock against 20 concurrent buyers and records 0
-        oversold units. Merge Gate blocks 1 of 1 red pull requests and lets 0
-        red merges reach main. Citation Desk returns 12 of 12 cited answers on a
-        12-question fixture and ships 0 uncited answers.
+        fail and ends with the artifact and limits behind it. The e-commerce
+        platform ran 20 concurrent checkouts against stock 5 and recorded 5
+        orders, 15 rejections and stock 0. The pipeline feeds eight PR gates into
+        one required ci-ok check, and its smoke gate rolled back a build whose
+        POST /invoices returned 500; no Actions run exists, so red-PR blocking
+        is not measured. DocQA scores recall@8 18/24 on its eval set, and three
+        production gates fail in the committed report.
       </p>
       <p>
         I work on the parts that decide whether a system is correct:
@@ -33,7 +35,7 @@ import Base from "../layouts/Base.astro";
         The case pages are rebuilt from committed snapshots. <code>npm run
         verify</code> runs the type check, the asset and content contracts, the
         copy and accessibility audits, the JavaScript budget and a static
-        build. When a claim has no artifact, the build fails.
+        build. When a cited artifact is missing, the build fails.
       </p>
       <p>
         I am looking for a team where correctness is a requirement and a

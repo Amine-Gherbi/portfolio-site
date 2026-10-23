@@ -1,0 +1,121 @@
+---
+order: 1
+title: Full-Stack E-Commerce Platform
+oneLiner: Server-validated checkout, reservation-based stock, idempotent webhooks.
+stack:
+  - Next.js
+  - TypeScript
+  - PostgreSQL
+  - Stripe
+updatedAt: "2026-10-23"
+claim: >-
+  Twenty concurrent checkouts against stock 5 create exactly 5 orders and 15
+  rejections and leave stock at 0; the recorded Postgres run also left 5 open
+  reservations.
+problem: >-
+  Checkout is where three failure modes meet: the client can post any total,
+  the same intent can arrive twice, and two buyers can want the last unit.
+  Reading stock and then writing a reservation in a second statement is a
+  lost-update bug: both requests can observe the same unit and both can commit.
+constraint: >-
+  The storefront runs on PostgreSQL 16 with prices held in integer cents, and
+  the machine has no Stripe secret key. The database had to be the arbiter for
+  stock and idempotency, not application-level checks, and the local Stripe
+  path had to be labelled rather than presented as a live integration.
+architecture: >-
+  Order creation, the conditional stock decrement and the reservation insert
+  share one transaction, and line updates run in ascending variant id order so
+  two multi-line carts cannot deadlock. A unique index on
+  (userId, idempotencyKey) decides the double submit, and a webhook event row
+  commits with its state change. A sweeper releases expired reservations, and
+  a reconciliation job settles payments whose webhook never arrived.
+decisions:
+  - title: The conditional UPDATE is the stock arbiter
+    choice: >-
+      In the checkout transaction, decrement each variant with
+      UPDATE ... SET stock = stock - $qty WHERE id = $id AND stock >= $qty and
+      abort the whole transaction when a zero-row update throws OUT_OF_STOCK.
+    rejected: >-
+      Read the stock, check it in application code, then write the reservation
+      in a second statement. Two buyers can pass the read for the last unit.
+    cost: >-
+      The losing request pays for a transaction that rolls back, and every
+      checkout serialises on the variant row it updates.
+    evidence: >-
+      The recorded run returned 5 orders and 15 rejections for 20 concurrent
+      checkouts on stock 5, with stock at 0; the transcript is
+      docs/proof/concurrency-run.txt in the snapshot.
+  - title: The unique index decides the double submit
+    choice: >-
+      Derive idempotencyKey from the cart id and a content hash of its lines,
+      let the unique (userId, idempotencyKey) index arbitrate, and answer the
+      loser with the winner's order.
+    rejected: >-
+      Check for an existing order before inserting, or answer 409 on a duplicate
+      key. A check-then-insert still races, and a 409 makes a successful retry
+      look like a failure.
+    cost: >-
+      A cart mutation between preview and submit becomes CART_CHANGED, so the
+      client reloads rather than silently checking out a different basket.
+    evidence: >-
+      tests/integration/checkout.double-submit.test.ts sends concurrent
+      duplicate requests and asserts one order.
+  - title: A webhook event row commits with its side effect
+    choice: >-
+      Insert the Stripe event id inside the same transaction as the order state
+      change, and send an amount or currency mismatch to REFUND_REQUIRED.
+    rejected: >-
+      Record the webhook after applying the state change, or mark the order
+      PAID when the payment amount differs from the stored total. Both leave a
+      retry or a mismatch with no audit trail.
+    cost: >-
+      Illegal transitions and lost races are logged and answered 200, because
+      Stripe retries non-2xx responses for three days; only transient database
+      failures return 500.
+    evidence: >-
+      tests/integration/webhook.replay.test.ts asserts a duplicate event is a
+      200 no-op, and tests/integration/checkout.amount-mismatch.test.ts asserts
+      the order never reaches PAID.
+failures:
+  - date: "2026-10-23"
+    commit: "aa7a685"
+    summary: >-
+      The single assertion that needs Stripe test mode never ran: the machine
+      has no STRIPE_SECRET_KEY, so the checkout suite skips it and prints
+      BLOCKED: no Stripe test key.
+    processChange: >-
+      The skip is printed instead of hidden, the no-key path uses a clearly
+      named pi_local_<orderId> intent, and no test or page claims that a live
+      Stripe charge passed.
+metrics:
+  - label: Checkout latency, 50 concurrent virtual users
+    value: p50 2000 ms · p95 2660 ms · p99 2880 ms
+    method: >-
+      k6 load/checkout.js against localhost:3000 on this Windows 11 machine,
+      2026-10-23, 50 VUs, 250 checkouts in a 1-minute run.
+    artifact: public/assets/ecommerce-platform/proof/docs/load/checkout.md
+  - label: Orders created by 20 concurrent checkouts on stock 5
+    value: 5 orders · 15 rejected · stock 0 · 5 open reservations
+    method: >-
+      npx vitest run tests/integration/checkout.oversell.test.ts, real
+      PostgreSQL on shop_test.
+    artifact: public/assets/ecommerce-platform/proof/docs/proof/concurrency-run.txt
+screenshots:
+  - file: shot-01.webp
+    caption: Catalog grid of seeded products with category badges and from-prices in integer cents.
+  - file: shot-02.webp
+    caption: Cart with seeded variants, per-line prices, stock and a total recomputed by the server.
+  - file: shot-03.webp
+    caption: Admin order console showing the state machine and a REFUND_REQUIRED order with snapshotted line items.
+links:
+  - label: Concurrency transcript
+    href: /assets/ecommerce-platform/proof/docs/proof/concurrency-run.txt
+  - label: Checkout load report
+    href: /assets/ecommerce-platform/proof/docs/load/checkout.md
+  - label: GitHub profile
+    href: https://github.com/GHamine
+next:
+  - Run the planned five-minute k6 profile instead of the 250-sample reduced run.
+  - Configure a Stripe test key and record the double-submit PaymentIntent assertion.
+  - Persist addresses and model fulfilment beyond the admin status console.
+---

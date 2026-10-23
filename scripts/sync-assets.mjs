@@ -19,8 +19,8 @@
  *   --root <dir>            project root to write into (tests; default cwd)
  *   --dry-run               validate and report, write nothing
  *
- * Discovery: direct children of --from, plus children of --from/_fixtures.
- * Other underscore-prefixed directories are ignored.
+ * Discovery: direct children of --from. Underscore-prefixed directories,
+ * including _fixtures, are ignored: fixtures must never reach the snapshot.
  */
 import { execFileSync } from "node:child_process";
 import {
@@ -131,16 +131,6 @@ async function discoverProjects(fromDirectory) {
 
   for (const entry of regular) {
     await addProject(entry.name, path.join(fromDirectory, entry.name));
-  }
-
-  const fixturesDirectory = path.join(fromDirectory, "_fixtures");
-  if (await isDirectory(fixturesDirectory)) {
-    const fixtures = await readdir(fixturesDirectory, { withFileTypes: true });
-    for (const fixture of fixtures.filter((entry) => entry.isDirectory()).sort(
-      (a, b) => a.name.localeCompare(b.name),
-    )) {
-      await addProject(fixture.name, path.join(fixturesDirectory, fixture.name));
-    }
   }
 
   return projects;

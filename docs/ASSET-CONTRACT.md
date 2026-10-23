@@ -53,10 +53,10 @@ that every cited file exists. Paths must be relative, use `/`, and contain no
 - `npm run test:assets` — 13 cases covering both failure modes plus sync
   idempotence, owned-field writes and refusal to write a bad source.
 
-Source discovery: direct children of `--from`, plus children of
-`--from/_fixtures` (fixture inputs live there; other `_`-prefixed directories
-are ignored). A `--repo <slug>=<path>` or `--repo-root <path>` overrides source
-repository lookup; otherwise sync uses `<source>/.git`, then
+Source discovery: direct children of `--from`. Underscore-prefixed directories,
+including `_fixtures`, are ignored, so a fixture source can never reach the
+committed snapshot. A `--repo <slug>=<path>` or `--repo-root <path>` overrides
+source repository lookup; otherwise sync uses `<source>/.git`, then
 `<from>/../../<slug>/.git`.
 
 ## updatedAt
@@ -66,15 +66,12 @@ Sync runs `git -C <source repo> log -1 --format=%cI` and writes the date part
 sync twice on unchanged assets produces no byte change; the repository's
 `git status --porcelain` stays empty after the first result is committed.
 
-## Rebuilding the fixture input
+## Current snapshot
 
-The hand-written fixture source is `P:/portfolio/_shared/assets/_fixtures/ledger-lock`,
-a small git repository (commit date 2026-10-08) holding `manifest.json`, the four
-shots, `docs/proof/ledger-lock-run.md` and `tests/reservations.spec.ts`. It
-mirrors `public/assets/ledger-lock`, so syncing it is a no-op against the
-committed snapshot. To recreate it: copy those files from the snapshot (strip
-the `proof/` prefix from the proof paths), then
-`git init && git add -A && GIT_AUTHOR_DATE=2026-10-08T09:00:00Z GIT_COMMITTER_DATE=2026-10-08T09:00:00Z git commit -m "fixture: ledger-lock snapshot"`.
+`public/assets/` holds exactly the three real projects: `ecommerce-platform`,
+`cicd-pipeline` and `docqa-assistant`. Their `proof/` trees are copied from each
+source repository. The earlier placeholder slugs are gone; `_fixtures` is not
+read, and `scripts/fixture-images.mjs` was deleted with them.
 
 ## Failure modes proven
 

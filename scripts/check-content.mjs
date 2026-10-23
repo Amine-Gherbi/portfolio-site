@@ -285,8 +285,10 @@ function validateStudy(study, label) {
     if (!isObject(link) || !filled(link.label)) {
       errors.push(`links[${index}].label: link label is required`);
     }
-    if (!isObject(link) || typeof link.href !== "string" || !/^https?:\/\//.test(link.href)) {
-      errors.push(`links[${index}].href: link href must be an absolute URL`);
+    if (!isObject(link) || typeof link.href !== "string" || !/^(https?:\/\/|\/)/.test(link.href)) {
+      errors.push(
+        `links[${index}].href: link href must be an absolute URL or a site path`,
+      );
     }
   });
 

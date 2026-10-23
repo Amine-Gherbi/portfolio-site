@@ -29,6 +29,17 @@ const screenshots = study.screenshots.map((screenshot, index) => {
 const updatedLabel = formatUpdated(study.updatedAt);
 const number = String(study.order).padStart(2, "0");
 
+// Metrics come from the committed manifest, never from prose. Test counts are
+// shown separately: invariant 4 forbids them as metrics.
+const proof = manifest?.proof ?? null;
+const measured = proof?.measured ?? [];
+const isTestCount = (entry: { label: string; value: string }) =>
+  /\b(tests?|assertions?)\b/i.test(`${entry.label} ${entry.value}`);
+const metrics = measured.filter((entry) => !isTestCount(entry));
+const checks = measured.filter(isTestCount);
+const proofHref = (artifact: string) =>
+  `/assets/${entry.id}/proof/${artifact}`;
+
 const creativeWork = {
   "@context": "https://schema.org",
   "@type": "CreativeWork",
@@ -168,18 +179,71 @@ const creativeWork = {
           </thead>
           <tbody>
             {
-              study.metrics.map((metric) => (
+              metrics.length > 0 ? (
+                metrics.map((metric) => (
+                  <tr>
+                    <th scope="row">{metric.label}</th>
+                    <td class="metric-value">{metric.value}</td>
+                    <td>{metric.method}</td>
+                    <td>
+                      <a href={proofHref(metric.artifact)}>
+                        <code>{metric.artifact}</code>
+                      </a>
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
-                  <th scope="row">{metric.label}</th>
-                  <td class="metric-value">{metric.value}</td>
-                  <td>{metric.method}</td>
-                  <td><code>{metric.artifact}</code></td>
+                  <th scope="row">Committed measurement</th>
+                  <td class="metric-value">not measured</td>
+                  <td>No manifest proof artifact is published for this project.</td>
+                  <td><code>not measured</code></td>
                 </tr>
-              ))
+              )
             }
           </tbody>
         </table>
       </div>
+
+      {
+        checks.length > 0 && (
+          <div class="metric-checks">
+            <h3>Gate checks (test counts, not metrics)</h3>
+            <ul>
+              {checks.map((check) => (
+                <li>
+                  <strong>{check.label}:</strong> {check.value}. {check.method}{" "}
+                  <a href={proofHref(check.artifact)}>
+                    <code>{check.artifact}</code>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+
+      {
+        proof && (
+          <div class="metric-invariants">
+            <h3>Invariants and their tests</h3>
+            <ul>
+              {proof.invariants.map((invariant) => (
+                <li>
+                  {invariant.claim}{" "}
+                  <a href={proofHref(invariant.test)}>
+                    <code>{invariant.test}</code>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <h3>Limits</h3>
+            <ul>
+              {proof.limits.map((limit) => <li>{limit}</li>)}
+            </ul>
+          </div>
+        )
+      }
     </section>
 
     <section id="screenshots" data-section="screenshots" class="case-section">

@@ -15,8 +15,8 @@ export async function getStaticPaths() {
     props: {
       copy: {
         eyebrow: "Engineering case index / 2026",
-        title: "I build full-stack systems and can prove their correctness.",
-        body: "20 concurrent buyers never oversell; a red pull request never merges; 0 uncited answers ship.",
+        title: "I build full-stack systems and publish the measurement.",
+        body: "20 buyers on stock 5 create 5 orders and stock 0. 9 CI jobs feed one ci-ok check. Uncited answers are dropped.",
         footer: "Three case studies, each with a committed snapshot",
       },
     },

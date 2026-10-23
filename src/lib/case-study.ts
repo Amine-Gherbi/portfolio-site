@@ -41,7 +41,12 @@ const screenshotSchema = z.object({
 
 const linkSchema = z.object({
   label: required("link label"),
-  href: z.string().url("link href must be an absolute URL"),
+  href: z
+    .string()
+    .regex(
+      /^(https?:\/\/|\/)/,
+      "link href must be an absolute URL or a site path",
+    ),
 });
 
 export const caseStudySchema = projectSchema.extend({

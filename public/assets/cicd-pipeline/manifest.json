@@ -1,0 +1,102 @@
+{
+  "project": "cicd-pipeline",
+  "title": "CI/CD pipeline with gates that actually block",
+  "oneLiner": "Eight PR gates feed one required ci-ok check; a multi-stage image is scanned in CI, and a local release lane waits for health and records a real rollback.",
+  "stack": [
+    "GitHub Actions",
+    "Docker Buildx",
+    "Trivy",
+    "cosign",
+    "Fastify",
+    "PostgreSQL"
+  ],
+  "generatedAt": "2026-10-23T00:54:59.444Z",
+  "seeded": true,
+  "shots": [
+    {
+      "file": "hero.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Mock of the blocked pull-request check page, rendered from .github/workflows/pr.yml: eight gates plus the ci-ok aggregator, with trivy expected to fail. Labelled mock; no GitHub run exists."
+    },
+    {
+      "file": "shot-01.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Recorded rollback timeline rendered from this repository's deploy.log: deploy.start, health.ok, smoke.fail, rollback.start, rollback.health.ok, rollback.smoke.ok."
+    },
+    {
+      "file": "shot-02.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "The eight PR gates feeding the single required ci-ok check, rendered from pr.yml and docs/PIPELINE.md; no Actions run is depicted."
+    },
+    {
+      "file": "shot-03.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Local release lane transcript captured from the running service: release-local.sh status and five passing smoke assertions on 127.0.0.1:8787. Local only; rendered, not a screenshot."
+    }
+  ],
+  "proof": {
+    "measured": [
+      {
+        "label": "Integration tests",
+        "value": "9/9 integration tests passed; exit 0",
+        "method": "bash scripts/verify.sh (lint, tsc --noEmit, vitest run)",
+        "artifact": "docs/evidence/verify.txt"
+      },
+      {
+        "label": "Smoke gate",
+        "value": "5/5 assertions passed; /ready p95 7.7 ms",
+        "method": "bash scripts/smoke.sh against the running release on 127.0.0.1:8787",
+        "artifact": "docs/evidence/smoke.txt"
+      },
+      {
+        "label": "Workflow structure",
+        "value": "9 jobs including ci-ok; 0 unpinned uses",
+        "method": "node structural check over .github/workflows/pr.yml",
+        "artifact": "docs/evidence/workflow-structure.txt"
+      },
+      {
+        "label": "Hub asset contract",
+        "value": "manifest valid, 4 shots at 2880x1800; hub check:assets exited 0",
+        "method": "ASSET_ROOT=<snapshot> ASSET_PROJECTS_DIR=<temp MDX> node portfolio-site/scripts/check-assets.mjs",
+        "artifact": "docs/evidence/check-assets.txt"
+      },
+      {
+        "label": "Rollback ordering",
+        "value": "deploy.start → health.ok → smoke.fail → rollback.start → rollback.health.ok → rollback.smoke.ok",
+        "method": "read deploy.log in file order (timestamps recorded by release-local.sh)",
+        "artifact": "deploy.log"
+      },
+      {
+        "label": "Docker daemon",
+        "value": "unavailable: //./pipe/docker_engine Access is denied",
+        "method": "docker info (recorded negative: image build, Trivy, cosign and attestation cannot run here)",
+        "artifact": "docs/evidence/docker-info.txt"
+      }
+    ],
+    "invariants": [
+      {
+        "claim": "Unauthenticated POST /invoices is rejected with 401; an authenticated request returns 201 with a UUID id",
+        "test": "tests/integration/api.test.ts"
+      },
+      {
+        "claim": "GET /ready reports 503 pending_migrations when a migration is unapplied, and 200 when database and migrations are okay",
+        "test": "tests/integration/api.test.ts"
+      },
+      {
+        "claim": "An unknown invoice id returns 404 not_found with no stack trace in the body",
+        "test": "tests/integration/api.test.ts"
+      }
+    ],
+    "limits": [
+      "No GitHub Actions run exists: the repository has no remote. The hero image is a labelled mock rendered from pr.yml, not a screenshot of a check page.",
+      "The image was not built, scanned, signed or pushed: docker info fails with \"Access is denied\" on this host. C3 is unverified here and is not simulated.",
+      "Deployment is local only at http://127.0.0.1:8787 (port 8080 is excluded by Windows on this host). There is no public URL and no paid staging host.",
+      "The promotion path to the ecommerce-platform image is documented and verifiable by command, not executed: no registry credentials or P2 run exist on this machine.",
+      "Rollback is valid one release back and only for expand/contract migrations; it swaps code, not schema, and re-runs wait and smoke after the restart."
+    ]
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "project": "ecommerce-platform",
+  "title": "Full-Stack E-Commerce Platform",
+  "oneLiner": "Server-validated checkout, reservation-based stock, idempotent webhooks.",
+  "stack": [
+    "Next.js",
+    "TypeScript",
+    "PostgreSQL",
+    "Stripe"
+  ],
+  "generatedAt": "2026-10-23T01:41:39+01:00",
+  "seeded": true,
+  "shots": [
+    {
+      "file": "hero.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Left: terminal output of 20 concurrent checkouts on stock 5 — five 201s, fifteen 409s, stock 0, five open reservations. Right: the signed-in checkout page showing the server-computed total."
+    },
+    {
+      "file": "shot-01.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Catalog grid of seeded products with category badges, descriptions and from-prices in integer cents."
+    },
+    {
+      "file": "shot-02.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Cart with two seeded variants, per-line prices, stock and a total recomputed by the server on every request."
+    },
+    {
+      "file": "shot-03.webp",
+      "width": 2880,
+      "height": 1800,
+      "alt": "Admin order console showing the order state machine and a seeded REFUND_REQUIRED order with its snapshotted line items."
+    }
+  ],
+  "proof": {
+    "measured": [
+      {
+        "label": "Checkout latency, 50 concurrent virtual users",
+        "value": "p50 2000 ms · p95 2660 ms · p99 2880 ms",
+        "method": "k6 load/checkout.js against localhost:3000 on this Windows 11 machine, 2026-10-23, 50 VUs, 250 checkouts in a 1-minute run",
+        "artifact": "docs/load/checkout.md"
+      },
+      {
+        "label": "Orders created by 20 concurrent checkouts on stock 5",
+        "value": "5 orders · 15 rejected · stock 0 · 5 open reservations",
+        "method": "npx vitest run tests/integration/checkout.oversell.test.ts, real Postgres on shop_test",
+        "artifact": "docs/proof/concurrency-run.txt"
+      }
+    ],
+    "invariants": [
+      {
+        "claim": "A forged price in the checkout body cannot change the charge",
+        "test": "tests/integration/checkout.forged-price.test.ts"
+      },
+      {
+        "claim": "One order per (userId, idempotencyKey) under concurrent double submit",
+        "test": "tests/integration/checkout.double-submit.test.ts"
+      },
+      {
+        "claim": "20 concurrent checkouts on stock 5 create exactly 5 orders and stock never goes negative",
+        "test": "tests/integration/checkout.oversell.test.ts"
+      },
+      {
+        "claim": "An amount mismatch becomes REFUND_REQUIRED, never PAID",
+        "test": "tests/integration/checkout.amount-mismatch.test.ts"
+      },
+      {
+        "claim": "A replayed Stripe webhook is a 200 no-op",
+        "test": "tests/integration/webhook.replay.test.ts"
+      },
+      {
+        "claim": "Expired reservations release stock and cancel the order",
+        "test": "tests/integration/stock.sweeper.test.ts"
+      },
+      {
+        "claim": "A dropped webhook is settled by the reconciliation job",
+        "test": "tests/integration/reconcile.dropped-webhook.test.ts"
+      }
+    ],
+    "limits": [
+      "Single-node PostgreSQL 16 on one Windows 11 machine; the load numbers do not transfer to a managed database or a shared runner.",
+      "k6 ran for 1 minute with 250 checkouts instead of the planned 5 minutes, so the p99 is a 250-sample estimate.",
+      "Payments are Stripe test mode at most; without a key the PaymentIntent is a local pi_local_* value and no card is charged.",
+      "No partial refunds, tax engine, shipping rates or email delivery — the refund path is all-or-nothing.",
+      "The cart is not cleared after checkout, and the demo does not model fulfilment beyond the admin status console."
+    ]
+  }
+}

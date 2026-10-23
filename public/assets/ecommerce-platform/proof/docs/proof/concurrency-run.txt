@@ -1,0 +1,13 @@
+$ npx vitest run tests/integration/checkout.oversell.test.ts --reporter=verbose
+
+ RUN  v3.2.7 P:/portfolio/ecommerce-platform
+
+stdout | tests/integration/checkout.oversell.test.ts > 20 concurrent checkouts against stock 5 > accepts exactly five orders, leaves stock at zero and five open reservations
+[proof] 20 concurrent checkouts on stock 5 → 5×201, 15×409, stock=0, openReservations=5
+
+ ✓ tests/integration/checkout.oversell.test.ts > 20 concurrent checkouts against stock 5 > accepts exactly five orders, leaves stock at zero and five open reservations 473ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  01:52:59
+   Duration  7.61s (transform 315ms, setup 30ms, collect 1.09s, tests 5.85s, environment 0ms, prepare 209ms)

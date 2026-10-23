@@ -2,55 +2,58 @@
   "name": "GHamine",
   "role": "Systems engineer",
   "generatedAt": "2026-10-23",
-  "summary": "I build full-stack systems and measure whether their stated invariants hold. The three case studies on this site ship the fixture, the artifact path and the limits behind every number.",
+  "summary": "I build full-stack systems and measure whether their stated invariants hold. Each case study on this site carries the artifact path and the limits behind every number.",
   "contact": [
     { "label": "GitHub", "value": "github.com/GHamine", "href": "https://github.com/GHamine" },
     { "label": "Site", "value": "ghamine.dev", "href": "https://ghamine.dev" }
   ],
   "skills": [
     "PostgreSQL",
-    "SQLite / FTS5",
     "Node.js",
     "TypeScript",
+    "Next.js",
     "Python / FastAPI",
+    "pgvector",
     "GitHub Actions",
-    "pgTAP",
+    "Docker",
+    "Stripe",
     "Astro"
   ],
   "systems": [
     {
-      "title": "Ledger Lock",
-      "meta": "PostgreSQL, Node.js, pgTAP",
+      "title": "Full-Stack E-Commerce Platform",
+      "meta": "Next.js, TypeScript, PostgreSQL, Stripe",
       "bullets": [
-        "Held 1 unit of stock against 20 concurrent buyers: 1 committed reservation, 19 rejection events, 0 oversold units across 3 seeded runs.",
-        "Moved the rejection insert inside the reservation transaction after commit 4f1c2ab left 2 outcomes for 1 decision; the seed now runs a forced-rollback case before each release."
+        "20 concurrent checkouts against stock 5 produced 5 orders, 15 rejections, stock 0 and 5 open reservations; a conditional UPDATE and CHECK (stock >= 0) prevent oversell.",
+        "50 VUs x 5 iterations on k6: 250 checkouts with 0% errors and p95 2.66 s on a Next.js dev server. The five-minute profile was not run, and the load report states that."
       ]
     },
     {
-      "title": "Merge Gate",
-      "meta": "GitHub Actions, TypeScript, SQLite",
+      "title": "CI/CD pipeline with gates that actually block",
+      "meta": "GitHub Actions, Docker Buildx, Trivy, cosign, Fastify, PostgreSQL",
       "bullets": [
-        "Blocked 1 of 1 red pull requests and let 0 red merges reach main by making policy-gate a required check backed by rules stored in SQLite.",
-        "Fetches the head SHA at check time after commit b7d9e10 judged the previous SHA on a force-push; the fixture now includes that case."
+        "Eight PR gates feed one required ci-ok check; a structural check found 9 jobs and 0 unpinned uses. No Actions run exists, so red-PR blocking is not measured.",
+        "A release whose POST /invoices returned 500 failed the smoke gate and rolled back to the previous release; deploy.log records the order with timestamps."
       ]
     },
     {
-      "title": "Citation Desk",
-      "meta": "Python, FastAPI, SQLite",
+      "title": "DocQA Assistant",
+      "meta": "Python, FastAPI, PostgreSQL + pgvector, React",
       "bullets": [
-        "Returned 12 of 12 answers with a resolvable passage id on the 12-question fixture, with 0 uncited answers shipped and 3 explicit refusals.",
-        "Replaced embeddings with FTS5 retrieval: 1 correct answer lost, 400 MB model download and 3 s cold start removed."
+        "recall@8 18/24 (75.0%, Wilson 95% [55.1%, 88.0%]) on a 24-answerable eval set; the committed report fails answer rate, citation precision and faithfulness gates and exits 6.",
+        "Every claim needs an in-context citation whose quote is a normalised substring of the cited chunk; tests/test_citations.py fails if an uncited claim survives. Answer quality under a generator model is not measured because no model key exists."
       ]
     }
   ],
   "verification": [
     "npm run verify runs astro check, tsc, the asset and content contracts, the copy and accessibility audits, the JS budget, and a static build.",
-    "Every numeric claim links to a committed artifact under public/assets/<slug>/.",
+    "Every metric on a case page is read from public/assets/<slug>/manifest.json and links to its committed artifact.",
     "The site ships no client-side JavaScript and no tracking."
   ],
   "limits": [
-    "The fixtures are seeded and small: 1 unit, 1 pull request, 12 questions.",
-    "The measurements prove the stated invariants hold on those fixtures, not that they hold at production scale.",
-    "The repositories are snapshots; the case pages do not call live services."
+    "The e-commerce load run used 250 checkouts on one Windows machine, not the planned production profile.",
+    "The CI repository has no remote: workflow structure is verified, Actions execution is not.",
+    "DocQA has no generator model key; answers use the extractive fallback and three eval gates fail.",
+    "The deployments are local only; no public URL exists for any of the three systems."
   ]
 }

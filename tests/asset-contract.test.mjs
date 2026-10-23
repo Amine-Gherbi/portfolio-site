@@ -19,7 +19,7 @@ const execFileAsync = promisify(execFile);
 const REPO = process.cwd();
 const CHECK_SCRIPT = path.join(REPO, "scripts", "check-assets.mjs");
 const SYNC_SCRIPT = path.join(REPO, "scripts", "sync-assets.mjs");
-const COMMITTED_SNAPSHOT = path.join(REPO, "public", "assets", "ledger-lock");
+const COMMITTED_SNAPSHOT = path.join(REPO, "public", "assets", "ecommerce-platform");
 const COMMIT_DATE = "2026-05-04T12:00:00Z";
 
 async function makeTempRoot(label) {
@@ -47,10 +47,15 @@ async function makeCheckRoot(mutate) {
   const projects = path.join(root, "src", "content", "projects");
   const assets = path.join(root, "public", "assets");
   await mkdir(projects, { recursive: true });
-  await writeFile(path.join(projects, "ledger-lock.mdx"), "---\ntitle: Ledger Lock\n---\n");
-  await cp(COMMITTED_SNAPSHOT, path.join(assets, "ledger-lock"), { recursive: true });
+  await writeFile(
+    path.join(projects, "ecommerce-platform.mdx"),
+    "---\ntitle: Full-Stack E-Commerce Platform\n---\n",
+  );
+  await cp(COMMITTED_SNAPSHOT, path.join(assets, "ecommerce-platform"), {
+    recursive: true,
+  });
 
-  const manifestPath = path.join(assets, "ledger-lock", "manifest.json");
+  const manifestPath = path.join(assets, "ecommerce-platform", "manifest.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   const context = { root, assets, manifestPath, manifest };
   if (mutate !== undefined) {
@@ -138,7 +143,7 @@ test("two limits fail and name proof.limits", async () => {
 
 test("a shot absent from disk fails and names shots[0].file", async () => {
   const context = await makeCheckRoot(async (current) => {
-    await unlink(path.join(current.assets, "ledger-lock", "hero.webp"));
+    await unlink(path.join(current.assets, "ecommerce-platform", "hero.webp"));
   });
   try {
     const result = await check(context);
@@ -153,7 +158,14 @@ test("a shot absent from disk fails and names shots[0].file", async () => {
 test("a missing proof artifact fails and names proof.measured[0].artifact", async () => {
   const context = await makeCheckRoot(async (current) => {
     await unlink(
-      path.join(current.assets, "ledger-lock", "proof", "docs", "proof", "ledger-lock-run.md"),
+      path.join(
+        current.assets,
+        "ecommerce-platform",
+        "proof",
+        "docs",
+        "load",
+        "checkout.md",
+      ),
     );
   });
   try {
@@ -168,7 +180,7 @@ test("a missing proof artifact fails and names proof.measured[0].artifact", asyn
 
 test("an invariant test must point at a test path", async () => {
   const context = await makeCheckRoot((current) => {
-    current.manifest.proof.invariants[0].test = "docs/proof/ledger-lock-run.md";
+    current.manifest.proof.invariants[0].test = "docs/load/checkout.md";
   });
   try {
     const result = await check(context);
@@ -196,21 +208,20 @@ test("a missing invariant test file fails", async () => {
 
 async function makeSourceRepo(mutate) {
   const parent = await makeTempRoot("sync-source");
-  const source = path.join(parent, "ledger-lock");
-  await mkdir(path.join(source, "docs", "proof"), { recursive: true });
-  await mkdir(path.join(source, "tests"), { recursive: true });
-
+  const source = path.join(parent, "ecommerce-platform");
   for (const file of ["manifest.json", "hero.webp", "shot-01.webp", "shot-02.webp", "shot-03.webp"]) {
     await cp(path.join(COMMITTED_SNAPSHOT, file), path.join(source, file));
   }
-  await cp(
-    path.join(COMMITTED_SNAPSHOT, "proof", "docs", "proof", "ledger-lock-run.md"),
-    path.join(source, "docs", "proof", "ledger-lock-run.md"),
-  );
-  await cp(
-    path.join(COMMITTED_SNAPSHOT, "proof", "tests", "reservations.spec.ts"),
-    path.join(source, "tests", "reservations.spec.ts"),
-  );
+
+  // Rebuild the source layout: the snapshot stores proof files under proof/,
+  // while the source repo keeps the same paths at its root.
+  for (const entry of ["docs", "tests"]) {
+    await cp(
+      path.join(COMMITTED_SNAPSHOT, "proof", entry),
+      path.join(source, entry),
+      { recursive: true },
+    );
+  }
 
   const manifestPath = path.join(source, "manifest.json");
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
@@ -244,7 +255,7 @@ async function makeTargetRoot() {
   const projects = path.join(root, "src", "content", "projects");
   await mkdir(projects, { recursive: true });
   await writeFile(
-    path.join(projects, "ledger-lock.mdx"),
+    path.join(projects, "ecommerce-platform.mdx"),
     `---
 order: 1
 title: Old title
@@ -267,9 +278,9 @@ function sync(sourceParent, targetRoot) {
 
 test("sync copies manifest, shots and proof, and sets only the four owned fields", async () => {
   const source = await makeSourceRepo((context) => {
-    context.manifest.title = "Ledger Lock Sync";
+    context.manifest.title = "Ecommerce Sync";
     context.manifest.oneLiner = "A synced one-liner.";
-    context.manifest.stack = ["PostgreSQL", "Node.js", "pgTAP"];
+    context.manifest.stack = ["Next.js", "TypeScript", "PostgreSQL"];
   });
   const target = await makeTargetRoot();
   try {
@@ -277,14 +288,17 @@ test("sync copies manifest, shots and proof, and sets only the four owned fields
     assert.equal(result.code, 0, result.stderr);
 
     const copied = JSON.parse(
-      await readFile(path.join(target, "public", "assets", "ledger-lock", "manifest.json"), "utf8"),
+      await readFile(
+        path.join(target, "public", "assets", "ecommerce-platform", "manifest.json"),
+        "utf8",
+      ),
     );
-    assert.equal(copied.title, "Ledger Lock Sync");
+    assert.equal(copied.title, "Ecommerce Sync");
 
     for (const file of ["hero.webp", "shot-01.webp", "shot-02.webp", "shot-03.webp"]) {
       const [sourceBytes, targetBytes] = await Promise.all([
         readFile(path.join(source.source, file)),
-        readFile(path.join(target, "public", "assets", "ledger-lock", file)),
+        readFile(path.join(target, "public", "assets", "ecommerce-platform", file)),
       ]);
       assert.deepEqual(targetBytes, sourceBytes, `${file} should be copied byte for byte`);
     }
@@ -294,22 +308,23 @@ test("sync copies manifest, shots and proof, and sets only the four owned fields
         target,
         "public",
         "assets",
-        "ledger-lock",
+        "ecommerce-platform",
         "proof",
         "tests",
-        "reservations.spec.ts",
+        "integration",
+        "checkout.forged-price.test.ts",
       ),
       "utf8",
     );
-    assert.match(proof, /no committed reservation exceeds the stock count/);
+    assert.match(proof, /client-forged total/);
 
     const page = await readFile(
-      path.join(target, "src", "content", "projects", "ledger-lock.mdx"),
+      path.join(target, "src", "content", "projects", "ecommerce-platform.mdx"),
       "utf8",
     );
-    assert.match(page, /^title: Ledger Lock Sync$/m);
+    assert.match(page, /^title: Ecommerce Sync$/m);
     assert.match(page, /^oneLiner: A synced one-liner\.$/m);
-    assert.match(page, /^stack:\n  - PostgreSQL\n  - Node\.js\n  - pgTAP$/m);
+    assert.match(page, /^stack:\n  - Next\.js\n  - TypeScript\n  - PostgreSQL$/m);
     assert.match(page, new RegExp(`^updatedAt: "2026-05-04"$`, "m"));
     assert.match(page, /^claim: >-\n  Prose stays put\.$/m);
     assert.match(page, /Body prose stays put\./);
@@ -327,10 +342,10 @@ test("sync is idempotent: a second run changes no bytes", async () => {
     assert.equal((await sync(source.parent, target)).code, 0);
 
     const files = [
-      "public/assets/ledger-lock/manifest.json",
-      "public/assets/ledger-lock/hero.webp",
-      "public/assets/ledger-lock/proof/docs/proof/ledger-lock-run.md",
-      "src/content/projects/ledger-lock.mdx",
+      "public/assets/ecommerce-platform/manifest.json",
+      "public/assets/ecommerce-platform/hero.webp",
+      "public/assets/ecommerce-platform/proof/docs/load/checkout.md",
+      "src/content/projects/ecommerce-platform.mdx",
     ];
     const before = await Promise.all(
       files.map((file) => readFile(path.join(target, ...file.split("/")))),
@@ -361,7 +376,9 @@ test("sync refuses an invalid source manifest and writes nothing", async () => {
     assert.notEqual(result.code, 0);
     assert.match(result.stderr, /proof\.measured\[0\]\.value/);
     await assert.rejects(
-      readFile(path.join(target, "public", "assets", "ledger-lock", "manifest.json")),
+      readFile(
+        path.join(target, "public", "assets", "ecommerce-platform", "manifest.json"),
+      ),
       { code: "ENOENT" },
     );
   } finally {
@@ -372,15 +389,27 @@ test("sync refuses an invalid source manifest and writes nothing", async () => {
 
 test("sync refuses a source manifest whose proof artifact is missing", async () => {
   const source = await makeSourceRepo(async (context) => {
-    await unlink(path.join(context.source, "tests", "reservations.spec.ts"));
+    await unlink(
+      path.join(
+        context.source,
+        "tests",
+        "integration",
+        "checkout.forged-price.test.ts",
+      ),
+    );
   });
   const target = await makeTargetRoot();
   try {
     const result = await sync(source.parent, target);
     assert.notEqual(result.code, 0);
-    assert.match(result.stderr, /tests\/reservations\.spec\.ts/);
+    assert.match(
+      result.stderr,
+      /tests\/integration\/checkout\.forged-price\.test\.ts/,
+    );
     await assert.rejects(
-      readFile(path.join(target, "public", "assets", "ledger-lock", "manifest.json")),
+      readFile(
+        path.join(target, "public", "assets", "ecommerce-platform", "manifest.json"),
+      ),
       { code: "ENOENT" },
     );
   } finally {

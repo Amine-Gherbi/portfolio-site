@@ -18,7 +18,6 @@
     "check:js": "node scripts/check-js-budget.mjs",
     "sync:assets": "node scripts/sync-assets.mjs",
     "test:assets": "node --test tests/asset-contract.test.mjs",
-    "fixtures": "node scripts/fixture-images.mjs",
     "verify": "astro check && tsc --noEmit && npm run check:assets && npm run check:content && npm run check:copy && npm run build:resume && astro build && node scripts/check-content.mjs --dist && node scripts/check-copy.mjs --dist && npm run check:a11y && npm run check:js"
   },
   "dependencies": {
