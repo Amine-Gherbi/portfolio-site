@@ -29,6 +29,28 @@ const screenshots = study.screenshots.map((screenshot, index) => {
 const updatedLabel = formatUpdated(study.updatedAt);
 const number = String(study.order).padStart(2, "0");
 
+/**
+ * Keep a rendered paragraph inside four lines at 1280 px. The article measure
+ * is 720 px at 17 px, about 85 characters per line; group sentences up to 300
+ * characters and start a new paragraph before the budget is exceeded.
+ */
+function paragraphs(text: string): string[] {
+  const sentences = text.split(/(?<=\.)\s+(?=[A-Z(])/);
+  const groups: string[] = [];
+  let current = "";
+  for (const sentence of sentences) {
+    const candidate = current ? `${current} ${sentence}` : sentence;
+    if (current && candidate.length > 300) {
+      groups.push(current);
+      current = sentence;
+    } else {
+      current = candidate;
+    }
+  }
+  if (current) groups.push(current);
+  return groups;
+}
+
 // Metrics come from the committed manifest, never from prose. Test counts are
 // shown separately: invariant 4 forbids them as metrics.
 const proof = manifest?.proof ?? null;
@@ -64,12 +86,12 @@ const creativeWork = {
   ogImage={`/og/${entry.id}.png`}
 >
   <article class="case-study">
-    <header id="claim" data-section="claim" class="case-header">
+    <header id="claim" class="case-header">
       <div class="case-topline">
         <a class="case-back" href="/">Case index</a>
         <span class="case-title">{study.title} / {number} of 03</span>
       </div>
-      <p class="kicker">01 / Claim</p>
+      <p class="kicker">Claim</p>
       <h1>{study.claim}</h1>
       <p class="case-oneliner"><em>{study.oneLiner}</em></p>
       <div class="case-meta">
@@ -93,57 +115,73 @@ const creativeWork = {
       </ol>
     </nav>
 
-    <section id="problem" data-section="problem" class="case-section">
-      <p class="kicker">02 / Problem</p>
-      <h2>Problem</h2>
-      <p>{study.problem}</p>
-    </section>
-
-    <section id="constraint" data-section="constraint" class="case-section">
-      <p class="kicker">03 / Constraint</p>
-      <h2>Constraint</h2>
-      <p>{study.constraint}</p>
-    </section>
-
-    <section id="architecture" data-section="architecture" class="case-section">
-      <p class="kicker">04 / Architecture</p>
-      <h2>Architecture</h2>
-      <p>{study.architecture}</p>
-    </section>
-
-    <section id="decisions" data-section="decisions" class="case-section">
-      <p class="kicker">05 / Three decisions</p>
-      <h2>Three decisions</h2>
-      <ol class="decision-list">
+    <section id="what-it-is" data-section="what-it-is" class="case-section">
+      <p class="kicker">01 / What it is</p>
+      <h2>What it is</h2>
+      {paragraphs(study.what).map((paragraph) => <p>{paragraph}</p>)}
+      <div class="screenshot-grid">
         {
-          study.decisions.map((decision, index) => (
-            <li class="decision">
-              <p class="decision-index" aria-hidden="true">D{index + 1}</p>
-              <h3>{decision.title}</h3>
-              <p>
-                <span class="decision-label">Decision</span>
-                {decision.choice}
-              </p>
-              <p>
-                <span class="decision-label">Rejected alternative</span>
-                {decision.rejected}
-              </p>
-              <p>
-                <span class="decision-label">Cost</span>
-                {decision.cost}
-              </p>
-              <p>
-                <span class="decision-label">Evidence</span>
-                {decision.evidence}
-              </p>
-            </li>
-          ))
+          screenshots.map(({ caption, shot }) =>
+            shot ? (
+              <figure class="screenshot">
+                <img
+                  src={`/assets/${entry.id}/${shot.file}`}
+                  srcset={`/assets/${entry.id}/${shot.file} ${shot.width}w`}
+                  sizes="(min-width: 960px) 33vw, 100vw"
+                  width={shot.width}
+                  height={shot.height}
+                  alt={shot.alt}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <figcaption>{caption}</figcaption>
+              </figure>
+            ) : (
+              <figure class="screenshot screenshot-missing">
+                <div class="screenshot-placeholder">Snapshot not yet published</div>
+                <figcaption>{caption}</figcaption>
+              </figure>
+            ),
+          )
         }
-      </ol>
+      </div>
     </section>
 
-    <section id="failure" data-section="failure" class="case-section">
-      <p class="kicker">06 / What broke</p>
+    <section id="hard-part" data-section="hard-part" class="case-section">
+      <p class="kicker">02 / The hard part</p>
+      <h2>The hard part</h2>
+      {paragraphs(study.hardPart).map((paragraph) => <p>{paragraph}</p>)}
+    </section>
+
+    <section id="decision" data-section="decision" class="case-section">
+      <p class="kicker">03 / The decision</p>
+      <h2>The decision</h2>
+      <div class="decision-list">
+        <article class="decision">
+          <p class="decision-index" aria-hidden="true">D1</p>
+          <h3>{study.decision.title}</h3>
+          <p>
+            <span class="decision-label">Decision</span>
+            {study.decision.choice}
+          </p>
+          <p>
+            <span class="decision-label">Rejected alternative</span>
+            {study.decision.rejected}
+          </p>
+          <p>
+            <span class="decision-label">Cost</span>
+            {study.decision.cost}
+          </p>
+          <p>
+            <span class="decision-label">Evidence</span>
+            {study.decision.evidence}
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="what-broke" data-section="what-broke" class="case-section">
+      <p class="kicker">04 / What broke</p>
       <h2>What broke</h2>
       {
         study.failures.map((failure) => (
@@ -163,9 +201,11 @@ const creativeWork = {
       }
     </section>
 
-    <section id="metrics" data-section="metrics" class="case-section">
-      <p class="kicker">07 / Metrics and method</p>
-      <h2>Metrics and method</h2>
+    <section id="measured" data-section="measured" class="case-section">
+      <p class="kicker">05 / Measured</p>
+      <h2>Measured</h2>
+      {paragraphs(study.measured).map((paragraph) => <p>{paragraph}</p>)}
+
       <div class="metric-scroll">
         <table class="metric-table">
           <caption>Measured results and the method behind each value.</caption>
@@ -237,63 +277,37 @@ const creativeWork = {
                 </li>
               ))}
             </ul>
-            <h3>Limits</h3>
-            <ul>
-              {proof.limits.map((limit) => <li>{limit}</li>)}
-            </ul>
           </div>
         )
       }
-    </section>
 
-    <section id="screenshots" data-section="screenshots" class="case-section">
-      <p class="kicker">08 / Screenshots</p>
-      <h2>Screenshots</h2>
-      <div class="screenshot-grid">
-        {
-          screenshots.map(({ caption, shot }) =>
-            shot ? (
-              <figure class="screenshot">
-                <img
-                  src={`/assets/${entry.id}/${shot.file}`}
-                  srcset={`/assets/${entry.id}/${shot.file} ${shot.width}w`}
-                  sizes="(min-width: 960px) 33vw, 100vw"
-                  width={shot.width}
-                  height={shot.height}
-                  alt={shot.alt}
-                  loading="lazy"
-                  decoding="async"
-                />
-                <figcaption>{caption}</figcaption>
-              </figure>
-            ) : (
-              <figure class="screenshot screenshot-missing">
-                <div class="screenshot-placeholder">Snapshot not yet published</div>
-                <figcaption>{caption}</figcaption>
-              </figure>
-            ),
-          )
-        }
+      <div class="metric-invariants">
+        <h3>Artifacts</h3>
+        <ul class="case-links">
+          {
+            study.links.map((link) => (
+              <li>
+                <a href={link.href} rel="noreferrer">{link.label}</a>
+              </li>
+            ))
+          }
+        </ul>
       </div>
     </section>
 
-    <section id="links" data-section="links" class="case-section">
-      <p class="kicker">09 / Links and artifacts</p>
-      <h2>Links and artifacts</h2>
-      <ul class="case-links">
-        {
-          study.links.map((link) => (
-            <li>
-              <a href={link.href} rel="noreferrer">{link.label}</a>
-            </li>
-          ))
-        }
-      </ul>
-    </section>
-
-    <section id="next" data-section="next" class="case-section">
-      <p class="kicker">10 / What I would do next</p>
-      <h2>What I would do next</h2>
+    <section id="limits" data-section="limits" class="case-section">
+      <p class="kicker">06 / Limits</p>
+      <h2>Limits</h2>
+      {
+        proof ? (
+          <ul class="limit-list">
+            {proof.limits.map((limit) => <li>{limit}</li>)}
+          </ul>
+        ) : (
+          <p>No committed limit list is published for this project.</p>
+        )
+      }
+      <h3>What I would do next</h3>
       <ul class="next-list">
         {study.next.map((step) => <li>{step}</li>)}
       </ul>

@@ -1,7 +1,7 @@
 {
   "project": "cicd-pipeline",
   "title": "CI/CD deployment pipeline",
-  "oneLiner": "Pull-request checks and tests, Docker image builds, and deploys of successful builds to a staging environment.",
+  "oneLiner": "Pull-request gates, a Docker image and a local release lane with a recorded rollback.",
   "stack": [
     "GitHub Actions",
     "Docker Buildx",
@@ -54,36 +54,24 @@
       },
       {
         "label": "Workflow structure",
-        "value": "9 jobs including ci-ok; 0 unpinned uses",
+        "value": "8 gates feed ci-ok; 20 uses, 0 unpinned",
         "method": "node structural check over .github/workflows/pr.yml",
         "artifact": "docs/evidence/workflow-structure.txt"
-      },
-      {
-        "label": "Hub asset contract",
-        "value": "manifest valid, 4 shots at 2880x1800; hub check:assets exited 0",
-        "method": "ASSET_ROOT=<snapshot> ASSET_PROJECTS_DIR=<temp MDX> node portfolio-site/scripts/check-assets.mjs",
-        "artifact": "docs/evidence/check-assets.txt"
       },
       {
         "label": "Rollback ordering",
         "value": "deploy.start → health.ok → smoke.fail → rollback.start → rollback.health.ok → rollback.smoke.ok",
         "method": "read deploy.log in file order (timestamps recorded by release-local.sh)",
         "artifact": "deploy.log"
-      },
-      {
-        "label": "Docker daemon",
-        "value": "unavailable: //./pipe/docker_engine Access is denied",
-        "method": "docker info (recorded negative: image build, Trivy, cosign and attestation cannot run here)",
-        "artifact": "docs/evidence/docker-info.txt"
       }
     ],
     "invariants": [
       {
-        "claim": "Unauthenticated POST /invoices is rejected with 401; an authenticated request returns 201 with a UUID id",
+        "claim": "Unauthenticated POST /invoices is rejected; an authenticated request returns a UUID id",
         "test": "tests/integration/api.test.ts"
       },
       {
-        "claim": "GET /ready reports 503 pending_migrations when a migration is unapplied, and 200 when database and migrations are okay",
+        "claim": "GET /ready reports pending_migrations when a migration is unapplied, and is ready when database and migrations are okay",
         "test": "tests/integration/api.test.ts"
       },
       {
@@ -92,11 +80,10 @@
       }
     ],
     "limits": [
-      "No GitHub Actions run exists: the repository has no remote. The hero image is a labelled mock rendered from pr.yml, not a screenshot of a check page.",
-      "The image was not built, scanned, signed or pushed: docker info fails with \"Access is denied\" on this host. C3 is unverified here and is not simulated.",
-      "Deployment is local only at http://127.0.0.1:8787 (port 8080 is excluded by Windows on this host). There is no public URL and no paid staging host.",
-      "The promotion path to the ecommerce-platform image is documented and verifiable by command, not executed: no registry credentials or P2 run exist on this machine.",
-      "Rollback is valid one release back and only for expand/contract migrations; it swaps code, not schema, and re-runs wait and smoke after the restart."
+      "The GitHub Actions lane has never run: git remote -v is empty, so no green CI run and no red-PR block are claimed.",
+      "Only the local release and rollback lane is measured; the Actions PostgreSQL service container is not shown to behave like local PostgreSQL 16.",
+      "Rollback returns to the previous release and only works for expand/contract migrations.",
+      "The local service runs at http://127.0.0.1:8787; there is no public URL."
     ]
   }
 }

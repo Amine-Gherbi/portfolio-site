@@ -1,105 +1,131 @@
 # k6 checkout load report
 
-Real run from this machine, not a projection. The summary below is copied from
-k6's own output; the report states the reduced parameters rather than implying
-the planned five-minute profile was executed.
+One run, from this machine, against the rebuilt app. The numbers below are
+copied from k6's summary and the server log; they are not a projection.
 
 ## Run
 
 | | |
 | --- | --- |
-| Date | 2026-10-23, 01:57 local (UTC+01:00) |
-| Machine | Windows 11 Pro 10.0.26200, AMD Ryzen 5 5500U (12 logical cores), 15.3 GiB RAM |
-| Runtime | Node 22.23.4, Next.js 15 dev server on `127.0.0.1:3000` |
+| Date | 2026-10-23, 22:52–22:53 local (UTC+01:00) |
+| Machine | Windows 11 Pro 10.0.26200, AMD Ryzen 5 5500U, 12 logical cores, 15.3 GiB RAM |
+| Runtime | Node 22.23.4, Next.js 15.5.28 `next start` (production build) on `127.0.0.1:3000` |
 | Database | PostgreSQL 16.13, local `shop_dev`, no other load |
 | k6 | v2.2.0 (windows/amd64) |
 | Command | `node scripts/load-fixture.mjs && k6 run load/checkout.js` |
 | Scenario | `load/checkout.js` — `per-vu-iterations`, 50 VUs × 5 iterations |
-| Planned profile | 50 VUs / 5 minutes |
-| Executed profile | **50 VUs / 250 checkouts / 1 min 06 s** — reduced; see below |
-| Sample size | **n = 250 checkout requests** (500 HTTP requests including logins) |
-| Errors | **0.00 %** (250/250 returned `201` with the server-computed total) |
+| Executed profile | 50 VUs / 250 checkout requests / 59.0 s |
+| HTTP requests | **750** — 250 × (CSRF + credentials callback + checkout) |
+| Checkout errors | **0.80 %** — 2 of 250 (`checkout_errors` threshold `rate<0.01` passed) |
+| Orders created | **248** |
 
-The five-minute profile was not run. The card allows a reduction as long as it
-is stated: each VU performs five iterations and then stops, so the run ends
-after 66 seconds instead of holding 50 VUs for five minutes. n is 250, which is
-enough for a p50/p95/p99 point estimate and not enough for a tight tail.
+The planned profile allows `maxDuration` 5 minutes; every VU finished its five
+iterations in 59 seconds, so the run ended on iteration count, not on a timeout
+or a reduced duration. `checkout_duration` measures only `POST /api/checkout`;
+sign-in is outside it.
 
 ## Result
 
-`checkout_duration` is the `POST /api/checkout` response time only; login time
-is excluded.
-
 | Metric | Value |
 | --- | --- |
-| p50 (k6 `med`) | **1.96 s** |
-| p95 | **2.66 s** |
-| p99 | **2.88 s** |
-| mean | 1.76 s |
-| min | 84.06 ms |
-| max | 3.07 s |
-| error rate | 0.00 % |
-| orders created | 250 |
-| throughput | 3.76 checkouts/s |
+| p50 (`med`) | 521.43 ms |
+| p95 | **4.58 s** |
+| p99 | 4.86 s |
+| mean | 901.79 ms |
+| min | 28.4 ms |
+| max | 5.03 s |
+| samples (`count`) | 250 |
+| orders created | 248 (4.20/s) |
+| HTTP requests | 750 |
+| HTTP failures | 2 (0.26 %) |
 
-Raw k6 summary (abridged to the relevant lines):
+Raw k6 summary, abridged to the relevant lines:
 
 ```text
+checks_total.......: 750    12.706677/s
+checks_succeeded...: 99.20% 744 out of 750
+checks_failed......: 0.80%  6 out of 750
+
 CUSTOM
-checkout_duration..............: avg=1.76s  min=84.06ms med=1.96s  p(90)=2.47s  p(95)=2.66s  p(99)=2.88s  max=3.07s count=250
-checkout_errors................: 0.00%  0 out of 250
-orders_created.................: 250    3.763446/s
+checkout_duration..............: avg=901.79ms min=28.4ms med=521.43ms p(90)=1.79s p(95)=4.58s p(99)=4.86s max=5.03s count=250
+checkout_errors................: 0.80%  2 out of 250
+orders_created.................: 248    4.201674/s
 
 HTTP
-http_req_duration..............: avg=1.46s  min=76.96ms med=1.59s  p(90)=2.13s  p(95)=2.47s  p(99)=2.87s  max=3.07s count=500
-http_req_failed................: 0.00%  0 out of 500
+http_req_duration..............: avg=442.79ms min=3.56ms med=226.34ms p(90)=960.95ms p(95)=1.28s p(99)=4.75s max=5.03s count=750
+http_req_failed................: 0.26%  2 out of 750
+http_reqs......................: 750    12.706677/s
 
 EXECUTION
-iterations.....................: 250    3.763446/s
-vus............................: 34     min=34       max=50
+iterations.....................: 250    4.235559/s
+vus............................: 8      min=8        max=50
 vus_max........................: 50     min=50       max=50
 
-running (1m06.4s), 00/50 VUs, 250 complete and 0 interrupted iterations
+running (0m59.0s), 00/50 VUs, 250 complete and 0 interrupted iterations
 ```
+
+## The two failures
+
+Both failed checkouts are the same error in the `next start` log:
+
+```text
+PrismaClientKnownRequestError: Transaction API error: Unable to start a transaction in the given time.
+  code: 'P2028'
+  clientVersion: '6.19.3'
+```
+
+Prisma's interactive-transaction `maxWait` expired before a connection was
+available. The default Prisma pool is `2 × logical CPUs + 1` = 13 connections
+for 50 VUs all opening a checkout transaction. The failure happens before the
+transaction starts, so there is no order, no reservation and no stock change to
+clean up. Queried immediately after the run, `shop_dev` held:
+
+```text
+load orders              = 248
+open load reservations   = 248
+LOAD-001 stock           = 99752   (100000 − 248)
+```
+
+So the error rate is a connection-pool limit, not an oversell or a lost
+reservation. A retry is safe: the `(userId, idempotencyKey)` index returns the
+existing order if the first attempt did commit.
 
 ## Method
 
-1. `node scripts/load-fixture.mjs` recreates 250 users (`load-0…249@alder.test`)
-   against `shop_dev`, each with one cart holding one unit of a dedicated
-   `LOAD-001` variant (stock 100,000, price 1,999 cents). The seed removes prior
-   load users, their orders and reservations first, so reruns are clean.
-2. Each VU signs in as five distinct accounts. Login is `POST /api/login` with
-   a unique `X-Forwarded-For` per account; the per-IP and per-account windows
-   therefore never collide, and no request is a 429.
-3. Each account is used for exactly one checkout. The unique
-   `(userId, idempotencyKey)` is new every iteration, so all 250 are real order
-   creations — none is an idempotent replay.
-4. Every response is checked for `201` and for `totalCents === 1999`; a forged
-   or recomputed-away total would fail the run.
+1. `node scripts/load-fixture.mjs` deletes prior load users, orders and
+   reservations, then creates 250 users (`load-0…249@kestrel.test`), one
+   address and one cart per user, each holding one unit of a dedicated
+   `LOAD-001` variant (`priceCents` 1,999, stock 100,000).
+2. `load/checkout.js` runs `per-vu-iterations`, 50 VUs × 5 iterations.
+3. Each iteration signs in through Auth.js: `GET /api/auth/csrf`, then
+   `POST /api/auth/callback/credentials`. k6 keeps one cookie jar per VU, so
+   the session cookie is sent to `/api/checkout`.
+4. Every account is used once and every `(userId, idempotencyKey)` is new, so
+   all 250 requests are real order creations, not replays. Each account also
+   gets a unique `X-Forwarded-For`, so the per-email + per-IP sign-in limiter
+   cannot collapse the run into one bucket.
+5. Each response is checked for `201`, `subtotalCents === 1999` and
+   `totalCents === 2489` (1,999 + 490 standard shipping, since the subtotal is
+   below the 8,000 free-shipping threshold). A forged or stale total fails the
+   check.
 
 Reproduce:
 
 ```bash
-npm run dev                          # in one terminal, shop_dev seeded
-node scripts/load-fixture.mjs        # 250 users, one cart each
+npx prisma db seed -- --seed 42
+npm run build && npm start          # terminal 1
+node scripts/load-fixture.mjs       # terminal 2
 k6 run load/checkout.js
 node scripts/load-fixture.mjs --cleanup
 ```
 
 ## What this number is not
 
-- **It is not a production number.** The app runs under `next dev`, not
-  `next start`: `NODE_ENV=production` refuses to create the local
-  `pi_local_*` payment intent when no `STRIPE_SECRET_KEY` is present, and no
-  key is configured on this machine. Dev-mode compilation and request handling
-  are slower than a production build; the latencies above are a real
-  measurement of this stack, not a claim about a production deployment.
-- **The 50 simultaneous argon2 logins share the CPU with the checkouts.** Each
-  VU logs in immediately before it checks out, so argon2id verification
-  competes with the checkout transaction. This is why the p50 is ~2 s. A
-  scenario that pre-issues session cookies would isolate the checkout path;
-  this one measures a realistic "sign in, buy" sequence under concurrency.
-- **One machine, one database.** Local PostgreSQL over TCP, single node,
-  no network latency and no managed-database variance.
-- **n = 250, one run.** p99 is an estimate from 250 samples. There is no
-  confidence interval and no repeated run to separate the tail from noise.
+- **Not a capacity number.** One machine, one local PostgreSQL, one run, n =
+  250. The 13-connection default pool is the reason for the tail; a larger
+  pool would move both the p95 and the error count.
+- **Not a network benchmark.** Client, server and database share one host.
+- **Not a Stripe measurement.** Checkout writes a simulated `pi_demo_*`
+  PaymentIntent id; no external payment call is made.
+- **Not a repeated run.** There is no confidence interval. p99 is an estimate
+  from 250 samples.

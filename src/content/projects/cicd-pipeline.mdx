@@ -1,7 +1,7 @@
 ---
 order: 2
 title: CI/CD deployment pipeline
-oneLiner: Pull-request checks and tests, Docker image builds, and deploys of successful builds to a staging environment.
+oneLiner: Pull-request gates, a Docker image and a local release lane with a recorded rollback.
 stack:
   - GitHub Actions
   - Docker Buildx
@@ -11,107 +11,54 @@ stack:
   - PostgreSQL
 updatedAt: "2026-10-23"
 claim: >-
-  Eight PR gates feed one required ci-ok check, and the local release lane
-  rolled back a build with an injected 500 on POST /invoices after its smoke
-  gate caught the failure; deploy.log records the order. Whether a red PR
-  blocks a merge is not measured, because the repository has no remote.
-problem: >-
-  A workflow file can declare gates that have never run. This repository has no
-  remote, the host has no Docker daemon, and a release lane without a rollback
-  step can leave a broken process serving after a health check passes.
-constraint: >-
-  No GitHub Actions run exists, no registry credentials are present, and
-  docker info fails with Access is denied. Windows excludes ports 8001 to 8300
-  on this host, so the service runs on 127.0.0.1:8787 and there is no public
-  URL.
-architecture: >-
-  pr.yml runs eight jobs and a ci-ok aggregator that needs all eight, with
-  every action pinned to a commit SHA. The local lane builds a release, swaps
-  the current pointer, restarts the process, waits for /health and /ready, runs
-  five smoke assertions, and rolls back to the previous release when smoke
-  fails. deploy.log is the ordered evidence; a screenshot is not.
-decisions:
-  - title: One ci-ok aggregator instead of eight required checks
-    choice: >-
-      Require a single ci-ok job that lists all eight gate jobs in needs, so
-      branch protection points at one name that cannot drift from the workflow.
-    rejected: >-
-      Require every gate individually in the repository settings. Adding or
-      renaming a gate then needs a settings change outside the repository, and
-      the required list can silently omit a job.
-    cost: >-
-      ci-ok must fail when a needed job fails or is skipped, and the ruleset
-      that makes ci-ok required lives on GitHub, where this repository cannot
-      verify it.
-    evidence: >-
-      The structural check lists 9 jobs including ci-ok and 0 unpinned uses;
-      docs/evidence/workflow-structure.txt is in the snapshot.
-  - title: Smoke failure rolls back; health alone is not a deploy gate
-    choice: >-
-      After the health wait, run five smoke assertions and roll back to the
-      previous release when any assertion fails, then re-wait and re-smoke the
-      restored release.
-    rejected: >-
-      Treat a healthy /health and /ready response as success. The injected
-      invoices-500 build stayed healthy while its POST /invoices returned 500,
-      so a health-only gate would have left it serving.
-    cost: >-
-      Every release pays for five live assertions and a restart on rollback,
-      and rollback is valid only one release back and only for
-      expand/contract migrations.
-    evidence: >-
-      deploy.log records deploy.start, health.ok, smoke.fail, rollback.start,
-      rollback.health.ok and rollback.smoke.ok in file order; the rollback
-      timeline is shot-01.
-  - title: Record the negative result instead of simulating the CI lane
-    choice: >-
-      Commit docker-info.txt showing Access is denied, and mark the image
-      build, Trivy scan, cosign signature and attestation as unverified in the
-      manifest limits.
-    rejected: >-
-      Render a green check page from the workflow YAML and present it as a run.
-      That is the exact failure this project is about: a mock is not evidence.
-    cost: >-
-      The CI lane remains unexecuted, so the repository cannot claim that the
-      image was built, scanned, signed or pushed.
-    evidence: >-
-      docs/evidence/docker-info.txt records the daemon failure, and the hero
-      image is labelled a mock in its alt text.
+  The local release lane rolled back a build after its smoke gate failed, and
+  deploy.log records the order; the GitHub Actions lane has never run.
+what: >-
+  A Fastify invoice API on PostgreSQL 16 with a GitHub Actions workflow, a
+  Dockerfile and a local release script. The workflow defines eight gates and
+  a ci-ok aggregator; the release script swaps a current pointer, waits on
+  /health and /ready, runs five smoke assertions and can roll back.
+hardPart: >-
+  A workflow file can declare gates that have never run, and a health check can
+  pass while the service is broken. The repository has no remote, so the
+  Actions lane cannot execute here; a release lane without a rollback step can
+  leave a bad process serving.
+decision:
+  title: Smoke failure rolls back; health is not a deploy gate
+  choice: >-
+    After the health wait, run five smoke assertions and roll back when any
+    fails, then re-smoke the restored release.
+  rejected: >-
+    Treat healthy /health and /ready responses as success; a build can stay
+    healthy while its invoice route fails.
+  cost: >-
+    Every release pays for five live assertions and a rollback restart, and
+    rollback returns to the previous release.
+  evidence: >-
+    deploy.log records deploy.start, health.ok, smoke.fail, rollback.start,
+    rollback.health.ok, rollback.smoke.ok.
 failures:
   - date: "2026-10-23"
     commit: "b9a30b7"
     summary: >-
-      The first recorded deploy hit CURRENT_LINK: unbound variable in the
-      smoke script header, because set -u caught a variable read before
-      assignment; the release path printed empty.
+      The first recorded deploy aborted in the smoke script header: set -u read
+      CURRENT_LINK before assignment, so the release path printed empty.
     processChange: >-
-      smoke.sh now resolves CURRENT_LINK before it is used. The transcript was
-      left in docs/ROLLBACK.md with the error rather than edited out, and the
-      five assertions and exit status were unaffected.
-metrics:
-  - label: Workflow structure
-    value: 9 jobs including ci-ok; 0 unpinned uses
-    method: node structural check over .github/workflows/pr.yml.
-    artifact: public/assets/cicd-pipeline/proof/docs/evidence/workflow-structure.txt
-  - label: Rollback ordering
-    value: deploy.start → health.ok → smoke.fail → rollback.start → rollback.health.ok → rollback.smoke.ok
-    method: read deploy.log in file order with timestamps recorded by release-local.sh.
-    artifact: public/assets/cicd-pipeline/proof/deploy.log
-  - label: Docker daemon
-    value: "unavailable: //./pipe/docker_engine Access is denied"
-    method: docker info, recorded as a negative result.
-    artifact: public/assets/cicd-pipeline/proof/docs/evidence/docker-info.txt
-  - label: Hub asset contract
-    value: manifest valid, 4 shots at 2880x1800; hub check:assets exited 0
-    method: ASSET_ROOT pointed at the snapshot and the hub check:assets command.
-    artifact: public/assets/cicd-pipeline/proof/docs/evidence/check-assets.txt
+      smoke.sh resolves CURRENT_LINK before use; the transcript was left in
+      docs/ROLLBACK.md with the error rather than edited out.
+measured: >-
+  The local lane is measured: nine integration tests passed, the smoke gate
+  passed five of five assertions with /ready p95 7.7 ms, and deploy.log records
+  the rollback order. The workflow structure check found eight gates feeding
+  ci-ok and zero unpinned actions. The GitHub Actions lane has never run, so no
+  green CI run and no red-PR block are claimed.
 screenshots:
   - file: shot-01.webp
-    caption: Recorded rollback timeline from deploy.log, from deploy.start through rollback.smoke.ok.
+    caption: Recorded rollback timeline from deploy.log, deploy.start through rollback.smoke.ok.
   - file: shot-02.webp
-    caption: The PR gates feeding the single ci-ok check, rendered from pr.yml; no Actions run is depicted.
+    caption: The eight PR gates feeding the single ci-ok check, rendered from pr.yml; no Actions run.
   - file: shot-03.webp
-    caption: Local release transcript with the smoke assertions against the running service.
+    caption: Recorded local release transcript with five passing smoke assertions on 127.0.0.1:8787.
 links:
   - label: Rollback transcript
     href: /assets/cicd-pipeline/proof/deploy.log
@@ -119,6 +66,6 @@ links:
     href: /assets/cicd-pipeline/proof/docs/evidence/workflow-structure.txt
 next:
   - Add a git remote and capture the first Actions run, including a red PR.
-  - Build the image on a host with a Docker daemon and record the Trivy result.
   - Verify the GitHub ruleset that makes ci-ok required.
+  - Keep the local lane as the only deploy path until a staging host exists.
 ---

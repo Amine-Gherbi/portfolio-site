@@ -2,9 +2,10 @@
 /**
  * Validates case-study MDX frontmatter against the rules the template relies on:
  *
- *   1. Each of the 3 decisions has a non-empty rejected alternative and cost.
+ *   1. The six fixed sections exist and the decision names a rejected
+ *      alternative and its cost.
  *   2. Exactly one dated failure with a commit SHA.
- *   3. Every metric has a method and an artifact path that exists on disk.
+ *   3. The narrative is between 250 and 450 words.
  *
  * It also checks the other fixed sections, writing rules, and (with --dist) the
  * order of the rendered sections in the built HTML.
@@ -19,24 +20,37 @@ const DIST_ROOT = path.join(ROOT, "dist", "projects");
 const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n[\s\S]*)?$/;
 const SHOT_ORDER = ["shot-01.webp", "shot-02.webp", "shot-03.webp"];
 const SECTION_ORDER = [
-  "claim",
-  "problem",
-  "constraint",
-  "architecture",
-  "decisions",
-  "failure",
-  "metrics",
-  "screenshots",
-  "links",
-  "next",
+  "what-it-is",
+  "hard-part",
+  "decision",
+  "what-broke",
+  "measured",
+  "limits",
 ];
+const SECTION_HEADINGS = [
+  "What it is",
+  "The hard part",
+  "The decision",
+  "What broke",
+  "Measured",
+  "Limits",
+];
+const WORD_MIN = 250;
+const WORD_MAX = 450;
 const BANNED_WORDS = [
   "seamless",
   "robust",
   "leverage",
   "leveraging",
   "cutting-edge",
+  "empower",
+  "elevate",
+  "unlock",
+  "effortless",
+  "powerful",
+  "delve",
   "world-class",
+  "not just",
 ];
 const SUPERLATIVES = [
   "best",
@@ -110,6 +124,57 @@ function collectProse(value, key, output) {
   }
 }
 
+function countWords(text) {
+  if (typeof text !== "string" || text.trim() === "") {
+    return 0;
+  }
+  return text.trim().split(/\s+/).length;
+}
+
+/**
+ * The word ceiling applies to the narrative a reader sees in the six sections:
+ * the claim, one-liner, what/hard-part/measured paragraphs, the decision and
+ * failure fields, the next steps, screenshot captions and the committed
+ * manifest limits. The metric table, link labels, stack tokens and headings are
+ * evidence or metadata, not narrative, and are excluded.
+ */
+function narrativeWords(study, limits) {
+  const parts = [
+    study.oneLiner,
+    study.claim,
+    study.what,
+    study.hardPart,
+    study.measured,
+  ];
+
+  const decision = isObject(study.decision) ? study.decision : {};
+  parts.push(
+    decision.title,
+    decision.choice,
+    decision.rejected,
+    decision.cost,
+    decision.evidence,
+  );
+
+  const failures = Array.isArray(study.failures) ? study.failures : [];
+  for (const failure of failures) {
+    if (isObject(failure)) {
+      parts.push(failure.summary, failure.processChange);
+    }
+  }
+
+  for (const screenshot of Array.isArray(study.screenshots) ? study.screenshots : []) {
+    if (isObject(screenshot)) {
+      parts.push(screenshot.caption);
+    }
+  }
+
+  parts.push(...(Array.isArray(study.next) ? study.next : []));
+  parts.push(...(Array.isArray(limits) ? limits : []));
+
+  return parts.reduce((total, part) => total + countWords(part), 0);
+}
+
 function checkWriting(study, errors) {
   const prose = [];
   collectProse(study, "", prose);
@@ -123,6 +188,9 @@ function checkWriting(study, errors) {
     }
     if (/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u.test(text)) {
       errors.push(`writing: emoji found in: ${text.slice(0, 80)}`);
+    }
+    if (text.includes("!")) {
+      errors.push(`writing: exclamation mark in: ${text.slice(0, 80)}`);
     }
     for (const sentence of text.split(/(?<=[.!?])\s+/)) {
       if (/\d/.test(sentence)) {
@@ -139,14 +207,14 @@ function checkWriting(study, errors) {
   }
 }
 
-function validateStudy(study, label) {
+function validateStudy(study, label, limits = []) {
   const errors = [];
 
   if (!isObject(study)) {
     return [`${label}: frontmatter must be an object`];
   }
 
-  for (const field of ["claim", "problem", "constraint", "architecture"]) {
+  for (const field of ["claim", "what", "hardPart", "measured"]) {
     if (!filled(study[field])) {
       errors.push(`${field}: ${field} is required`);
     }
@@ -168,35 +236,17 @@ function validateStudy(study, label) {
     errors.push("updatedAt: updatedAt must be YYYY-MM-DD");
   }
 
-  const decisions = Array.isArray(study.decisions) ? study.decisions : [];
-  if (decisions.length !== 3) {
-    errors.push(
-      `decisions: exactly 3 decisions are required, found ${decisions.length}`,
-    );
+  if (!isObject(study.decision)) {
+    errors.push("decision: exactly one decision object is required");
+  } else {
+    for (const field of ["title", "choice", "rejected", "cost", "evidence"]) {
+      if (!filled(study.decision[field])) {
+        errors.push(
+          `decision.${field}: ${field === "rejected" ? "rejected alternative" : field} is required`,
+        );
+      }
+    }
   }
-  decisions.forEach((decision, index) => {
-    if (!isObject(decision)) {
-      errors.push(`decisions[${index}]: decision must be an object`);
-      return;
-    }
-    if (!filled(decision.title)) {
-      errors.push(`decisions[${index}].title: decision title is required`);
-    }
-    if (!filled(decision.choice)) {
-      errors.push(`decisions[${index}].choice: decision is required`);
-    }
-    if (!filled(decision.rejected)) {
-      errors.push(
-        `decisions[${index}].rejected: rejected alternative is required (empty string)`,
-      );
-    }
-    if (!filled(decision.cost)) {
-      errors.push(`decisions[${index}].cost: cost is required (empty string)`);
-    }
-    if (!filled(decision.evidence)) {
-      errors.push(`decisions[${index}].evidence: evidence is required`);
-    }
-  });
 
   const failures = Array.isArray(study.failures) ? study.failures : [];
   if (failures.length !== 1) {
@@ -223,35 +273,6 @@ function validateStudy(study, label) {
     if (!filled(failure.processChange)) {
       errors.push(
         `failures[${index}].processChange: process change is required`,
-      );
-    }
-  });
-
-  const metrics = Array.isArray(study.metrics) ? study.metrics : [];
-  if (metrics.length === 0) {
-    errors.push("metrics: at least one metric is required");
-  }
-  metrics.forEach((metric, index) => {
-    if (!isObject(metric)) {
-      errors.push(`metrics[${index}]: metric must be an object`);
-      return;
-    }
-    if (!filled(metric.label)) {
-      errors.push(`metrics[${index}].label: metric label is required`);
-    }
-    if (typeof metric.value !== "string" || metric.value.trim() === "") {
-      errors.push(
-        `metrics[${index}].value: metric value must be a non-empty string`,
-      );
-    }
-    if (!filled(metric.method)) {
-      errors.push(`metrics[${index}].method: method is required`);
-    }
-    if (!filled(metric.artifact)) {
-      errors.push(`metrics[${index}].artifact: artifact path is required`);
-    } else if (!existsSync(path.resolve(ROOT, metric.artifact))) {
-      errors.push(
-        `metrics[${index}].artifact: artifact not found at ${metric.artifact}`,
       );
     }
   });
@@ -302,9 +323,37 @@ function validateStudy(study, label) {
     }
   });
 
+  const words = narrativeWords(study, limits);
+  if (words < WORD_MIN || words > WORD_MAX) {
+    errors.push(
+      `word count: ${words} narrative words; expected ${WORD_MIN}-${WORD_MAX}`,
+    );
+  }
+
   checkWriting(study, errors);
 
   return errors;
+}
+
+function readManifest(slug) {
+  const manifestPath = path.join(ROOT, "public", "assets", slug, "manifest.json");
+  if (!existsSync(manifestPath)) {
+    return undefined;
+  }
+  try {
+    return JSON.parse(readFileSync(manifestPath, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function manifestLimits(manifest) {
+  if (!isObject(manifest) || !isObject(manifest.proof)) {
+    return [];
+  }
+  return Array.isArray(manifest.proof.limits)
+    ? manifest.proof.limits.filter((limit) => typeof limit === "string")
+    : [];
 }
 
 function validateManifest(slug, errors, warnings) {
@@ -368,10 +417,11 @@ function runSelfTests(study) {
     return [];
   }
 
+  const limits = ["A manifest limit.", "Another manifest limit.", "A third limit."];
   const cases = [];
   const emptyRejected = structuredClone(study);
-  emptyRejected.decisions[0].rejected = "";
-  cases.push(["empty decision.rejected", emptyRejected, "decisions[0].rejected"]);
+  emptyRejected.decision.rejected = "";
+  cases.push(["empty decision.rejected", emptyRejected, "decision.rejected"]);
 
   const noFailures = structuredClone(study);
   noFailures.failures = [];
@@ -381,17 +431,17 @@ function runSelfTests(study) {
   twoFailures.failures = [twoFailures.failures[0], twoFailures.failures[0]];
   cases.push(["two failures", twoFailures, "expected exactly one dated failure"]);
 
-  const missingArtifact = structuredClone(study);
-  missingArtifact.metrics[0].artifact = "docs/artifact-that-does-not-exist.md";
-  cases.push([
-    "missing metric artifact",
-    missingArtifact,
-    "artifact not found",
-  ]);
+  const missingWhat = structuredClone(study);
+  missingWhat.what = "";
+  cases.push(["missing what-it-is prose", missingWhat, "what: what is required"]);
+
+  const tooLong = structuredClone(study);
+  tooLong.what = "word ".repeat(500);
+  cases.push(["word ceiling", tooLong, "word count"]);
 
   const failures = [];
   for (const [name, mutated, expected] of cases) {
-    const errors = validateStudy(mutated, name);
+    const errors = validateStudy(mutated, name, limits);
     if (!errors.some((error) => error.includes(expected))) {
       failures.push(
         `[content] FAIL self-test "${name}": expected an error containing "${expected}", got ${errors.length} errors`,
@@ -405,6 +455,18 @@ function runSelfTests(study) {
     );
   }
   return failures;
+}
+
+function textOf(html) {
+  return html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function runDistChecks(studies, errors) {
@@ -429,6 +491,15 @@ function runDistChecks(studies, errors) {
     if (sections.join(",") !== SECTION_ORDER.join(",")) {
       errors.push(
         `[content] dist: ${slug} sections are [${sections.join(", ")}], expected [${SECTION_ORDER.join(", ")}]`,
+      );
+    }
+
+    const headings = [...html.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/g)].map(
+      (match) => textOf(match[1] ?? ""),
+    );
+    if (headings.join(",") !== SECTION_HEADINGS.join(",")) {
+      errors.push(
+        `[content] dist: ${slug} headings are [${headings.join(", ")}], expected [${SECTION_HEADINGS.join(", ")}]`,
       );
     }
 
@@ -481,7 +552,7 @@ function runDistChecks(studies, errors) {
 
   if (errors.length === 0) {
     console.log(
-      `[content] dist: ${studies.length} case studies render in fixed section order with 3 captioned screenshots`,
+      `[content] dist: ${studies.length} case studies render six sections in fixed order with 3 captioned screenshots`,
     );
   }
 }
@@ -505,7 +576,7 @@ for (const { slug, filePath, raw } of studies) {
     continue;
   }
   firstStudy ??= study;
-  for (const error of validateStudy(study, slug)) {
+  for (const error of validateStudy(study, slug, manifestLimits(readManifest(slug)))) {
     errors.push(`[content] ${slug}: ${error}`);
   }
   validateManifest(slug, errors, warnings);
@@ -533,6 +604,6 @@ if (errors.length > 0) {
 
 if (mode === "source") {
   console.log(
-    `[content] ${studies.length} case studies valid: 3 decisions with rejected + cost, exactly one failure, metric artifacts present`,
+    `[content] ${studies.length} case studies valid: six sections, one decision with rejected + cost, exactly one failure, ${WORD_MIN}-${WORD_MAX} narrative words`,
   );
 }

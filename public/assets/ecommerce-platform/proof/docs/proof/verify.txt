@@ -1,0 +1,58 @@
+$ npm run verify
+# run 2026-10-23 23:05–23:08 local, Windows 11 Pro 10.0.26200,
+# Node 22.23.4, PostgreSQL 16.13 (shop_test). Exit code 0.
+# Abridged: the 33 per-file Vitest lines and the per-file coverage rows are
+# omitted; every number below is copied from the run. Full output was 58.9 KB.
+
+> ecommerce-platform@0.1.0 verify
+> eslint . && tsc --noEmit && vitest run --coverage && prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --exit-code && playwright test
+
+# eslint .            -> no output, exit 0
+# tsc --noEmit        -> no output, exit 0
+
+ RUN  v3.2.7 P:/portfolio/ecommerce-platform
+      Coverage enabled with v8
+
+ ... 33 test files, all passing (catalog, cart, addresses, signin, signup,
+     admin, reservations, checkout, webhooks, orders, unit files) ...
+
+ Test Files  33 passed (33)
+      Tests  181 passed (181)
+   Start at  23:05:11
+   Duration  66.70s (transform 966ms, setup 164ms, collect 6.61s, tests 40.30s, environment 17ms, prepare 7.32s)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   92.54 |    81.31 |     100 |   92.54 |
+-------------------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 92.54% ( 2608/2818 )
+Branches     : 81.31% ( 544/669 )
+Functions    : 100% ( 119/119 )
+Lines        : 92.54% ( 2608/2818 )
+================================================================================
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma config detected, skipping environment variable loading.
+No difference detected.
+
+# Playwright global setup:
+Datasource "db": PostgreSQL database "shop_test", schema "public" at "localhost:5433"
+The database is already in sync with the Prisma schema.
+Running seed command `node --import tsx prisma/seed.ts --seed 42` ...
+seed=42 categories=4 brands=22 products=30 variants=60 images=30 users=2 addresses=3 orders=2 order_items=4 sold_out_variants=3 order_states=FULFILLED=1,PAID=1
+The seed command has been executed.
+
+Running 5 tests using 1 worker
+
+  ok 1 tests\e2e\admin.spec.ts:6:7 › admin console › an admin opens the paid order, marks it fulfilled and sees the status (18.1s)
+  ok 2 tests\e2e\admin.spec.ts:47:7 › admin console › a customer is redirected away from the admin console (6.1s)
+  ok 3 tests\e2e\auth.spec.ts:6:7 › sign-in › a wrong password shows the error and stays on the page (2.8s)
+  ok 4 tests\e2e\checkout.spec.ts:14:7 › checkout › browse, add to cart, sign in and place an order at the server total (24.4s)
+  ok 5 tests\e2e\signup.spec.ts:4:7 › sign-up › creates an account and lands on /account signed in (7.7s)
+
+  5 passed (2.0m)

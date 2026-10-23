@@ -27,7 +27,14 @@ const BANNED_WORDS = [
   "leverage",
   "leveraging",
   "cutting-edge",
+  "empower",
+  "elevate",
+  "unlock",
+  "effortless",
+  "powerful",
+  "delve",
   "world-class",
+  "not just",
 ];
 
 const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u;
@@ -100,6 +107,11 @@ function auditStudy(slug, data, errors) {
     if (typeof value === "string") {
       if (SKIP_KEYS.has(key)) {
         return;
+      }
+      if (value.includes("!")) {
+        errors.push(
+          `${slug}: exclamation mark in ${trail || key}: "${value.slice(0, 140)}"`,
+        );
       }
       const sentences = splitSentences(value);
       sentences.forEach((sentence, index) => {
@@ -205,6 +217,12 @@ function scanDist(errors) {
     const badgeCount = (html.match(/\bclass="[^"]*\bbadge\b[^"]*"/g) ?? []).length;
     if (badgeCount > 3) {
       errors.push(`${relative}: ${badgeCount} badges, maximum is 3`);
+    }
+
+    const main = /<main\b[^>]*>([\s\S]*?)<\/main>/i.exec(html);
+    const visible = stripHtml(main ? main[1] : html);
+    if (visible.includes("!")) {
+      errors.push(`${relative}: exclamation mark in visible text`);
     }
   }
 
