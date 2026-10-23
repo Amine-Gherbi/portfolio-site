@@ -8,7 +8,6 @@
     "claude-security@claude-plugins-official": false,
     "commit-commands@claude-plugins-official": false,
     "deepeval@claude-plugins-official": false,
-    "context7@claude-plugins-official": true,
     "superpowers@claude-plugins-official": false,
     "mattpocock-skills@claude-plugins-official": true,
     "chrome-devtools-mcp@claude-plugins-official": true,
@@ -22,8 +21,7 @@
     "serena@claude-plugins-official": false,
     "hyperframes@claude-plugins-official": true,
     "playground@claude-plugins-official": true,
-    "superdesign@claude-plugins-official": true,
-    "figma@claude-plugins-official": false
+    "superdesign@claude-plugins-official": true
   },
   "enabledMcpjsonServers": [
     "playwright"
@@ -33,7 +31,9 @@
       "Bash(npm:*)",
       "Bash(npx:*)",
       "Bash(git:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs"
     ],
     "deny": [
       "Read(.env)",
