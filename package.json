@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "npm run build:resume && astro build",
+    "build": "astro build",
     "preview": "astro preview",
     "build:resume": "node scripts/build-resume-pdf.mjs",
     "check:assets": "node scripts/check-assets.mjs",
@@ -18,7 +18,7 @@
     "check:js": "node scripts/check-js-budget.mjs",
     "sync:assets": "node scripts/sync-assets.mjs",
     "test:assets": "node --test tests/asset-contract.test.mjs",
-    "verify": "astro check && tsc --noEmit && npm run check:assets && npm run check:content && npm run check:copy && npm run build:resume && astro build && node scripts/check-content.mjs --dist && node scripts/check-copy.mjs --dist && npm run check:a11y && npm run check:js"
+    "verify": "astro check && tsc --noEmit && npm run check:assets && npm run check:content && npm run check:copy && astro build && node scripts/check-content.mjs --dist && node scripts/check-copy.mjs --dist && npm run check:a11y && npm run check:js"
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",

@@ -8,9 +8,12 @@ interface Props {
   description?: string;
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
   ogImage?: string;
+  /** On the home page the wordmark is the page's single h1. */
+  wordmarkAsHeading?: boolean;
 }
 
-const { title, description, jsonLd, ogImage } = Astro.props;
+const { title, description, jsonLd, ogImage, wordmarkAsHeading = false } =
+  Astro.props;
 const pageTitle = `${title} · ${SITE_NAME}`;
 const metaDescription =
   description ??
@@ -71,9 +74,19 @@ function isCurrent(path: string): boolean {
     <div class="page-shell">
       <header class="site-header">
         <div class="identity">
-          <a class="wordmark" href="/" aria-label={`${SITE_NAME}, home`}
-            >{SITE_NAME}</a
-          >
+          {
+            wordmarkAsHeading ? (
+              <h1 class="wordmark-heading">
+                <a class="wordmark" href="/" aria-label={`${SITE_NAME}, home`}
+                  >{SITE_NAME}</a
+                >
+              </h1>
+            ) : (
+              <a class="wordmark" href="/" aria-label={`${SITE_NAME}, home`}
+                >{SITE_NAME}</a
+              >
+            )
+          }
           <span class="site-role">{resume.role}</span>
         </div>
         <nav class="site-nav" aria-label="Site">

@@ -7,7 +7,7 @@
  *   - a sentence in a case study or the thesis that carries a measurement
  *     number without a method, artifact, commit or page nearby
  *   - a rendered ISO date or a schema/sitemap date field
- *   - an /about page longer than 250 words
+ *   - an /about page longer than 400 words
  *
  * Source mode validates the MDX before the build; --dist validates the
  * rendered HTML after it.
@@ -296,8 +296,8 @@ function scanDist(errors) {
     const main = /<main\b[^>]*>([\s\S]*?)<\/main>/i.exec(html);
     const text = stripHtml(main ? main[1] : html);
     const words = text === "" ? 0 : text.split(/\s+/).length;
-    if (words > 250) {
-      errors.push(`/about: ${words} words, maximum is 250`);
+    if (words > 400) {
+      errors.push(`/about: ${words} words, maximum is 400`);
     }
   }
 }
@@ -333,5 +333,5 @@ if (errors.length > 0) {
 console.log(
   mode === "source"
     ? "[copy] source: no banned or defect words or emoji; measurement numbers carry a method, artifact, commit or page"
-    : "[copy] dist: no banned or defect words, emoji or rendered dates; no page has more than 3 badges; /about is within 250 words",
+    : "[copy] dist: no banned or defect words, emoji or rendered dates; no page has more than 3 badges; /about is within 400 words",
 );

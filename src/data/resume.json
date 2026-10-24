@@ -38,29 +38,39 @@
   ],
   "freelance": [
     {
-      "sector": "Retail and e-commerce",
-      "problem": "Storefronts where price, stock and order state had to be decided by the server, not the browser. Checkout, admin and order flows built on Next.js and PostgreSQL.",
+      "sector": "Test-to-deploy pipeline",
+      "problem": "GitHub Actions that lint and test every pull request and deploy main on merge, behind one required status check instead of eight ad-hoc ones.",
+      "stack": "GitHub Actions, Vitest, Docker, Cloudflare"
+    },
+    {
+      "sector": "Identity and access hardening",
+      "problem": "MFA, login rate limits and server-side session rotation added to an existing customer-facing app, with the auth flow left where it was.",
+      "stack": "Node.js, PostgreSQL, Redis, TOTP, WebAuthn"
+    },
+    {
+      "sector": "Invoice OCR to ledger rows",
+      "problem": "Reads PDF invoices into accounting-ready CSV, validating line totals and routing low-confidence rows to a review queue rather than guessing.",
+      "stack": "Python, OCR, pdfplumber, PostgreSQL"
+    },
+    {
+      "sector": "Inbox triage and reply drafts",
+      "problem": "Classifies inbound enquiries and writes reply drafts with a confidence threshold, so a person reads, edits and sends instead of starting from blank.",
+      "stack": "Python, Gmail API, Microsoft Graph, LLM API"
+    },
+    {
+      "sector": "Internal Chrome extension",
+      "problem": "A Manifest V3 extension that fills repetitive forms and batches records inside an internal SaaS the team already uses, replacing copy-paste between tabs.",
+      "stack": "TypeScript, Chrome Extensions MV3, REST"
+    },
+    {
+      "sector": "Restaurant operations backend",
+      "problem": "A single-purpose service that gives an existing restaurant site store-specific pricing, modifiers and tax rules, so the menu stops being a static page.",
       "stack": "Next.js, TypeScript, PostgreSQL, Prisma"
     },
     {
-      "sector": "Logistics and delivery",
-      "problem": "Internal boards that replace spreadsheets for orders, routes and delivery status, with one place for dispatchers to update a job.",
-      "stack": "React, Node.js, PostgreSQL"
-    },
-    {
-      "sector": "Education and training",
-      "problem": "Course platforms with enrolment, progress and completion records that staff can audit without a second spreadsheet.",
-      "stack": "Next.js, FastAPI, PostgreSQL"
-    },
-    {
-      "sector": "Healthcare administration",
-      "problem": "Booking and patient-record tools where each role sees the records its work needs, and changes stay traceable.",
-      "stack": "Next.js, Django, PostgreSQL"
-    },
-    {
-      "sector": "Document-heavy teams",
-      "problem": "Search and question answering over PDFs, with every answer tied back to the page it came from.",
-      "stack": "Python, FastAPI, pgvector, React"
+      "sector": "Vendor selection support",
+      "problem": "Competing proposals become one weighted scorecard and a question set that closes the gaps before a decision is signed.",
+      "stack": "Requirements matrix, weighted scoring, RFP questions"
     }
   ],
   "aboutSkills": [

@@ -5,9 +5,6 @@ import ProjectCard from "../components/ProjectCard.astro";
 import { readProjectManifest } from "../lib/manifest";
 import { SITE_URL } from "../lib/site";
 
-const positioningSentence =
-  "I build full-stack systems and publish the measurement: 20 concurrent buyers on stock 5 produce 5 orders and stock 0, 9 CI jobs feed one ci-ok check, and an answer with no citation is dropped.";
-
 const coreStack = ["TypeScript", "Next.js", "PostgreSQL", "Python"];
 
 const entries = await getCollection("projects");
@@ -51,12 +48,8 @@ const person = {
   description="Three case studies and a Master's thesis: an e-commerce platform, a CI/CD deployment pipeline, a document Q&A assistant, and a Hyperledger Fabric network for social security."
   jsonLd={person}
   ogImage="/og/home.png"
+  wordmarkAsHeading
 >
-  <header class="hero">
-    <h1>{positioningSentence}</h1>
-    <p class="hero-stack">{coreStack.join(", ")}</p>
-  </header>
-
   <section id="thesis" class="thesis-section" aria-labelledby="thesis-heading">
     <div class="thesis-intro">
       <p class="kicker">Master's thesis · 2025</p>
