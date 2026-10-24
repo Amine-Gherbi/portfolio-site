@@ -740,7 +740,9 @@ function runHomeChecks(errors) {
   }
 
   const html = readFileSync(homePath, "utf8");
-  const work = /<section[^>]*\bid="work"[^>]*>([\s\S]*?)<\/section>/.exec(html);
+  const work = /<section[^>]*\bid="selected-work"[^>]*>([\s\S]*?)<\/section>/.exec(
+    html,
+  );
   const workCards = (work?.[1]?.match(/<article class="project-card"/g) ?? [])
     .length;
   if (workCards !== 3) {
@@ -758,7 +760,7 @@ function runHomeChecks(errors) {
 
   // The publication comes first; the case studies follow below it.
   const thesisIndex = html.indexOf('id="thesis"');
-  const workIndex = html.indexOf('id="work"');
+  const workIndex = html.indexOf('id="selected-work"');
   if (thesisIndex === -1 || workIndex === -1 || thesisIndex > workIndex) {
     errors.push(
       `[content] dist: the #thesis section must precede #work on the home page`,
