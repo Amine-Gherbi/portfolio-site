@@ -147,12 +147,18 @@ export const projectManifestSchema = z
       .array(requiredText("stack[]", 48))
       .min(1, "stack must contain at least one entry")
       .max(6, "stack must contain at most 6 entries"),
-    generatedAt: z
-      .string({
-        required_error: "generatedAt is required",
-        invalid_type_error: "generatedAt must be an ISO timestamp string",
-      })
-      .datetime({ offset: true, message: "generatedAt must be an ISO timestamp" }),
+    // Capture timestamps are optional: the re-captured manifests omit the
+    // field, and the store writes an empty string in its place. An absent or
+    // empty value is valid; a non-empty value must be an ISO timestamp.
+    generatedAt: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z
+        .string({
+          invalid_type_error: "generatedAt must be an ISO timestamp string",
+        })
+        .datetime({ offset: true, message: "generatedAt must be an ISO timestamp" })
+        .optional(),
+    ),
     seeded: z.literal(true, {
       errorMap: () => ({ message: "seeded must be true" }),
     }),

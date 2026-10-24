@@ -157,14 +157,15 @@ test("a shot absent from disk fails and names shots[0].file", async () => {
 
 test("a missing proof artifact fails and names proof.measured[0].artifact", async () => {
   const context = await makeCheckRoot(async (current) => {
+    // Derive the path from the manifest: which measurement leads the list is
+    // the source repo's call, and the test should not pin it to one artifact.
+    const artifact = current.manifest.proof.measured[0].artifact;
     await unlink(
       path.join(
         current.assets,
         "ecommerce-platform",
         "proof",
-        "docs",
-        "proof",
-        "concurrency-run.txt",
+        ...artifact.split("/"),
       ),
     );
   });
@@ -303,20 +304,20 @@ test("sync copies manifest, shots and proof, and sets only the four owned fields
       assert.deepEqual(targetBytes, sourceBytes, `${file} should be copied byte for byte`);
     }
 
-    const proof = await readFile(
-      path.join(
-        target,
-        "public",
-        "assets",
-        "ecommerce-platform",
-        "proof",
-        "tests",
-        "integration",
-        "checkout.forged-price.test.ts",
-      ),
-      "utf8",
+    // Proof artifacts are evidence: assert the copy is byte-identical rather
+    // than matching text that the source repo is free to rewrite.
+    const proofPath = path.join(
+      "tests",
+      "integration",
+      "checkout.forged-price.test.ts",
     );
-    assert.match(proof, /client-forged total/);
+    const [sourceProof, targetProof] = await Promise.all([
+      readFile(path.join(source.source, proofPath)),
+      readFile(
+        path.join(target, "public", "assets", "ecommerce-platform", "proof", proofPath),
+      ),
+    ]);
+    assert.deepEqual(targetProof, sourceProof, "proof artifact should be copied byte for byte");
 
     const page = await readFile(
       path.join(target, "src", "content", "projects", "ecommerce-platform.mdx"),

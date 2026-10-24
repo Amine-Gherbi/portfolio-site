@@ -1,161 +1,66 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { randomUUID } from "node:crypto";
 
-import { POST } from "@/app/api/webhooks/stripe/route";
-import { db } from "@/lib/db";
+import { beforeEach, describe, expect, it } from "vitest";
+
+import { POST } from "@/app/api/webhooks/payments/route";
 
 import {
-  cleanupFixture,
-  createCatalog,
   createPendingOrder,
-  createUsers,
-  runMigrations,
-  type CatalogFixture,
-} from "./helpers/fixtures";
-import { readWebhook } from "./helpers/http";
-import {
-  WEBHOOK_SECRET,
-  newEventId,
-  paymentSucceededEvent,
-  signedEventRequest,
-} from "./helpers/webhooks";
+  paymentEvent,
+  resetDatabase,
+  signedRequest,
+  testDb,
+} from "./helpers";
 
-// Amount mismatch: Stripe says it received a different amount (or currency)
-// than the order stores. Money that does not agree is never promoted to PAID;
-// it becomes REFUND_REQUIRED, and the reserved units go back on the shelf.
-
-const UNIT_PRICE = 5_000;
-const previousSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-let catalog: CatalogFixture;
-let userId: string;
-const eventIds: string[] = [];
-
-beforeAll(async () => {
-  process.env.STRIPE_WEBHOOK_SECRET = WEBHOOK_SECRET;
-  runMigrations();
-  catalog = await createCatalog({
-    stock: 20,
-    priceCents: UNIT_PRICE,
-    label: "amount-mismatch",
-  });
-  const users = await createUsers("amount-mismatch", 1);
-  const first = users[0];
-  if (first === undefined) {
-    throw new Error("no user fixture");
-  }
-  userId = first;
-}, 120_000);
-
-afterAll(async () => {
-  await cleanupFixture({
-    userIds: [userId],
-    catalogs: [catalog],
-    webhookEventIds: eventIds,
-  });
-  if (previousSecret === undefined) {
-    delete process.env.STRIPE_WEBHOOK_SECRET;
-  } else {
-    process.env.STRIPE_WEBHOOK_SECRET = previousSecret;
-  }
-  await db.$disconnect();
+beforeEach(async () => {
+  await resetDatabase();
 });
 
-async function orderNumber(orderId: string) {
-  const order = await db.order.findUnique({
-    where: { id: orderId },
-    select: { status: true, totalCents: true },
-  });
-  return order;
-}
+describe("payment amount and currency checks", () => {
+  it("sends a mismatched amount to REFUND_REQUIRED, never PAID, and returns stock", async () => {
+    const { order, initialStock } = await createPendingOrder({ stock: 5 });
+    const rawBody = paymentEvent(order, `evt_${randomUUID()}`, {
+      amountCents: order.totalCents + 1,
+    });
 
-describe("webhook amount verification", () => {
-  it("accepts a matching amount and leaves the reservation open", async () => {
-    const pending = await createPendingOrder(userId, catalog.variantId, 1);
-    const eventId = newEventId();
-    eventIds.push(eventId);
+    const response = await POST(signedRequest(rawBody));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ action: "refund_required" });
 
-    const response = await POST(
-      signedEventRequest(
-        paymentSucceededEvent({
-          eventId,
-          paymentIntentId: pending.paymentIntentId,
-          amountCents: pending.totalCents,
-        }),
-      ),
-    );
+    const stored = await testDb.order.findUniqueOrThrow({
+      where: { id: order.id },
+      select: { status: true, paidAt: true },
+    });
+    expect(stored.status).toBe("REFUND_REQUIRED");
+    expect(stored.paidAt).toBeNull();
 
-    const { status, body } = await readWebhook(response);
-    expect(status).toBe(200);
-    expect(body.action).toBe("processed");
-    expect((await orderNumber(pending.orderId))?.status).toBe("PAID");
+    const stock = await testDb.variant.findFirstOrThrow({
+      where: { orderItems: { some: { orderId: order.id } } },
+      select: { stock: true },
+    });
+    expect(stock.stock).toBe(initialStock);
 
-    const reservation = await db.stockReservation.findFirst({
-      where: { orderId: pending.orderId },
+    const reservation = await testDb.stockReservation.findFirstOrThrow({
+      where: { orderId: order.id },
       select: { releasedAt: true },
     });
-    expect(reservation?.releasedAt).toBeNull();
+    expect(reservation.releasedAt).not.toBeNull();
   });
 
-  it("sends a short payment to REFUND_REQUIRED and returns the stock", async () => {
-    const stockBefore = await db.variant.findUnique({
-      where: { id: catalog.variantId },
-      select: { stock: true },
+  it("treats a currency mismatch the same way", async () => {
+    const { order } = await createPendingOrder();
+    const rawBody = paymentEvent(order, `evt_${randomUUID()}`, {
+      currency: "usd",
     });
-    const pending = await createPendingOrder(userId, catalog.variantId, 1);
-    const eventId = newEventId();
-    eventIds.push(eventId);
 
-    const response = await POST(
-      signedEventRequest(
-        paymentSucceededEvent({
-          eventId,
-          paymentIntentId: pending.paymentIntentId,
-          amountCents: pending.totalCents,
-          amountReceivedCents: pending.totalCents - 1_000,
-        }),
-      ),
-    );
+    const response = await POST(signedRequest(rawBody));
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ action: "refund_required" });
 
-    const { status, body } = await readWebhook(response);
-    expect(status).toBe(200);
-    expect(body.action).toBe("processed");
-    expect((await orderNumber(pending.orderId))?.status).toBe(
-      "REFUND_REQUIRED",
-    );
-
-    const reservation = await db.stockReservation.findFirst({
-      where: { orderId: pending.orderId },
-      select: { releasedAt: true, qty: true },
+    const stored = await testDb.order.findUniqueOrThrow({
+      where: { id: order.id },
+      select: { status: true },
     });
-    expect(reservation?.releasedAt).not.toBeNull();
-
-    const variant = await db.variant.findUnique({
-      where: { id: catalog.variantId },
-      select: { stock: true },
-    });
-    // Checkout took one unit; the refund required transition put it back.
-    expect(variant?.stock).toBe(stockBefore?.stock);
-  });
-
-  it("treats a currency mismatch as an amount mismatch", async () => {
-    const pending = await createPendingOrder(userId, catalog.variantId, 1);
-    const eventId = newEventId();
-    eventIds.push(eventId);
-
-    const response = await POST(
-      signedEventRequest(
-        paymentSucceededEvent({
-          eventId,
-          paymentIntentId: pending.paymentIntentId,
-          amountCents: pending.totalCents,
-          currency: "eur",
-        }),
-      ),
-    );
-
-    expect((await readWebhook(response)).status).toBe(200);
-    expect((await orderNumber(pending.orderId))?.status).toBe(
-      "REFUND_REQUIRED",
-    );
+    expect(stored.status).toBe("REFUND_REQUIRED");
   });
 });

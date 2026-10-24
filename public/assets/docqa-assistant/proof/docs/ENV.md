@@ -16,9 +16,54 @@ Recorded 2026-10-23 on the build machine. No Docker and no hosted service.
 | Reranking | fastembed `Xenova/ms-marco-MiniLM-L-6-v2` (Apache-2.0), ONNX Runtime, CPU |
 | Answer API | `uv run docqa serve` on `127.0.0.1:8788` (CLI default); `GET /health`, `POST /ask`, `GET /eval/report` |
 | UI | `npm --prefix ui run dev` on `http://127.0.0.1:5173`; Vite proxies `/api` to `127.0.0.1:8788` |
-| Screenshots | four 2880x1800 WebP files captured at 1440x900 CSS px with deviceScaleFactor 2, recorded 2026-10-23 |
+| Screenshots | four 2880x1800 WebP files captured at 1440x900 CSS px with deviceScaleFactor 2, re-captured 2026-10-24 before the daylight theme; not yet re-captured for it |
+| UI theme | "daylight reading room": cool page `#f6f7f9`, white panels, navy citations `#2f4f8f`, warm paper document `#fffdf8` |
 | UI tests | `npm --prefix ui run e2e`: 4 Playwright tests pass — all three citations scroll and highlight, every recorded claim resolves with no render miss; `node ui/scripts/verify_demo_paper.mjs`: 9/9 demo claims resolve against the committed PDF, recorded 2026-10-23 |
 | Judge model | `claude-opus-5-5` pinned in `eval/judge.yaml`, different from the generator; reliability unverified |
+
+## Daylight reading-room palette and contrast (2026-10-24)
+
+The Marginalia UI uses the light "daylight reading room" identity: page
+`#f6f7f9`, panel `#ffffff`, raised panel `#eef1f5`, ink `#15181d`, muted
+`#5c6370`, rule `#dfe3e9`, navy accent `#2f4f8f`, highlight
+`rgba(47, 79, 143, 0.14)`, and warm paper `#fffdf8`. The PDF page is never
+inverted or filtered; the paper tint is applied with
+`mix-blend-mode: multiply`, not by altering the document itself.
+
+Ratios are computed with the WCAG 2.x relative-luminance formula,
+`(L_lighter + 0.05) / (L_darker + 0.05)`, not estimated:
+
+| pair | ratio | requirement | result |
+|---|---:|---:|---|
+| ink `#15181d` on page `#f6f7f9` | 16.60:1 | >= 7:1 | pass |
+| muted `#5c6370` on panel `#ffffff` | 6.05:1 | >= 4.5:1 | pass |
+| navy `#2f4f8f` on page `#f6f7f9` (text) | 7.43:1 | >= 4.5:1 | pass |
+| navy `#2f4f8f` on page `#f6f7f9` (UI) | 7.43:1 | >= 3:1 | pass |
+| paper `#fffdf8` on page `#f6f7f9` | 1.05:1 | visible 1 px rule | pass: rule `#dfe3e9` on page is 1.20:1 |
+
+Supporting pairs in the same theme: ink on panel 17.79:1, muted on page
+5.64:1, muted on raised panel 5.34:1, navy on panel 7.97:1, navy on raised
+panel 7.03:1, and panel-coloured text on navy 7.97:1. The paper page is the
+only warm surface against the cool shell; its own 1 px rule keeps the page
+edge legible without a shadow.
+
+Source and trail type (2026-10-24): source titles are 13 px ink, page labels
+11 px mono muted, snippets 12 px muted, and the trail summary 12.5 px muted.
+A selected source row sits on the 14% navy highlight, which composites to
+`#e2e6ef` over the panel.
+
+| pair | ratio | requirement | result |
+|---|---:|---:|---|
+| source title: ink `#15181d` on panel `#ffffff` | 17.79:1 | >= 4.5:1 | pass |
+| page label: muted `#5c6370` on panel `#ffffff` | 6.05:1 | >= 4.5:1 | pass |
+| snippet: muted `#5c6370` on panel `#ffffff` | 6.05:1 | >= 4.5:1 | pass |
+| trail summary: muted `#5c6370` on panel `#ffffff` | 6.05:1 | >= 4.5:1 | pass |
+| selected row: muted `#5c6370` on highlight `#e2e6ef` | 4.84:1 | >= 4.5:1 | pass |
+
+Citation-mark placement was measured in Chromium at 1440x900 and 390x844:
+0 of the 3 `sup` marks had a left edge within 2 px of its claim paragraph's
+left edge, and the answer pane at 1440x900 measured `scrollHeight` 844 px
+against `clientHeight` 844 px (no scroll).
 
 ## Embedding path used: real model
 

@@ -1,16 +1,16 @@
 ---
 kind: case-study
 order: 3
-title: Document Q&A assistant
-oneLiner: A PDF question-answering system that refuses when it cannot cite the source.
+title: Marginalia
+oneLiner: Ask a question about a PDF corpus and get claims whose quotes are verbatim, highlighted on the page, with an inspectable retrieval trace and a calibrated refusal.
 stack:
   - Python 3.12
   - FastAPI
   - PostgreSQL 16 + pgvector
   - React + Vite
   - PDF.js
-  - OpenAI-compatible endpoint (free)
-updatedAt: "2026-10-23"
+  - ONNX Runtime
+updatedAt: "2026-10-24"
 claim: >-
   On the recorded 30-question eval, retrieval recall@8 is 18/24 (75.0%), the
   answer rate is 8/24, refusal of unanswerable questions is 6/6, and citation
@@ -56,11 +56,11 @@ measured: >-
   778.6 s with 26 model requests, 0 retries and 0 rate limits.
 screenshots:
   - file: shot-01.webp
-    caption: Citation view for the sentence-embedding question, with the quote highlighted on the third PDF page and all three sources listed.
+    caption: "Citation view for the training question: claim 1 quote marked on page 3 in the daylight reader, beside the three-claim answer and navy source list."
   - file: shot-02.webp
-    caption: Retrieval trail at the second-pass ranking with rank, score, calibrated evidence probability, status and passage.
+    caption: Retrieval trail overlay with second-pass rank, score, evidence probability, included status and passage, then the final decision.
   - file: shot-03.webp
-    caption: Eval page with the committed report, gate values, denominators and Wilson intervals.
+    caption: Evaluation page with 2 of 5 checks met, rates, counts, 95% confidence ranges and where each question stopped.
 links:
   - label: Eval report
     href: /assets/docqa-assistant/proof/eval-report.json

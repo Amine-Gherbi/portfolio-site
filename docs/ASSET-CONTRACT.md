@@ -15,7 +15,7 @@ callers.
 | `project` | Equals the directory name. |
 | `title`, `oneLiner` | Non-empty; written into MDX by sync. |
 | `stack` | 1–6 non-empty entries; written into MDX by sync. |
-| `generatedAt` | ISO timestamp from the capture run. |
+| `generatedAt` | Optional. An ISO timestamp or an empty string; the re-captured manifests omit it. |
 | `seeded` | Exactly `true`. |
 | `shots` | Exactly four: `hero.webp`, `shot-01.webp`, `shot-02.webp`, `shot-03.webp`, each 2880×1800 WebP with alt text. |
 | `proof.measured[]` | `label`, `value` (**string**), `method` (non-empty), `artifact` (repo-relative path that exists). |

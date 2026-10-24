@@ -10,7 +10,6 @@
     "PDF.js",
     "ONNX Runtime"
   ],
-  "generatedAt": "2026-10-23T23:26:49+00:00",
   "seeded": true,
   "previewCommand": "uv run docqa serve --port 8788  # then, in a second shell: npm --prefix ui run dev",
   "shots": [
@@ -18,25 +17,25 @@
       "file": "hero.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Marginalia over the Sentence-BERT paper: citation 2 selected, its verbatim quote highlighted on PDF page 2 with a margin marker, and the matching source row in the answer pane."
+      "alt": "Marginalia over the Sentence-BERT paper: citation 2 selected, its verbatim quote highlighted on PDF page 2 with a margin marker, and the matching source row in the answer pane. Seeded offline demo data; no model call."
     },
     {
       "file": "shot-01.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Citation view for the sentence-embedding question: the selected source quote is highlighted on PDF page 3, beside claims 1-3 and the source list."
+      "alt": "Citation view for the sentence-embedding question: the selected source quote is highlighted on PDF page 3, beside claims 1-3 and the source list. Seeded offline demo data; no model call."
     },
     {
       "file": "shot-02.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Retrieval trail at the second-pass cross-encoder section: rerank rank, score, calibrated evidence probability, kept status, then the final context and decision."
+      "alt": "Retrieval trail at the second-pass cross-encoder section: rerank rank, score, calibrated evidence probability, kept status, then the final context and decision. Recorded demo trace, not a live request."
     },
     {
       "file": "shot-03.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Evaluation view of the committed eval-report.json: counts and denominators, Wilson 95% ranges, and the stage where each question stopped."
+      "alt": "Evaluation view of the committed eval-report.json: 2 of 5 checks met, counts and denominators, Wilson 95% ranges, and the stage where each question stopped."
     }
   ],
   "proof": {
@@ -109,10 +108,10 @@
       }
     ],
     "limits": [
-      "The eval set is 30 questions (24 answerable, 6 unanswerable); intervals are wide.",
+      "The free endpoint answered 8/24 answerable questions.",
       "Citation precision and faithfulness are rule-based, rest on n=9, and reach down to 45.3%.",
       "The calibration is fitted in-sample on the same 30 eval questions.",
-      "The endpoint runs locally; k6 runs as a separate tool; the free endpoint is governed by its provider terms. The screenshots use recorded answers."
+      "The eval set is 30 questions (24 answerable, 6 unanswerable); the intervals are wide."
     ]
   }
 }

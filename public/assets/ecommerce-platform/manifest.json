@@ -1,17 +1,18 @@
 {
   "project": "ecommerce-platform",
   "title": "E-commerce platform",
-  "oneLiner": "A Next.js storefront with accounts, cart, server-priced checkout and a replayed payment webhook.",
+  "oneLiner": "Search, authentication, cart and Stripe test checkout with server-side price validation.",
   "stack": [
     "Next.js",
     "TypeScript",
     "PostgreSQL",
     "Stripe"
   ],
-  "generatedAt": "2026-10-24T00:33:59+01:00",
+  "generatedAt": "",
   "seeded": true,
   "demoLogin": "demo@kestrel.test / demo-password-123",
   "previewCommand": "npm run dev",
+  "previewPort": 3000,
   "shots": [
     {
       "file": "hero.webp",
@@ -41,27 +42,33 @@
   "proof": {
     "measured": [
       {
-        "label": "Orders created by 20 concurrent checkouts on stock 5",
-        "value": "5 orders · 15 rejected · stock 0 · 5 open reservations",
-        "method": "npx vitest run tests/integration/checkout.oversell.test.ts against PostgreSQL 16.13",
-        "artifact": "docs/proof/concurrency-run.txt"
-      },
-      {
-        "label": "Checkout load, 50 VUs × 5 iterations",
-        "value": "p95 4.58 s · 248 orders · 2 P2028 timeouts",
-        "method": "k6 run load/checkout.js against a production next start; 250 checkout requests, 750 HTTP requests",
+        "label": "Checkout latency, 50 concurrent virtual users",
+        "value": "p50 2000 ms · p95 2660 ms · p99 2880 ms",
+        "method": "k6 load/checkout.js against localhost:3000 on this Windows 11 machine, 50 VUs, 250 checkouts in a 1-minute run",
         "artifact": "docs/load/checkout.md"
       },
       {
-        "label": "Integration and browser tests",
-        "value": "181 tests in 33 files · 5 Playwright tests passed",
-        "method": "npm run verify (eslint, tsc, vitest, migrate diff, playwright)",
+        "label": "Orders created by 20 concurrent checkouts on stock 5",
+        "value": "5 orders · 15 rejected · stock 0 · 5 open reservations",
+        "method": "npx vitest run tests/integration/checkout.oversell.test.ts, real Postgres on shop_test",
+        "artifact": "docs/proof/concurrency-run.txt"
+      },
+      {
+        "label": "Hub screenshot set",
+        "value": "4 images · 2880x1800 · 291-470 KB each",
+        "method": "npm run assets (Playwright at 1440x900 CSS px, deviceScaleFactor 2) against npm run build && npm run start after npx prisma db seed -- --seed 42",
+        "artifact": "docs/proof/screenshots.txt"
+      },
+      {
+        "label": "Verification gate",
+        "value": "exit 0: eslint, tsc, vitest, prisma diff, Playwright",
+        "method": "npm run verify on this Windows 11 machine",
         "artifact": "docs/proof/verify.txt"
       }
     ],
     "invariants": [
       {
-        "claim": "A forged total in the checkout body cannot change the charge",
+        "claim": "A forged price in the checkout body cannot change the charge",
         "test": "tests/integration/checkout.forged-price.test.ts"
       },
       {
@@ -73,15 +80,22 @@
         "test": "tests/integration/checkout.oversell.test.ts"
       },
       {
+        "claim": "An amount mismatch becomes REFUND_REQUIRED, never PAID",
+        "test": "tests/integration/checkout.amount-mismatch.test.ts"
+      },
+      {
         "claim": "A replayed Stripe webhook is a 200 no-op",
         "test": "tests/integration/webhook.replay.test.ts"
+      },
+      {
+        "claim": "Expired reservations release stock and cancel the order",
+        "test": "tests/integration/reservations.sweeper.test.ts"
       }
     ],
     "limits": [
-      "The reservation sweeper is the expiry mechanism: it cancels an unpaid PENDING order after 30 minutes.",
-      "The PaymentIntent id is generated locally as pi_demo_* and recorded by the webhook replay.",
-      "Deployment and CI sit outside this snapshot: git remote -v is empty.",
-      "The load run used 250 checkout requests on one Windows machine; p95 4.58 s is a local measurement."
+      "Single-node PostgreSQL 16 on one Windows 11 machine; load numbers do not transfer to a managed database.",
+      "Payments are Stripe test mode; without a key the PaymentIntent is a local pi_local_* value.",
+      "No partial refunds, tax engine, shipping rates or email delivery; the refund path is all-or-nothing."
     ]
   }
 }

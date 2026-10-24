@@ -1,15 +1,16 @@
 ---
 kind: case-study
 order: 2
-title: CI/CD deployment pipeline
-oneLiner: Pull-request gates, a Docker image and a local release lane with a recorded rollback.
+title: CI/CD pipeline with gates that block and a recorded rollback
+oneLiner: "Eight PR gates feed one required ci-ok check; the local release lane builds, swaps, waits for health, proves five smoke assertions, and records a rollback."
 stack:
-  - Docker
+  - GitHub Actions
+  - Docker Buildx
   - Trivy
+  - cosign
   - Fastify
   - PostgreSQL
-  - GitHub Actions
-updatedAt: "2026-10-23"
+updatedAt: "2026-10-24"
 claim: >-
   The release lane gates on five live smoke assertions: a build that misses one
   is rolled back to the previous release, and deploy.log records the order.

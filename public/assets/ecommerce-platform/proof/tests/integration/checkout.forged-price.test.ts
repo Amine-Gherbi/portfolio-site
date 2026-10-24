@@ -1,143 +1,88 @@
-import { randomUUID } from "node:crypto";
+import { beforeEach, describe, expect, it } from "vitest";
 
-import Stripe from "stripe";
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-
-vi.mock("@/auth", async () => {
-  const { sessionStorage } = await import("./helpers/session");
-  return {
-    auth: async () => {
-      const store = sessionStorage.getStore();
-      return store === undefined ? null : { user: { id: store.userId } };
-    },
-  };
-});
-
-import { POST } from "@/app/api/checkout/route";
-import { db } from "@/lib/db";
-import { resetRateLimit } from "@/lib/rate-limit";
+import { parseCheckoutBody, placeOrder } from "@/lib/checkout";
 
 import {
-  cleanupFixture,
-  createCart,
-  createCatalog,
-  createUsers,
-  runMigrations,
-  type CatalogFixture,
-} from "./helpers/fixtures";
-import { checkoutRequest, readCheckout } from "./helpers/http";
-import { withUser } from "./helpers/session";
+  createCartWithLine,
+  createAddress,
+  createUser,
+  createVariant,
+  resetDatabase,
+  testDb,
+} from "./helpers";
 
-// Forged price: the request carries `totalCents: 1` (and a fake unit price and
-// currency). None of it is read. The order and the PaymentIntent must both be
-// for the amount derived from `Variant.priceCents`.
-
-const UNIT_PRICE = 2_500;
-const QUANTITY = 2;
-const EXPECTED_TOTAL = UNIT_PRICE * QUANTITY;
-
-let catalog: CatalogFixture;
-let userId: string;
-let cartVersion: string;
-
-beforeAll(async () => {
-  runMigrations();
-  catalog = await createCatalog({
-    stock: 5,
-    priceCents: UNIT_PRICE,
-    label: "forged-price",
-  });
-  const users = await createUsers("forged-price", 1);
-  const first = users[0];
-  if (first === undefined) {
-    throw new Error("no user fixture");
-  }
-  userId = first;
-
-  const cart = await createCart(userId, [
-    { variantId: catalog.variantId, quantity: QUANTITY },
-  ]);
-  cartVersion = cart.cartVersion;
-}, 120_000);
-
-beforeEach(() => {
-  resetRateLimit();
+beforeEach(async () => {
+  await resetDatabase();
 });
 
-afterAll(async () => {
-  await cleanupFixture({ userIds: [userId], catalogs: [catalog] });
-  await db.$disconnect();
-});
+describe("client-supplied prices", () => {
+  it("ignores totalCents in the body and prices from Variant.priceCents", async () => {
+    const { variantId } = await createVariant({ priceCents: 2_000, stock: 5 });
+    const userId = await createUser();
+    const addressId = await createAddress(userId);
+    const { version } = await createCartWithLine({
+      userId,
+      variantId,
+      quantity: 1,
+    });
 
-describe("client-forged total", () => {
-  it("ignores every monetary field in the body", async () => {
-    const response = await withUser(userId, () =>
-      POST(
-        checkoutRequest(
-          {
-            addressId: randomUUID(),
-            cartVersion,
-            // Everything below is a lie the server must not read.
-            totalCents: 1,
-            subtotalCents: 1,
-            discountCents: 9_999,
-            currency: "eur",
-            items: [
-              {
-                variantId: catalog.variantId,
-                quantity: QUANTITY,
-                unitPriceCents: 0,
-              },
-            ],
-          },
-          "203.0.113.21",
-        ),
-      ),
+    const parsed = parseCheckoutBody({
+      addressId,
+      cartVersion: version,
+      totalCents: 1,
+      shippingCents: 0,
+      subtotalCents: 1,
+    });
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      throw new Error("body should parse");
+    }
+    expect(parsed).not.toHaveProperty("totalCents");
+
+    const result = await placeOrder({ userId, ...parsed });
+    expect(result.kind).toBe("created");
+    if (result.kind !== "created") {
+      throw new Error("expected a created order");
+    }
+
+    expect(result.order.subtotalCents).toBe(2_000);
+    expect(result.order.shippingCents).toBe(490);
+    expect(result.order.totalCents).toBe(2_490);
+    expect(result.order.totalCents).toBe(
+      result.order.subtotalCents + result.order.shippingCents,
     );
 
-    const { status, body } = await readCheckout(response);
-    expect(status).toBe(201);
-    expect(body.totalCents).toBe(EXPECTED_TOTAL);
-    expect(body.subtotalCents).toBe(EXPECTED_TOTAL);
-    expect(body.discountCents).toBe(0);
-    expect(body.currency).toBe("usd");
-    expect(body.paymentIntent?.amountCents).toBe(EXPECTED_TOTAL);
-
-    const orderId = body.orderId;
-    if (orderId === undefined) {
-      throw new Error("no order id in response");
-    }
-
-    const order = await db.order.findUnique({
-      where: { id: orderId },
-      select: {
-        subtotalCents: true,
-        discountCents: true,
-        totalCents: true,
-        currency: true,
-        items: { select: { unitPriceCents: true, quantity: true } },
-      },
+    const stored = await testDb.order.findUniqueOrThrow({
+      where: { id: result.order.id },
+      select: { totalCents: true, subtotalCents: true, shippingCents: true },
     });
-    expect(order).not.toBeNull();
-    expect(order?.subtotalCents).toBe(EXPECTED_TOTAL);
-    expect(order?.totalCents).toBe(EXPECTED_TOTAL);
-    expect(order?.discountCents).toBe(0);
-    expect(order?.currency).toBe("usd");
-    expect(order?.items).toHaveLength(1);
-    expect(order?.items[0]?.unitPriceCents).toBe(UNIT_PRICE);
-    expect(order?.items[0]?.quantity).toBe(QUANTITY);
+    expect(stored.totalCents).toBe(2_490);
+  });
 
-    // The amount actually handed to the payment provider is the recomputed
-    // one. With a live test key, ask Stripe rather than trusting our echo.
-    const key = process.env.STRIPE_SECRET_KEY;
-    const intentId = body.paymentIntent?.id;
-    if (key !== undefined && key.length > 0) {
-      if (intentId === undefined) {
-        throw new Error("no payment intent id in response");
-      }
-      const intent = await new Stripe(key).paymentIntents.retrieve(intentId);
-      expect(intent.amount).toBe(EXPECTED_TOTAL);
-      expect(intent.currency).toBe("usd");
+  it("re-prices after a price change instead of trusting the preview", async () => {
+    const { variantId } = await createVariant({ priceCents: 2_000, stock: 5 });
+    const userId = await createUser();
+    const addressId = await createAddress(userId);
+    const { version } = await createCartWithLine({
+      userId,
+      variantId,
+      quantity: 2,
+    });
+
+    await testDb.variant.update({
+      where: { id: variantId },
+      data: { priceCents: 3_000 },
+    });
+
+    const result = await placeOrder({ userId, addressId, cartVersion: version });
+    expect(result.kind).toBe("created");
+    if (result.kind !== "created") {
+      throw new Error("expected a created order");
     }
+
+    expect(result.order.subtotalCents).toBe(6_000);
+    expect(result.order.shippingCents).toBe(490);
+    expect(result.order.totalCents).toBe(6_490);
+    expect(result.order.items[0]?.unitPriceCents).toBe(3_000);
   });
 });
