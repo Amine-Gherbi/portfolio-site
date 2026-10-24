@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://portfolio.example/sitemap.xml
+Sitemap: https://gherbi.pages.dev/sitemap.xml
