@@ -49,7 +49,7 @@ npm run verify       # the full gate (see below)
 
 ## Build-time images
 
-`src/pages/og/[slug].png.ts` renders social cards with `satori` + `@resvg/resvg-js`. satori needs real font bytes; the build reads an installed TTF pair (Georgia by default on Windows, then Times, DejaVu Serif, Liberation Serif, Arial). Nothing is downloaded. Point `OG_FONT_DIR` at another directory of TTF files if none of the defaults exist:
+`src/pages/og/[slug].png.ts` renders social cards with `satori` + `@resvg/resvg-js`. satori needs real font bytes. The DejaVu Serif regular/bold pair is committed under `src/assets/fonts/` with its Bitstream Vera licence, so the build does not depend on host fonts and downloads nothing. `OG_FONT_DIR` overrides the bundle; installed serif directories remain the last fallback:
 
 ```sh
 OG_FONT_DIR=/path/to/fonts npm run build
@@ -59,13 +59,13 @@ The resume PDF is drawn directly with `pdf-lib` from `src/data/resume.json`, the
 
 ## Public origin
 
-`astro.config.mjs` sets `site` to the reserved placeholder `https://portfolio.example` because no deployment URL exists. Override it for another host:
+`astro.config.mjs` and `src/lib/site.ts` default `SITE_URL` to `https://gherbi.pages.dev`, so a build needs no environment variable. Override it for another host:
 
 ```sh
 SITE_URL=https://example.com npm run build
 ```
 
-`robots.txt` is static and points at the same origin, `https://portfolio.example/sitemap.xml`; edit it when the origin changes.
+`robots.txt` is static and points at the same origin, `https://gherbi.pages.dev/sitemap.xml`; edit it when the origin changes.
 
 ## Lighthouse and axe
 

@@ -27,8 +27,16 @@ const FONT_FAMILIES: FontPair[] = [
   { regular: "arial.ttf", bold: "arialbd.ttf" },
 ];
 
+/**
+ * The committed DejaVu Serif pair makes the build independent of whatever
+ * fonts the host happens to have installed. Resolved from the project root
+ * because this module is bundled before the build-time routes run.
+ */
+const BUNDLED_FONT_DIR = path.resolve("src/assets/fonts");
+
 const FONT_DIRECTORIES = [
   process.env.OG_FONT_DIR,
+  BUNDLED_FONT_DIR,
   "C:/Windows/Fonts",
   "/usr/share/fonts/truetype/dejavu",
   "/usr/share/fonts/truetype/liberation",
@@ -40,9 +48,9 @@ let cachedFonts: SatoriOptions["fonts"] | undefined;
 let cachedFamily: string | undefined;
 
 /**
- * satori needs the actual font bytes. Fonts already installed on the
- * machine are used — nothing is downloaded — and OG_FONT_DIR points at a
- * different folder when the defaults do not exist.
+ * satori needs the actual font bytes. Precedence: OG_FONT_DIR when set, the
+ * DejaVu Serif pair committed under src/assets/fonts, then fonts already
+ * installed on the machine. Nothing is downloaded at build time.
  */
 function loadFonts(): { fonts: SatoriOptions["fonts"]; family: string } {
   if (cachedFonts && cachedFamily) {

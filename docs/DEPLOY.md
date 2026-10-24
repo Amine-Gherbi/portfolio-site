@@ -40,7 +40,7 @@ In the build configuration screen (and later under **Settings → Builds & deplo
 | Node version variable | `NODE_VERSION=22` |
 | Site origin variable | `SITE_URL=https://<project>.pages.dev` |
 
-`SITE_URL` is read by `astro.config.mjs` and `src/lib/site.ts`, so canonical URLs, JSON-LD, `sitemap.xml`, and Open Graph image URLs use the deployed origin instead of `https://portfolio.example`. When the custom domain from step 4 exists, change `SITE_URL` to that origin, replace the placeholder origin in `public/robots.txt`, and redeploy.
+`SITE_URL` is read by `astro.config.mjs` and `src/lib/site.ts`. Both default to `https://gherbi.pages.dev` when it is unset, which is also the origin in `public/robots.txt`, so a Git build works without dashboard environment variables. Setting `SITE_URL` overrides the default for canonical URLs, JSON-LD, `sitemap.xml`, and Open Graph image URLs. When the custom domain from step 4 exists, set `SITE_URL` to that origin, update `public/robots.txt`, and redeploy.
 
 ## Step 4 — Attach the domain
 
