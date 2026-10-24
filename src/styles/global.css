@@ -736,11 +736,23 @@ main {
 }
 
 .thesis-intro {
-  max-width: 1040px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr);
+  grid-template-areas:
+    "kicker kicker"
+    "title  facts"
+    "stand  actions";
+  gap: 0 64px;
+  align-items: start;
+}
+
+.thesis-intro .kicker {
+  grid-area: kicker;
 }
 
 .thesis-intro h2 {
-  max-width: 22ch;
+  grid-area: title;
+  max-width: 24ch;
   margin-top: 10px;
   font-family: var(--serif);
   font-size: clamp(28px, 3.4vw, 40px);
@@ -748,6 +760,22 @@ main {
   line-height: 1.1;
   letter-spacing: -0.02em;
   text-wrap: balance;
+}
+
+@media (max-width: 860px) {
+  .thesis-intro {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "kicker"
+      "title"
+      "stand"
+      "facts"
+      "actions";
+  }
+
+  .thesis-intro h2 {
+    max-width: none;
+  }
 }
 
 .thesis-intro h2 a {
@@ -763,8 +791,9 @@ main {
 }
 
 .thesis-standfirst {
+  grid-area: stand;
   max-width: var(--measure);
-  margin-top: 18px;
+  margin-top: 22px;
   color: var(--muted);
   font-family: var(--serif);
   font-size: var(--text-title);
@@ -772,11 +801,11 @@ main {
 }
 
 .thesis-facts {
+  grid-area: facts;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px 32px;
-  max-width: 1040px;
-  margin: 28px 0 0;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px 24px;
+  margin: 10px 0 0;
 }
 
 .thesis-facts div {
@@ -797,6 +826,7 @@ main {
 }
 
 .thesis-actions {
+  grid-area: actions;
   display: flex;
   flex-wrap: wrap;
   gap: 0 28px;
