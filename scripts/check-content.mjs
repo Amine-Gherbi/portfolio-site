@@ -920,6 +920,127 @@ function runHomeChecks(errors) {
   }
 }
 
+/**
+ * The walkthrough route belongs to a case study, so its shape is asserted at
+ * the same place the case-study pages are enumerated: five step sections in
+ * order, one screenshot and one h2 per section, five labelled chips, real
+ * Prev/Next anchors, and no script element.
+ */
+function runTourChecks(slug, errors) {
+  const tourPath = path.join(DIST_ROOT, slug, "tour", "index.html");
+  if (!existsSync(tourPath)) {
+    errors.push(`[content] dist: missing rendered walkthrough ${tourPath}`);
+    return;
+  }
+
+  const html = readFileSync(tourPath, "utf8");
+  const expectedIds = ["step-1", "step-2", "step-3", "step-4", "step-5"];
+  const ids = [...html.matchAll(/<section\b[^>]*\bid="(step-[1-5])"/g)].map(
+    (match) => match[1],
+  );
+  if (ids.join(",") !== expectedIds.join(",")) {
+    errors.push(
+      `[content] dist: ${slug} tour sections are [${ids.join(", ")}], expected [${expectedIds.join(", ")}]`,
+    );
+  }
+
+  const chunks = html.split(/<section\b[^>]*\bid="step-[1-5]"[^>]*>/).slice(1);
+  if (chunks.length !== 5) {
+    errors.push(
+      `[content] dist: ${slug} tour has ${chunks.length} step sections, expected 5`,
+    );
+  }
+  chunks.forEach((chunk, index) => {
+    const number = index + 1;
+    const images = (chunk.match(/<img\b/gi) ?? []).length;
+    if (images !== 1) {
+      errors.push(
+        `[content] dist: ${slug} tour step ${number} has ${images} images, expected 1`,
+      );
+    }
+    const headings = (chunk.match(/<h2\b/gi) ?? []).length;
+    if (headings !== 1) {
+      errors.push(
+        `[content] dist: ${slug} tour step ${number} has ${headings} h2 elements, expected 1`,
+      );
+    }
+    if (
+      number > 1 &&
+      !new RegExp(`href="#step-${number - 1}"[^>]*>\\s*Previous`).test(chunk)
+    ) {
+      errors.push(
+        `[content] dist: ${slug} tour step ${number} has no Previous link to step ${number - 1}`,
+      );
+    }
+    if (
+      number < 5 &&
+      !new RegExp(`href="#step-${number + 1}"[^>]*>\\s*Next`).test(chunk)
+    ) {
+      errors.push(
+        `[content] dist: ${slug} tour step ${number} has no Next link to step ${number + 1}`,
+      );
+    }
+  });
+
+  const images = html.match(/<img\b[^>]*>/gi) ?? [];
+  if (images.length !== 5) {
+    errors.push(
+      `[content] dist: ${slug} tour has ${images.length} images, expected 5`,
+    );
+  }
+  for (const image of images) {
+    if (!/\balt="[^"]+"/.test(image)) {
+      errors.push(`[content] dist: ${slug} tour image has no alt text`);
+    }
+    if (!/\bwidth="2880"/.test(image) || !/\bheight="1800"/.test(image)) {
+      errors.push(
+        `[content] dist: ${slug} tour image is not 2880x1800: ${image.slice(0, 100)}`,
+      );
+    }
+    if (!/\bsrcset="/.test(image)) {
+      errors.push(
+        `[content] dist: ${slug} tour image has no srcset: ${image.slice(0, 100)}`,
+      );
+    }
+    const src = /\bsrc="([^"]+)"/.exec(image)?.[1] ?? "";
+    if (!new RegExp(`^/assets/${slug}/(?:hero|shot-0[1-3])\\.webp$`).test(src)) {
+      errors.push(
+        `[content] dist: ${slug} tour image points at ${src || "no src"}`,
+      );
+    }
+  }
+
+  const h1Count = (html.match(/<h1[\s>]/g) ?? []).length;
+  if (h1Count !== 1) {
+    errors.push(
+      `[content] dist: ${slug} tour has ${h1Count} h1 elements, expected 1`,
+    );
+  }
+
+  for (const match of html.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)) {
+    const heading = textOf(match[1] ?? "");
+    const words = heading === "" ? 0 : heading.trim().split(/\s+/).length;
+    if (words > 8) {
+      errors.push(
+        `[content] dist: ${slug} tour heading "${heading}" has ${words} words, maximum is 8`,
+      );
+    }
+  }
+
+  for (let number = 1; number <= 5; number += 1) {
+    const chip = new RegExp(
+      `<a\\b[^>]*href="#step-${number}"[^>]*>\\s*Step ${number}:`,
+    );
+    if (!chip.test(html)) {
+      errors.push(`[content] dist: ${slug} tour has no "Step ${number}:" chip`);
+    }
+  }
+
+  if (/<script\b/i.test(html)) {
+    errors.push(`[content] dist: ${slug} tour carries a script element`);
+  }
+}
+
 function runDistChecks(studies, errors) {
   if (!existsSync(DIST_ROOT)) {
     errors.push(
@@ -1020,6 +1141,7 @@ function runDistChecks(studies, errors) {
     }
 
     caseCount += 1;
+    runTourChecks(slug, errors);
     if (captions !== 3) {
       errors.push(
         `[content] dist: ${slug} has ${captions} figcaptions, expected 3`,
@@ -1066,7 +1188,7 @@ function runDistChecks(studies, errors) {
 
   if (errors.length === 0) {
     console.log(
-      `[content] dist: ${caseCount} case studies render five sections in fixed order with one refusal entry and 3 captioned screenshots; ${thesisCount} thesis renders four sections and 4 figures; home renders 3 cards and one thesis section; no page or sitemap carries a rendered date`,
+      `[content] dist: ${caseCount} case studies render five sections in fixed order with one refusal entry and 3 captioned screenshots; ${caseCount} walkthroughs render five target sections with five images and five chips; ${thesisCount} thesis renders four sections and 4 figures; home renders 3 cards and one thesis section; no page or sitemap carries a rendered date`,
     );
   }
 }

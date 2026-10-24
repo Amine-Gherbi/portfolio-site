@@ -66,4 +66,44 @@ links:
     href: /assets/cicd-pipeline/proof/deploy.log
   - label: Workflow structure check
     href: /assets/cicd-pipeline/proof/docs/evidence/workflow-structure.txt
+tour:
+  - file: hero.webp
+    shortName: Release command
+    heading: One command, two releases
+    body: >-
+      The left pane is a recorded healthy release: five smoke assertions pass
+      and the process serves on port 8787. The right pane is a deliberately
+      broken release whose invoice request returns 500, so three of five
+      assertions miss and the script rolls back.
+  - file: shot-01.webp
+    shortName: Rollback timeline
+    heading: The rollback timeline, second by second
+    body: >-
+      Lane A shows the healthy deploy moving from deploy.start to health.ok and
+      smoke.ok. Lane B records smoke.fail and rollback.start at 23 seconds into
+      the run, rollback.health.ok at 30 seconds and rollback.smoke.ok at 42
+      seconds.
+  - file: shot-02.webp
+    shortName: Verification
+    heading: Verification runs lint, types and tests
+    body: >-
+      The transcript runs ESLint, tsc --noEmit and nine integration tests
+      against PostgreSQL 16 in 14.71 seconds. Three sections report 9/9 tests,
+      3/3 sections and zero failures, and the last line is verify: ok.
+  - file: shot-03.webp
+    shortName: Image gate
+    heading: The image gate, measured here
+    body: >-
+      The Trivy run scans 68 targets in invoice-api:slim at CRITICAL and HIGH
+      with ignore-unfixed and reports zero findings at exit 0. The right panel
+      reads the same flags from the trivy job in pr.yml, beside the nine jobs
+      and the one required ci-ok check.
+  - file: hero.webp
+    shortName: Demo summary
+    heading: The summary line closes the loop
+    body: >-
+      The table at the bottom of the transcript records five rows: the healthy
+      release and smoke pass, the broken release's smoke row reads FAIL, and
+      the rollback passes. The run ends with exit 0 and demo: ok, so the file
+      records the order the release lane followed.
 ---

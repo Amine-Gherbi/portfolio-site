@@ -1,0 +1,136 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../../layouts/Base.astro";
+import { readProjectManifest } from "../../../lib/manifest";
+
+export async function getStaticPaths() {
+  const entries = (await getCollection("projects")).sort(
+    (a, b) => a.data.order - b.data.order,
+  );
+
+  return entries
+    .filter((entry) => entry.data.kind === "case-study")
+    .map((entry) => ({
+      params: { slug: entry.id },
+      props: { entry },
+    }));
+}
+
+const { entry } = Astro.props;
+if (entry.data.kind !== "case-study") {
+  throw new Error(`Expected a case study at ${entry.id}`);
+}
+const study = entry.data;
+
+const manifest = await readProjectManifest(entry.id);
+if (!manifest) {
+  throw new Error(
+    `The walkthrough for ${entry.id} needs the committed asset manifest`,
+  );
+}
+
+const steps = study.tour.map((step, index) => {
+  const shot = manifest.shots.find((candidate) => candidate.file === step.file);
+  if (!shot) {
+    throw new Error(
+      `The walkthrough for ${entry.id} names ${step.file}, which the manifest does not carry`,
+    );
+  }
+  return { ...step, number: index + 1, shot };
+});
+---
+
+<Base
+  title={`${study.title} walkthrough`}
+  description={study.oneLiner}
+  ogImage={`/og/${entry.id}.png`}
+>
+  <article class="tour">
+    <header class="tour-header">
+      <div class="case-topline">
+        <a class="case-back" href={`/projects/${entry.id}/`}>Case study</a>
+        <span class="case-title">{study.title}</span>
+      </div>
+      <p class="kicker">Five-step walkthrough</p>
+      <h1>Walkthrough: {study.title}</h1>
+      <p class="tour-intro">
+        Five screenshots in the order I would talk through them. Each step names
+        what to look at, and every chip and Prev/Next link is a real URL
+        fragment.
+      </p>
+    </header>
+
+    <nav class="tour-controls" aria-label="Walkthrough steps">
+      <ol>
+        {
+          steps.map((step) => (
+            <li>
+              <a href={`#step-${step.number}`}>Step {step.number}: {step.shortName}</a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+
+    <div class="tour-steps">
+      {
+        steps.map((step) => (
+          <section
+            id={`step-${step.number}`}
+            class="tour-step"
+            aria-labelledby={`step-${step.number}-heading`}
+          >
+            <figure class="tour-figure">
+              <img
+                src={`/assets/${entry.id}/${step.shot.file}`}
+                srcset={`/assets/${entry.id}/${step.shot.file} ${step.shot.width}w`}
+                sizes="(min-width: 900px) 60vw, 100vw"
+                width={step.shot.width}
+                height={step.shot.height}
+                alt={step.shot.alt}
+                loading={step.number === 1 ? "eager" : "lazy"}
+                decoding="async"
+              />
+            </figure>
+            <div class="tour-copy">
+              <p class="kicker">Step {step.number} of {steps.length}</p>
+              <h2 id={`step-${step.number}-heading`}>{step.heading}</h2>
+              <p>{step.body}</p>
+              <nav
+                class="tour-arrows"
+                aria-label={`Step ${step.number} navigation`}
+              >
+                {
+                  step.number > 1 ? (
+                    <a href={`#step-${step.number - 1}`} rel="prev">
+                      Previous
+                    </a>
+                  ) : (
+                    <span class="tour-arrow-disabled" aria-disabled="true">
+                      Previous
+                    </span>
+                  )
+                }
+                {
+                  step.number < steps.length ? (
+                    <a href={`#step-${step.number + 1}`} rel="next">
+                      Next
+                    </a>
+                  ) : (
+                    <span class="tour-arrow-disabled" aria-disabled="true">
+                      Next
+                    </span>
+                  )
+                }
+              </nav>
+            </div>
+          </section>
+        ))
+      }
+    </div>
+
+    <p class="tour-return">
+      <a href={`/projects/${entry.id}/`}>Back to the case study</a>
+    </p>
+  </article>
+</Base>

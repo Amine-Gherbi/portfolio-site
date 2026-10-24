@@ -32,6 +32,48 @@ const linkSchema = z.object({
     ),
 });
 
+/**
+ * One step of the CSS walkthrough. The image is one of the four committed
+ * snapshots; the heading is held to eight words and the body to three
+ * sentences so the step fits beside the image at 1440 px.
+ */
+const TOUR_IMAGES = [
+  "hero.webp",
+  "shot-01.webp",
+  "shot-02.webp",
+  "shot-03.webp",
+] as const;
+
+const tourStepSchema = z
+  .object({
+    file: z.enum(TOUR_IMAGES),
+    shortName: required("tour step short name").max(32),
+    heading: required("tour step heading").max(80),
+    body: required("tour step body"),
+  })
+  .superRefine((step, context) => {
+    const headingWords = step.heading.trim().split(/\s+/).length;
+    if (headingWords > 8) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `tour step heading must be at most 8 words, found ${headingWords}`,
+        path: ["heading"],
+      });
+    }
+
+    const sentences = step.body
+      .trim()
+      .split(/(?<=[.!?])\s+/)
+      .filter((sentence) => sentence.trim() !== "").length;
+    if (sentences < 2 || sentences > 3) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `tour step body must be 2-3 sentences, found ${sentences}`,
+        path: ["body"],
+      });
+    }
+  });
+
 export const caseStudySchema = projectSchema.extend({
   kind: z.literal("case-study"),
   claim: required("claim"),
@@ -58,6 +100,9 @@ export const caseStudySchema = projectSchema.extend({
       });
     }),
   links: z.array(linkSchema).min(1, "at least one link is required"),
+  tour: z
+    .array(tourStepSchema)
+    .length(5, "exactly five tour steps are required"),
 });
 
 const organisationSchema = z.object({

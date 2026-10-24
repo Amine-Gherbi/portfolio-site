@@ -476,6 +476,28 @@ main {
   color: var(--muted);
 }
 
+.case-tour {
+  margin-top: 16px;
+}
+
+.case-tour a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.case-tour a:hover {
+  background: var(--accent);
+}
+
 .section-nav {
   margin-top: 20px;
   padding: 0 0 12px;
@@ -705,6 +727,180 @@ main {
   align-items: center;
   min-height: 44px;
   color: var(--ink);
+  text-transform: uppercase;
+}
+
+/* Walkthrough tour: five :target-driven steps, no client-side script. */
+
+.tour {
+  width: min(100%, var(--project-grid));
+  margin: 0 auto;
+  padding: 32px 32px 72px;
+}
+
+.tour-header {
+  max-width: 1040px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.tour-header h1 {
+  margin-top: 10px;
+  font-size: var(--text-heading);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.tour-intro {
+  max-width: var(--measure);
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+.tour-controls {
+  margin-top: 16px;
+}
+
+.tour-controls ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tour-controls a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.tour-controls a:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+/*
+ * The active chip is styled from the fragment alone. The first selector covers
+ * the default view, where no step carries :target.
+ */
+.tour:not(:has(.tour-step:target)) .tour-controls a[href="#step-1"],
+.tour:has(#step-1:target) .tour-controls a[href="#step-1"],
+.tour:has(#step-2:target) .tour-controls a[href="#step-2"],
+.tour:has(#step-3:target) .tour-controls a[href="#step-3"],
+.tour:has(#step-4:target) .tour-controls a[href="#step-4"],
+.tour:has(#step-5:target) .tour-controls a[href="#step-5"] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.tour-steps {
+  margin-top: 24px;
+}
+
+.tour-step {
+  display: none;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+  gap: 36px;
+  align-items: start;
+  scroll-margin-top: 24px;
+}
+
+.tour-step:first-child {
+  display: grid;
+}
+
+.tour-step:target {
+  display: grid;
+}
+
+/* A targeted step other than the first hides the default step. */
+.tour:has(.tour-step:target) .tour-step:first-child:not(:target) {
+  display: none;
+}
+
+.tour-figure {
+  min-width: 0;
+  margin: 0;
+}
+
+.tour-figure img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  background: #e9e5dd;
+  border: 1px solid var(--rule);
+  object-fit: cover;
+}
+
+.tour-copy {
+  min-width: 0;
+}
+
+.tour-copy h2 {
+  margin-top: 8px;
+  font-size: var(--text-heading);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+
+.tour-copy > p:not(.kicker) {
+  margin-top: 12px;
+}
+
+.tour-arrows {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+
+.tour-arrows a,
+.tour-arrow-disabled {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tour-arrows a {
+  color: var(--ink);
+  border-bottom: 1px solid var(--ink);
+  text-decoration: none;
+}
+
+.tour-arrow-disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.tour-return {
+  margin-top: 28px;
+}
+
+.tour-return a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -1196,6 +1392,11 @@ main {
   .screenshot-grid {
     grid-template-columns: 1fr;
   }
+
+  .tour-step {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1206,7 +1407,8 @@ main {
   .footer-inner,
   .not-found,
   .case-study,
-  .prose-page {
+  .prose-page,
+  .tour {
     padding-left: 20px;
     padding-right: 20px;
   }

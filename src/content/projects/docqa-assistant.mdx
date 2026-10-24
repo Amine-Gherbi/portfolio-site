@@ -68,4 +68,43 @@ links:
     href: /assets/docqa-assistant/proof/docs/EVAL.md
   - label: Ablation report
     href: /assets/docqa-assistant/proof/eval-report-ablation.json
+tour:
+  - file: hero.webp
+    shortName: Cited answer
+    heading: One answer, one cited quote
+    body: >-
+      The reader shows page 2 of the Sentence-BERT paper with citation 2
+      highlighted in the margin and the matching source row in the answer pane.
+      The claim above the sources is the sentence the quote supports.
+  - file: shot-01.webp
+    shortName: Three claims
+    heading: Three claims, three highlighted quotes
+    body: >-
+      Page 3 carries the selected quote for claim 1, and the answer pane lists
+      claims 1 through 3 above three source rows. Each row names a page and
+      shows the start of the quote it matched.
+  - file: shot-02.webp
+    shortName: Retrieval trail
+    heading: The retrieval trail behind the answer
+    body: >-
+      The overlay reports 3 of 3 claims passed and 0 removed for a quote
+      mismatch. The second-pass table gives each passage a page, score,
+      evidence probability and INCLUDED status, and the final decision reads
+      ANSWERED at a threshold of 0.2552.
+  - file: shot-03.webp
+    shortName: Evaluation
+    heading: The evaluation table behind the claim
+    body: >-
+      The report lists 30 questions, 24 answerable and 6 unanswerable, with
+      rates of 18/24, 8/24, 6/6, 7/9 and 7/9 and Wilson 95% ranges. The check
+      column marks 2 of 5 checks met and the last row counts where each
+      question stopped.
+  - file: shot-03.webp
+    shortName: Edge cases
+    heading: Three cases where the pipeline withholds
+    body: >-
+      The bottom strip names a plausible near miss that is withheld, a fluent
+      claim that is removed because its quote is outside the cited chunk, and a
+      rare term that keyword search finds. Each column records a different
+      outcome.
 ---

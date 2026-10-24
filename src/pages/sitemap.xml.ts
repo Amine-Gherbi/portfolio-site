@@ -20,7 +20,12 @@ export const GET: APIRoute = async ({ site }) => {
 
   const urls = [
     ...STATIC_ROUTES.map((route) => `${origin}${route}`),
-    ...entries.map((entry) => `${origin}/projects/${entry.id}/`),
+    ...entries.flatMap((entry) => {
+      const projectUrl = `${origin}/projects/${entry.id}/`;
+      return entry.data.kind === "case-study"
+        ? [projectUrl, `${origin}/projects/${entry.id}/tour/`]
+        : [projectUrl];
+    }),
   ];
 
   const body = [
