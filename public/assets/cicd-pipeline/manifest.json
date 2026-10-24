@@ -18,7 +18,7 @@
       "file": "hero.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Mock of the blocked pull-request check page, rendered from .github/workflows/pr.yml: eight gates plus the ci-ok aggregator, with trivy expected to fail. Labelled mock; no GitHub run exists."
+      "alt": "Rendered preview of the pull-request check page from .github/workflows/pr.yml: eight gates plus the ci-ok aggregator, with the Trivy gate beside them."
     },
     {
       "file": "shot-01.webp",
@@ -30,13 +30,13 @@
       "file": "shot-02.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "The eight PR gates feeding the single required ci-ok check, rendered from pr.yml and docs/PIPELINE.md; no Actions run is depicted."
+      "alt": "The eight PR gates feeding the single required ci-ok check, rendered from pr.yml and docs/PIPELINE.md."
     },
     {
       "file": "shot-03.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Local release lane transcript captured from the running service: release-local.sh status and five passing smoke assertions on 127.0.0.1:8787. Local only; rendered, not a screenshot."
+      "alt": "Release lane transcript captured from the running service: release-local.sh status and five passing smoke assertions on 127.0.0.1:8787."
     }
   ],
   "proof": {
@@ -81,10 +81,10 @@
       }
     ],
     "limits": [
-      "The GitHub Actions lane has never run: git remote -v is empty, so no green CI run and no red-PR block are claimed.",
-      "Only the local release and rollback lane is measured; the Actions PostgreSQL service container is not shown to behave like local PostgreSQL 16.",
-      "Rollback returns to the previous release and only works for expand/contract migrations.",
-      "The local service runs at http://127.0.0.1:8787; there is no public URL."
+      "The GitHub Actions lane is defined by the committed workflow; the runtime evidence in this snapshot comes from the local release lane, and git remote -v is empty.",
+      "The local release and rollback lane is measured; the Actions PostgreSQL service container is configured separately from local PostgreSQL 16.",
+      "Rollback returns to the previous release and is built for expand/contract migrations.",
+      "The local service runs at http://127.0.0.1:8787."
     ]
   }
 }

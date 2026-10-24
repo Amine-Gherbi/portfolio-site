@@ -3,7 +3,7 @@
   "role": "Full-stack developer",
   "location": "Biskra, Algeria",
   "generatedAt": "2026-10-23",
-  "summary": "Master's graduate in Software Engineering and Distributed Systems. Backend-oriented full-stack developer working with TypeScript, Next.js, PostgreSQL and Python, with an interest in DevOps and in integrating language models into products that need verifiable output.",
+  "summary": "Backend-oriented full-stack developer with a Master's in Software Engineering and Distributed Systems. I build with TypeScript, Next.js, PostgreSQL and Python, and bring DevOps and language-model integration to products that need verifiable output.",
   "contact": [
     {
       "label": "Email",
@@ -33,7 +33,7 @@
       "role": "Freelance full-stack developer",
       "organisation": "Self-employed",
       "location": "Biskra (remote)",
-      "period": "January 2025 - present"
+      "period": "2025 - present"
     }
   ],
   "freelance": [
@@ -54,7 +54,7 @@
     },
     {
       "sector": "Healthcare administration",
-      "problem": "Booking and patient-record tools where each role sees only the records it needs, and changes stay traceable.",
+      "problem": "Booking and patient-record tools where each role sees the records its work needs, and changes stay traceable.",
       "stack": "Next.js, Django, PostgreSQL"
     },
     {
@@ -113,7 +113,7 @@
     {
       "slug": "cicd-pipeline",
       "title": "CI/CD deployment pipeline",
-      "line": "Pull-request checks and tests, Docker image builds, and deploys of successful builds to a staging environment."
+      "line": "Pull-request gates, a Docker image, and a local release lane with a recorded rollback."
     },
     {
       "slug": "docqa-assistant",

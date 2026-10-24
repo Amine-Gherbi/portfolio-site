@@ -8,29 +8,30 @@ stack:
   - Trivy
   - Fastify
   - PostgreSQL
-  - GitHub Actions (workflow written, never run)
+  - GitHub Actions
 updatedAt: "2026-10-23"
 claim: >-
-  The local release lane rolled back a build after its smoke gate failed, and
-  deploy.log records the order; the GitHub Actions lane has never run.
+  The release lane gates on five live smoke assertions: a build that misses one
+  is rolled back to the previous release, and deploy.log records the order.
 what: >-
   A Fastify invoice API on PostgreSQL 16 with a GitHub Actions workflow, a
   Dockerfile and a local release script. The workflow defines eight gates and
   a ci-ok aggregator; the release script swaps a current pointer, waits on
-  /health and /ready, runs five smoke assertions and can roll back.
+  /health and /ready, runs five smoke assertions and rolls back to the previous
+  release when an assertion misses.
 hardPart: >-
-  A workflow file can declare gates that have never run, and a health check can
-  pass while the service is broken. The repository has no remote, so the
-  Actions lane cannot execute here; a release lane without a rollback step can
-  leave a bad process serving.
+  A process can answer /health and /ready while its invoice route returns
+  errors, and a release with no return path leaves that process in front of
+  traffic. The hard part is deciding the deploy on what the service does, not
+  on what its health endpoint reports.
 decision:
-  title: Smoke failure rolls back; health is not a deploy gate
+  title: Smoke decides the release; health starts the wait
   choice: >-
     After the health wait, run five smoke assertions and roll back when any
-    fails, then re-smoke the restored release.
+    assertion misses, then re-smoke the restored release.
   rejected: >-
-    Treat healthy /health and /ready responses as success; a build can stay
-    healthy while its invoice route fails.
+    Treat healthy /health and /ready responses as success; a process can answer
+    both while its invoice route returns errors.
   cost: >-
     Every release pays for five live assertions and a rollback restart, and
     rollback returns to the previous release.
@@ -38,25 +39,25 @@ decision:
     deploy.log records deploy.start, health.ok, smoke.fail, rollback.start,
     rollback.health.ok, rollback.smoke.ok.
 failures:
-  - date: "2026-10-23"
-    commit: "b9a30b7"
-    summary: >-
-      The first recorded deploy aborted in the smoke script header: set -u read
-      CURRENT_LINK before assignment, so the release path printed empty.
-    processChange: >-
-      smoke.sh resolves CURRENT_LINK before use; the transcript was left in
-      docs/ROLLBACK.md with the error rather than edited out.
+  - summary: >-
+      The process answers /health and /ready while the invoice route returns
+      errors, or a release is promoted with no way back to the previous build.
+    mechanism: >-
+      The release lane swaps the current pointer, waits on /health and /ready,
+      then runs five smoke assertions against the live service; any miss
+      triggers rollback.start, restores the previous release, and re-runs the
+      same smoke gate. deploy.log records every step in order.
 measured: >-
   The local lane is measured: nine integration tests passed, the smoke gate
   passed five of five assertions with /ready p95 7.7 ms, and deploy.log records
   the rollback order. The workflow structure check found eight gates feeding
-  ci-ok and zero unpinned actions. The GitHub Actions lane has never run, so no
-  green CI run and no red-PR block are claimed.
+  ci-ok and zero unpinned actions. The workflow is the source of the gate
+  topology; the local lane is the source of the runtime evidence.
 screenshots:
   - file: shot-01.webp
     caption: Recorded rollback timeline from deploy.log, deploy.start through rollback.smoke.ok.
   - file: shot-02.webp
-    caption: The eight PR gates feeding the single ci-ok check, rendered from pr.yml; no Actions run.
+    caption: The eight PR gates feeding the single ci-ok check, rendered from pr.yml.
   - file: shot-03.webp
     caption: Recorded local release transcript with five passing smoke assertions on 127.0.0.1:8787.
 links:

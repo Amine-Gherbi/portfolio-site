@@ -1,10 +1,6 @@
 import { z } from "zod";
 import { projectSchema } from "./manifest";
 
-const isoDate = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "expected an ISO date (YYYY-MM-DD)");
-
 const required = (label: string) =>
   z.string().trim().min(1, `${label} is required`);
 
@@ -17,12 +13,8 @@ const decisionSchema = z.object({
 });
 
 const failureSchema = z.object({
-  date: isoDate,
-  commit: z
-    .string()
-    .regex(/^[0-9a-f]{7,40}$/, "commit must be a 7-40 character lowercase SHA"),
-  summary: required("failure summary"),
-  processChange: required("process change"),
+  summary: required("pathological case"),
+  mechanism: required("mechanism"),
 });
 
 const screenshotSchema = z.object({
@@ -48,7 +40,7 @@ export const caseStudySchema = projectSchema.extend({
   decision: decisionSchema,
   failures: z
     .array(failureSchema)
-    .length(1, "exactly one dated failure is required"),
+    .length(1, "exactly one refusal entry is required"),
   measured: required("measured"),
   screenshots: z
     .array(screenshotSchema)
@@ -141,7 +133,7 @@ export const SECTION_ORDER = [
   { id: "what-it-is", label: "What it is" },
   { id: "hard-part", label: "The hard part" },
   { id: "decision", label: "The decision" },
-  { id: "what-broke", label: "What broke" },
+  { id: "what-broke", label: "The failure it refuses" },
   { id: "measured", label: "Measured" },
 ] as const;
 
@@ -156,17 +148,6 @@ export const THESIS_SECTION_ORDER = [
   { id: "design", label: "The design" },
   { id: "proves", label: "What it proves" },
 ] as const;
-
-const updatedFormatter = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-  timeZone: "UTC",
-});
-
-export function formatUpdated(isoDateValue: string): string {
-  return updatedFormatter.format(new Date(`${isoDateValue}T00:00:00.000Z`));
-}
 
 /**
  * Hard build-time gate for the rules a case study cannot ship without. Zod
@@ -185,16 +166,16 @@ export function assertCaseStudy(study: CaseStudy, slug: string): void {
 
   if (study.failures.length !== 1) {
     errors.push(
-      `failures: exactly one dated failure is required, found ${study.failures.length}`,
+      `failures: exactly one refusal entry is required, found ${study.failures.length}`,
     );
   }
 
   study.failures.forEach((failure, index) => {
-    if (!/^[0-9a-f]{7,40}$/.test(failure.commit)) {
-      errors.push(`failures[${index}].commit: commit must be a 7-40 character SHA`);
+    if (failure.summary.trim() === "") {
+      errors.push(`failures[${index}].summary: pathological case is required`);
     }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(failure.date)) {
-      errors.push(`failures[${index}].date: date must be YYYY-MM-DD`);
+    if (failure.mechanism.trim() === "") {
+      errors.push(`failures[${index}].mechanism: mechanism is required`);
     }
   });
 

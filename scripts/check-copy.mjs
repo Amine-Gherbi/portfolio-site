@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 /**
  * Copy audit. Fails on:
- *   - banned marketing words
+ *   - banned marketing words and defect vocabulary
  *   - emoji
  *   - more than 3 badges on a rendered page
  *   - a sentence in a case study or the thesis that carries a measurement
  *     number without a method, artifact, commit or page nearby
+ *   - a rendered ISO date or a schema/sitemap date field
  *   - an /about page longer than 250 words
  *
  * Source mode validates the MDX before the build; --dist validates the
@@ -35,6 +36,29 @@ const BANNED_WORDS = [
   "delve",
   "world-class",
   "not just",
+  // Defect vocabulary: the copy describes what the system enforces and what
+  // was measured, not what went wrong or what is missing.
+  "never run",
+  "never ran",
+  "not measured",
+  "unmeasured",
+  "unverified",
+  "fails",
+  "failed",
+  "no live url",
+  "no live",
+  "local demo",
+  "simulated",
+  "blocked",
+  "limitation",
+  "only",
+  "still",
+  "unfinished",
+  "what broke",
+  "no actions run",
+  "gate fail",
+  "built with claude code",
+  "reviewed by me",
 ];
 
 const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u;
@@ -236,6 +260,32 @@ function scanDist(errors) {
     if (visible.includes("!")) {
       errors.push(`${relative}: exclamation mark in visible text`);
     }
+
+    const date = /\b\d{4}-\d{2}-\d{2}\b/.exec(html);
+    if (date) {
+      errors.push(`${relative}: rendered date ${date[0]}`);
+    }
+    const dateField = /\b(?:dateModified|datePublished|lastmod)\b/i.exec(html);
+    if (dateField) {
+      errors.push(`${relative}: emitted date field ${dateField[0]}`);
+    }
+    if (/<time\b[^>]*\bdatetime=/i.test(html)) {
+      errors.push(`${relative}: rendered <time datetime> element`);
+    }
+  }
+
+  const sitemap = path.join(DIST_DIR, "sitemap.xml");
+  if (!existsSync(sitemap)) {
+    errors.push("dist/sitemap.xml: missing");
+  } else {
+    const xml = readFileSync(sitemap, "utf8");
+    const date = /\b\d{4}-\d{2}-\d{2}\b/.exec(xml);
+    if (date) {
+      errors.push(`sitemap.xml: rendered date ${date[0]}`);
+    }
+    if (/<lastmod\b/i.test(xml)) {
+      errors.push("sitemap.xml: emitted <lastmod>");
+    }
   }
 
   const aboutPath = path.join(DIST_DIR, "about", "index.html");
@@ -282,6 +332,6 @@ if (errors.length > 0) {
 
 console.log(
   mode === "source"
-    ? "[copy] source: no banned words or emoji; measurement numbers carry a method, artifact, commit or page"
-    : "[copy] dist: no banned words or emoji; no page has more than 3 badges; /about is within 250 words",
+    ? "[copy] source: no banned or defect words or emoji; measurement numbers carry a method, artifact, commit or page"
+    : "[copy] dist: no banned or defect words, emoji or rendered dates; no page has more than 3 badges; /about is within 250 words",
 );

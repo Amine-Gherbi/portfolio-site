@@ -163,8 +163,8 @@ test("a missing proof artifact fails and names proof.measured[0].artifact", asyn
         "ecommerce-platform",
         "proof",
         "docs",
-        "load",
-        "checkout.md",
+        "proof",
+        "concurrency-run.txt",
       ),
     );
   });

@@ -115,7 +115,7 @@ const proofSchema = z.object({
 /**
  * A demo block is optional and never required for a snapshot to be valid. A
  * project may describe how it is previewed locally, but a missing demo is not
- * a contract failure and an invalid one still is.
+ * a contract failure and an invalid one remains a failure.
  */
 const demoSchema = z
   .object({

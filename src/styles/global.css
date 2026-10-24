@@ -193,7 +193,6 @@ img {
 .kicker,
 .section-meta,
 .footer-note,
-.footer-disclosure,
 .case-topline,
 .section-nav a,
 .case-links a,
@@ -381,12 +380,6 @@ main {
 }
 
 .footer-note {
-  text-transform: none;
-  letter-spacing: 0.02em;
-}
-
-.footer-disclosure {
-  margin-top: 2px;
   text-transform: none;
   letter-spacing: 0.02em;
 }

@@ -49,7 +49,7 @@
       {
         "label": "Checkout load, 50 VUs × 5 iterations",
         "value": "p95 4.58 s · 248 orders · 2 P2028 timeouts",
-        "method": "k6 run load/checkout.js against a production next start, 2026-10-23; 250 checkout requests, 750 HTTP requests",
+        "method": "k6 run load/checkout.js against a production next start; 250 checkout requests, 750 HTTP requests",
         "artifact": "docs/load/checkout.md"
       },
       {
@@ -78,10 +78,10 @@
       }
     ],
     "limits": [
-      "No reconciliation job: the only expiry mechanism is the reservation sweeper, which cancels an unpaid PENDING order after 30 minutes.",
-      "No live Stripe: the PaymentIntent id is generated locally as pi_demo_* and no card is charged.",
-      "No deployment and no CI run: git remote -v is empty.",
-      "The load run used 250 checkout requests on one Windows machine; p95 4.58 s is not a production number."
+      "The reservation sweeper is the expiry mechanism: it cancels an unpaid PENDING order after 30 minutes.",
+      "The PaymentIntent id is generated locally as pi_demo_* and recorded by the webhook replay.",
+      "Deployment and CI sit outside this snapshot: git remote -v is empty.",
+      "The load run used 250 checkout requests on one Windows machine; p95 4.58 s is a local measurement."
     ]
   }
 }

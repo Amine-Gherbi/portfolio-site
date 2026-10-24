@@ -40,7 +40,7 @@ let cachedFonts: SatoriOptions["fonts"] | undefined;
 let cachedFamily: string | undefined;
 
 /**
- * satori needs the actual font bytes. Only fonts already installed on the
+ * satori needs the actual font bytes. Fonts already installed on the
  * machine are used — nothing is downloaded — and OG_FONT_DIR points at a
  * different folder when the defaults do not exist.
  */

@@ -22,7 +22,7 @@ export const projectSchema = z.object({
 export type Project = z.infer<typeof projectSchema>;
 
 // The shared schema treats `demo` as optional, accepts an optional
-// `previewCommand`, and still rejects any other malformed field.
+// `previewCommand`, and rejects any other malformed field.
 export { projectManifestSchema };
 
 export type ProjectManifest = z.infer<typeof projectManifestSchema>;

@@ -19,26 +19,15 @@ export const GET: APIRoute = async ({ site }) => {
   entries.sort((a, b) => a.data.order - b.data.order);
 
   const urls = [
-    ...STATIC_ROUTES.map((route) => ({
-      loc: `${origin}${route}`,
-      lastmod: undefined as string | undefined,
-    })),
-    ...entries.map((entry) => ({
-      loc: `${origin}/projects/${entry.id}/`,
-      lastmod: entry.data.updatedAt,
-    })),
+    ...STATIC_ROUTES.map((route) => `${origin}${route}`),
+    ...entries.map((entry) => `${origin}/projects/${entry.id}/`),
   ];
 
   const body = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...urls.map((url) =>
-      [
-        "  <url>",
-        `    <loc>${escapeXml(url.loc)}</loc>`,
-        ...(url.lastmod ? [`    <lastmod>${escapeXml(url.lastmod)}</lastmod>`] : []),
-        "  </url>",
-      ].join("\n"),
+      ["  <url>", `    <loc>${escapeXml(url)}</loc>`, "  </url>"].join("\n"),
     ),
     "</urlset>",
     "",

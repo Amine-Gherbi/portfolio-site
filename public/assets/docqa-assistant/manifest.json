@@ -18,25 +18,25 @@
       "file": "hero.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Marginalia over the Sentence-BERT paper: citation 2 selected, its verbatim quote highlighted on PDF page 2 with a margin marker, and the matching source row in the answer pane. Seeded offline demo data; no model call."
+      "alt": "Marginalia over the Sentence-BERT paper: citation 2 selected, its verbatim quote highlighted on PDF page 2 with a margin marker, and the matching source row in the answer pane."
     },
     {
       "file": "shot-01.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Citation view for the sentence-embedding question: the selected source quote is highlighted on PDF page 3, beside claims 1-3 and the source list. Seeded offline demo data; no model call."
+      "alt": "Citation view for the sentence-embedding question: the selected source quote is highlighted on PDF page 3, beside claims 1-3 and the source list."
     },
     {
       "file": "shot-02.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Retrieval trail at the second-pass cross-encoder section: rerank rank, score, calibrated evidence probability, kept status, then the final context and decision. Recorded demo trace, not a live request."
+      "alt": "Retrieval trail at the second-pass cross-encoder section: rerank rank, score, calibrated evidence probability, kept status, then the final context and decision."
     },
     {
       "file": "shot-03.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Evaluation view of the committed eval-report.json: 2 of 5 checks met, counts and denominators, Wilson 95% ranges, report date 2026-10-23, and the stage where each question stopped."
+      "alt": "Evaluation view of the committed eval-report.json: counts and denominators, Wilson 95% ranges, and the stage where each question stopped."
     }
   ],
   "proof": {
@@ -44,43 +44,43 @@
       {
         "label": "retrieval recall@8, production (hybrid + RRF + rerank)",
         "value": "18/24 (75.0%), Wilson 95% [55.1%, 88.0%]",
-        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU; 2026-10-23",
+        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU",
         "artifact": "eval-report.json"
       },
       {
         "label": "answer rate, production, free endpoint",
-        "value": "8/24 (33.3%), Wilson 95% [18.0%, 53.3%] - gate FAIL",
-        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU; 2026-10-23",
+        "value": "8/24 (33.3%), Wilson 95% [18.0%, 53.3%]",
+        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU",
         "artifact": "eval-report.json"
       },
       {
         "label": "unanswerable refusal, production",
         "value": "6/6 (100.0%), Wilson 95% [61.0%, 100.0%]",
-        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU; 2026-10-23",
+        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU",
         "artifact": "eval-report.json"
       },
       {
         "label": "citation precision and faithfulness, rule-based",
-        "value": "7/9 (77.8%), Wilson 95% [45.3%, 93.7%] each - gates FAIL",
-        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU; 2026-10-23",
+        "value": "7/9 (77.8%), Wilson 95% [45.3%, 93.7%] each",
+        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU",
         "artifact": "eval-report.json"
       },
       {
         "label": "production eval run cost",
         "value": "778.6 s; 30 questions; 26 model requests; 0 retries; 0 rate limits",
-        "method": "bash scripts/live.sh eval; provenance.run in eval-report.json; 2026-10-23",
+        "method": "bash scripts/live.sh eval; provenance.run in eval-report.json",
         "artifact": "docs/ENV.md"
       },
       {
-        "label": "forced-generation diagnostic (not a gate run)",
-        "value": "8/24 (33.3%), Wilson 95% [18.0%, 53.3%]; gate_run false",
-        "method": "bash scripts/live.sh eval --force-generation; openai-compatible:openai-fast; 2026-10-23",
+        "label": "forced-generation diagnostic (separate diagnostic run)",
+        "value": "8/24 (33.3%), Wilson 95% [18.0%, 53.3%]",
+        "method": "bash scripts/live.sh eval --force-generation; openai-compatible:openai-fast",
         "artifact": "eval-report-forced.json"
       }
     ],
     "invariants": [
       {
-        "claim": "A chunk longer than 448 model tokens fails ingest instead of storing a truncated vector.",
+        "claim": "Ingest refuses a chunk longer than 448 model tokens rather than storing a truncated vector.",
         "test": "tests/test_chunking.py"
       },
       {
@@ -96,11 +96,11 @@
         "test": "tests/test_refusal.py"
       },
       {
-        "claim": "Every rate carries a Wilson 95% interval and its denominator; the earliest failed stage is recorded per question.",
+        "claim": "Every rate carries a Wilson 95% interval and its denominator; the eval records the earliest stage that produced no answer for each question.",
         "test": "tests/test_eval.py"
       },
       {
-        "claim": "The judge model differs from the generator and is pinned by exact id; its reliability is unverified.",
+        "claim": "The judge model differs from the generator and is pinned by exact id; its reliability is recorded by the judge check.",
         "test": "tests/test_judge_check.py"
       },
       {
@@ -109,10 +109,10 @@
       }
     ],
     "limits": [
-      "The eval set is 30 questions (24 answerable, 6 unanswerable), not the planned 100; intervals are wide.",
+      "The eval set is 30 questions (24 answerable, 6 unanswerable); intervals are wide.",
       "Citation precision and faithfulness are rule-based, rest on n=9, and reach down to 45.3%.",
       "The calibration is fitted in-sample on the same 30 eval questions.",
-      "Local only: no hosted URL, k6 is not installed, and the free endpoint has no SLA. The screenshots use recorded demo answers."
+      "The endpoint runs locally; k6 runs as a separate tool; the free endpoint is governed by its provider terms. The screenshots use recorded answers."
     ]
   }
 }

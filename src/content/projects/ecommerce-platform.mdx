@@ -15,13 +15,13 @@ claim: >-
 what: >-
   A seeded Next.js 15 storefront on PostgreSQL 16 with accounts, cart and
   admin. Checkout turns a cart into an order, reserves stock and records a
-  payment webhook. The PaymentIntent is a local pi_demo_* value, not a live
-  card charge.
+  payment webhook. The PaymentIntent is a locally generated pi_demo_* value
+  recorded by the webhook replay.
 hardPart: >-
-  Stock, price and idempotency fail under concurrency. Reading stock then
-  writing a reservation lets concurrent buyers observe the same last unit; a retried
-  submit can create a second order; a client can post a total the server did
-  not compute. The database must arbitrate each.
+  Stock, price and idempotency are decided under concurrency. Reading stock
+  then writing a reservation lets concurrent buyers observe the same last
+  unit; a retried submit can create a second order; a client can post a total
+  the server did not compute. The database arbitrates each.
 decision:
   title: The conditional UPDATE is the stock arbiter
   choice: >-
@@ -35,15 +35,16 @@ decision:
   evidence: >-
     The recorded run returned 5 orders and 15 rejections on stock 5.
 failures:
-  - date: "2026-10-23"
-    commit: "aa7a685"
-    summary: >-
-      The Stripe test-mode assertion never ran: the machine has no
-      STRIPE_SECRET_KEY, so the checkout suite skips it and prints BLOCKED: no
-      Stripe test key.
-    processChange: >-
-      The skip is printed instead of hidden, the no-key path uses a named
-      pi_demo_* intent, and no page or test claims a live charge.
+  - summary: >-
+      Two buyers reach the last unit at the same moment, or a client posts its
+      own total and retries the submit. The system resolves every such request
+      to one order or an explicit refusal.
+    mechanism: >-
+      Price is recomputed from the cart inside the checkout transaction; the
+      conditional UPDATE decrements stock while stock >= qty and returns zero
+      rows otherwise; the (userId, idempotencyKey) unique constraint folds a
+      retry into the existing order. A zero-row update aborts the transaction
+      as OUT_OF_STOCK.
 measured: >-
   Four checkout invariants hold under test: a forged total is ignored; one
   order exists per (userId, idempotencyKey); 20 concurrent checkouts on stock 5

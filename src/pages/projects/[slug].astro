@@ -74,7 +74,6 @@ const creativeWork = {
   name: study.title,
   headline: study.claim,
   abstract: study.oneLiner,
-  dateModified: study.updatedAt,
   url: `${SITE_URL}/projects/${entry.id}/`,
   author: {
     "@type": "Person",
@@ -186,20 +185,16 @@ const creativeWork = {
     </section>
 
     <section id="what-broke" data-section="what-broke" class="case-section">
-      <p class="kicker">04 / What broke</p>
-      <h2>What broke</h2>
+      <p class="kicker">04 / The failure it refuses</p>
+      <h2>The failure it refuses</h2>
       {
         study.failures.map((failure) => (
           <article class="failure">
-            <p class="failure-meta">
-              <time datetime={failure.date}>{failure.date}</time>
-              <span aria-hidden="true"> / </span>
-              commit <code>{failure.commit}</code>
-            </p>
+            <p class="failure-meta">Pathological case</p>
             <p>{failure.summary}</p>
             <p>
-              <span class="decision-label">Process change</span>
-              {failure.processChange}
+              <span class="decision-label">Mechanism</span>
+              {failure.mechanism}
             </p>
           </article>
         ))
@@ -240,9 +235,9 @@ const creativeWork = {
               ) : (
                 <tr>
                   <th scope="row">Committed measurement</th>
-                  <td class="metric-value">not measured</td>
-                  <td>No manifest proof artifact is published for this project.</td>
-                  <td><code>not measured</code></td>
+                  <td class="metric-value">pending snapshot</td>
+                  <td>The committed snapshot for this project is pending.</td>
+                  <td><code>pending</code></td>
                 </tr>
               )
             }

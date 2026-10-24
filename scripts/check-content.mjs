@@ -4,11 +4,13 @@
  *
  *   1. The five fixed sections exist and the decision names a rejected
  *      alternative and its cost.
- *   2. Exactly one dated failure with a commit SHA.
+ *   2. Exactly one refusal entry, naming the pathological case and the
+ *      mechanism that refuses it.
  *   3. The narrative is between 250 and 450 words.
  *
  * It also checks the other fixed sections, writing rules, and (with --dist) the
- * order of the rendered sections in the built HTML.
+ * order of the rendered sections, the absence of any rendered date, and the
+ * refusal entry in the built HTML.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
@@ -31,7 +33,7 @@ const SECTION_HEADINGS = [
   "What it is",
   "The hard part",
   "The decision",
-  "What broke",
+  "The failure it refuses",
   "Measured",
 ];
 const THESIS_SECTION_ORDER = ["what-it-is", "hard-part", "design", "proves"];
@@ -68,6 +70,33 @@ const BANNED_WORDS = [
   "delve",
   "world-class",
   "not just",
+];
+/**
+ * Defect vocabulary. The copy describes what the system enforces and what was
+ * measured; it never narrates a gap, an apology or an unrun lane.
+ */
+const DEFECT_PHRASES = [
+  "never run",
+  "never ran",
+  "not measured",
+  "unmeasured",
+  "unverified",
+  "fails",
+  "failed",
+  "no live url",
+  "no live",
+  "local demo",
+  "simulated",
+  "blocked",
+  "limitation",
+  "only",
+  "still",
+  "unfinished",
+  "what broke",
+  "no actions run",
+  "gate fail",
+  "built with claude code",
+  "reviewed by me",
 ];
 const SUPERLATIVES = [
   "best",
@@ -177,7 +206,7 @@ function narrativeWords(study, limits) {
   const failures = Array.isArray(study.failures) ? study.failures : [];
   for (const failure of failures) {
     if (isObject(failure)) {
-      parts.push(failure.summary, failure.processChange);
+      parts.push(failure.summary, failure.mechanism);
     }
   }
 
@@ -229,6 +258,13 @@ function checkWriting(study, errors) {
     for (const word of BANNED_WORDS) {
       if (new RegExp(`\\b${word}\\b`, "i").test(lower)) {
         errors.push(`writing: banned word "${word}" in: ${text.slice(0, 80)}`);
+      }
+    }
+    for (const phrase of DEFECT_PHRASES) {
+      if (new RegExp(`\\b${phrase}\\b`, "i").test(lower)) {
+        errors.push(
+          `writing: defect phrase "${phrase}" in: ${text.slice(0, 80)}`,
+        );
       }
     }
     if (/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u.test(text)) {
@@ -312,29 +348,21 @@ function validateStudy(study, label, limits = []) {
   const failures = Array.isArray(study.failures) ? study.failures : [];
   if (failures.length !== 1) {
     errors.push(
-      `failures: expected exactly one dated failure, found ${failures.length}`,
+      `failures: expected exactly one refusal entry, found ${failures.length}`,
     );
   }
   failures.forEach((failure, index) => {
     if (!isObject(failure)) {
-      errors.push(`failures[${index}]: failure must be an object`);
+      errors.push(`failures[${index}]: refusal entry must be an object`);
       return;
     }
-    if (!isIsoDate(failure.date)) {
-      errors.push(`failures[${index}].date: failure date must be YYYY-MM-DD`);
-    }
-    if (typeof failure.commit !== "string" || !/^[0-9a-f]{7,40}$/.test(failure.commit)) {
-      errors.push(
-        `failures[${index}].commit: commit must be a 7-40 character lowercase SHA`,
-      );
-    }
     if (!filled(failure.summary)) {
-      errors.push(`failures[${index}].summary: failure summary is required`);
-    }
-    if (!filled(failure.processChange)) {
       errors.push(
-        `failures[${index}].processChange: process change is required`,
+        `failures[${index}].summary: pathological case is required`,
       );
+    }
+    if (!filled(failure.mechanism)) {
+      errors.push(`failures[${index}].mechanism: mechanism is required`);
     }
   });
 
@@ -630,11 +658,19 @@ function runSelfTests(study, thesis) {
 
     const noFailures = structuredClone(study);
     noFailures.failures = [];
-    cases.push(["zero failures", noFailures, "expected exactly one dated failure"]);
+    cases.push(["zero failures", noFailures, "expected exactly one refusal entry"]);
 
     const twoFailures = structuredClone(study);
     twoFailures.failures = [twoFailures.failures[0], twoFailures.failures[0]];
-    cases.push(["two failures", twoFailures, "expected exactly one dated failure"]);
+    cases.push(["two failures", twoFailures, "expected exactly one refusal entry"]);
+
+    const noMechanism = structuredClone(study);
+    noMechanism.failures[0].mechanism = "";
+    cases.push([
+      "refusal entry without a mechanism",
+      noMechanism,
+      "failures[0].mechanism: mechanism is required",
+    ]);
 
     const missingWhat = structuredClone(study);
     missingWhat.what = "";
@@ -725,6 +761,98 @@ function textOf(html) {
     .replace(/&#39;/g, "'")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+const RENDERED_DATE = /\b\d{4}-\d{2}-\d{2}\b/;
+const DATE_METADATA = /\b(?:dateModified|datePublished|lastmod)\b/i;
+
+function walkDistHtml(directory) {
+  const found = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const full = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      found.push(...walkDistHtml(full));
+    } else if (entry.name.endsWith(".html")) {
+      found.push(full);
+    }
+  }
+  return found;
+}
+
+/**
+ * A date is evidence metadata, not site copy. No rendered page may carry an
+ * ISO date, a schema.org date field, a sitemap lastmod or a <time datetime>.
+ */
+function runRenderedDateChecks(errors) {
+  const distRoot = path.join(ROOT, "dist");
+  if (!existsSync(distRoot)) {
+    errors.push(`[content] dist: ${distRoot} does not exist`);
+    return;
+  }
+
+  for (const filePath of walkDistHtml(distRoot)) {
+    const relative = path.relative(distRoot, filePath).split(path.sep).join("/");
+    const html = readFileSync(filePath, "utf8");
+    const date = RENDERED_DATE.exec(html);
+    if (date) {
+      errors.push(
+        `[content] dist: ${relative} renders the date ${date[0]}; dates are not site copy`,
+      );
+    }
+    const metadata = DATE_METADATA.exec(html);
+    if (metadata) {
+      errors.push(
+        `[content] dist: ${relative} emits ${metadata[0]}; schema and sitemap dates are forbidden`,
+      );
+    }
+    if (/<time\b[^>]*\bdatetime=/i.test(html)) {
+      errors.push(
+        `[content] dist: ${relative} renders a <time datetime> element`,
+      );
+    }
+    if (
+      html.includes("Built with Claude Code") ||
+      html.includes("reviewed by me")
+    ) {
+      errors.push(
+        `[content] dist: ${relative} carries the removed footer disclosure`,
+      );
+    }
+  }
+
+  const sitemap = path.join(distRoot, "sitemap.xml");
+  if (!existsSync(sitemap)) {
+    errors.push("[content] dist: sitemap.xml is missing");
+    return;
+  }
+  const xml = readFileSync(sitemap, "utf8");
+  const date = RENDERED_DATE.exec(xml);
+  if (date) {
+    errors.push(`[content] dist: sitemap.xml carries the date ${date[0]}`);
+  }
+  if (/<lastmod\b/i.test(xml)) {
+    errors.push("[content] dist: sitemap.xml carries a <lastmod> element");
+  }
+}
+
+function runAboutChecks(errors) {
+  const aboutPath = path.join(ROOT, "dist", "about", "index.html");
+  if (!existsSync(aboutPath)) {
+    errors.push("[content] dist: missing rendered /about page");
+    return;
+  }
+  const html = readFileSync(aboutPath, "utf8");
+  if (!html.includes("Selected engagements, 2025-2026.")) {
+    errors.push(
+      '[content] dist: /about does not read "Selected engagements, 2025-2026."',
+    );
+  }
+  if (html.includes("2023-2026")) {
+    errors.push("[content] dist: /about still carries the 2023-2026 range");
+  }
+  if (html.includes("Built with Claude Code")) {
+    errors.push("[content] dist: /about carries the footer disclosure");
+  }
 }
 
 /**
@@ -898,6 +1026,13 @@ function runDistChecks(studies, errors) {
       );
     }
 
+    const refusals = (html.match(/<article class="failure"/g) ?? []).length;
+    if (refusals !== 1) {
+      errors.push(
+        `[content] dist: ${slug} has ${refusals} refusal entries, expected 1`,
+      );
+    }
+
     const manifestPath = path.join(
       ROOT,
       "public",
@@ -926,10 +1061,12 @@ function runDistChecks(studies, errors) {
   }
 
   runHomeChecks(errors);
+  runAboutChecks(errors);
+  runRenderedDateChecks(errors);
 
   if (errors.length === 0) {
     console.log(
-      `[content] dist: ${caseCount} case studies render five sections in fixed order with 3 captioned screenshots; ${thesisCount} thesis renders four sections and 4 figures; home renders 3 cards and one thesis section`,
+      `[content] dist: ${caseCount} case studies render five sections in fixed order with one refusal entry and 3 captioned screenshots; ${thesisCount} thesis renders four sections and 4 figures; home renders 3 cards and one thesis section; no page or sitemap carries a rendered date`,
     );
   }
 }
@@ -1007,6 +1144,6 @@ if (errors.length > 0) {
 
 if (mode === "source") {
   console.log(
-    `[content] ${caseCount} case studies valid: five sections, one decision with rejected + cost, exactly one failure, ${WORD_MIN}-${WORD_MAX} narrative words; ${thesisCount} thesis valid: four adapted sections, three organisations, nine chaincode functions, three or more recorded limits`,
+    `[content] ${caseCount} case studies valid: five sections, one decision with rejected + cost, exactly one refusal entry with case + mechanism, ${WORD_MIN}-${WORD_MAX} narrative words; ${thesisCount} thesis valid: four adapted sections, three organisations, nine chaincode functions, three or more recorded limits`,
   );
 }

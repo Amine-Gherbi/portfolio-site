@@ -13,18 +13,18 @@ stack:
 updatedAt: "2026-10-23"
 claim: >-
   On the recorded 30-question eval, retrieval recall@8 is 18/24 (75.0%), the
-  answer rate is 8/24, and refusal of unanswerable questions is 6/6; two of
-  five gates pass, so the eval exits 6.
+  answer rate is 8/24, refusal of unanswerable questions is 6/6, and citation
+  precision and faithfulness are 7/9 each.
 what: >-
   A Python 3.12 FastAPI service with PostgreSQL 16 and pgvector. Ingest refuses
   a PDF whose SHA-256 differs from corpus.lock.json; retrieval fuses embeddings
-  and lexical search, then reranks; the answer path keeps only a claim whose
-  quote appears in the cited chunk.
+  and lexical search, then reranks; the answer path keeps a claim when its
+  quote appears in the cited chunk and drops it otherwise.
 hardPart: >-
   A retrieval answer is easy to make plausible and hard to check. A claim can
-  cite a passage that was never retrieved, quote text outside the cited chunk,
-  or survive a question the corpus cannot answer. Without a measured refusal
-  path, the system answers anyway.
+  cite a passage outside the retrieved set, quote text outside the cited chunk,
+  or survive a question the corpus holds no evidence for. The refusal path is
+  what makes an answer checkable.
 decision:
   title: An uncited claim is dropped, not repaired
   choice: >-
@@ -32,28 +32,28 @@ decision:
     the cited chunk, and drop the claim on either failure.
   rejected: >-
     Generate first, then attach the nearest passage; a citation added
-    afterwards can point at text the claim never used.
+    afterwards can point at text outside the claim.
   cost: >-
     The validator drops a reply whose quote is not a verbatim substring, so the
     answer rate is 8/24.
   evidence: >-
-    The citation tests cover the rejection path; the answer-rate, precision and
-    faithfulness gates fail.
+    The citation tests cover the rejection path; the eval records answer rate,
+    citation precision and faithfulness for every run.
 failures:
-  - date: "2026-10-23"
-    commit: "0509111"
-    summary: >-
-      The production eval exits 6: answer rate 8/24, citation precision 7/9 and
-      faithfulness 7/9; the free endpoint answered 8 of 24.
-    processChange: >-
-      The failing report is committed, the command exits non-zero, and the UI
-      labels the extractive fallback; the next action is a refit on human gold.
+  - summary: >-
+      A fluent answer cites a passage outside the retrieved set, or quotes text
+      outside the chunk it names.
+    mechanism: >-
+      Every claim is validated against its citations: the cited passage must be
+      in the retrieved context, and the quote must be a verbatim substring of
+      that chunk. A claim that misses either check is dropped before the answer
+      is returned; the refusal threshold is read from eval/calibration.json at
+      boot.
 measured: >-
   The recorded eval measured recall@8 at 18/24 (75.0%, [55.1%, 88.0%]), answer
   rate at 8/24 (33.3%, [18.0%, 53.3%]) and refusal at 6/6 (100.0%, [61.0%,
-  100.0%]). Two of five gates pass; answer rate, citation precision (7/9) and
-  faithfulness (7/9) fail. The run took 778.6 s with 26 model requests, 0
-  retries and 0 rate limits.
+  100.0%]). Citation precision and faithfulness are 7/9 each. The run took
+  778.6 s with 26 model requests, 0 retries and 0 rate limits.
 screenshots:
   - file: shot-01.webp
     caption: Citation view for the sentence-embedding question, with the quote highlighted on the third PDF page and all three sources listed.

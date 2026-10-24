@@ -231,16 +231,6 @@ drawLines(wrap(resume.languages.join(" / "), regular, 10, CONTENT_WIDTH), {
   leading: 1.5,
 });
 
-ensure(30);
-y -= 24;
-page.drawText(`Generated ${resume.generatedAt} from src/data/resume.json`, {
-  x: MARGIN,
-  y,
-  size: 8,
-  font: regular,
-  color: MUTED,
-});
-
 const bytes = await pdf.save();
 writeFileSync(TARGET, bytes);
 console.log(`[resume] wrote ${path.relative(ROOT, TARGET)} (${bytes.length} bytes)`);
