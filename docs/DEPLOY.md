@@ -1,6 +1,13 @@
 # Deploy
 
-Nothing in this repository is published. There is no public URL for this site: `astro.config.mjs` falls back to the reserved placeholder `https://portfolio.example`, and `public/robots.txt` points at that same placeholder. Follow the five steps below to publish a static build; each step states the command or click path that applies today.
+**Deployed 2026-10-24:** `https://gherbi.pages.dev` on Cloudflare Pages, project `gherbi`, production branch
+`master`. The build ran on this machine with `SITE_URL=https://gherbi.pages.dev npm run build` and the output was
+uploaded with `npx wrangler pages deploy dist --project-name gherbi --branch master`. Lighthouse against the
+deployed origin: performance 95, accessibility 100, best practices 100, SEO 100, LCP 3.0 s, CLS 0.
+
+The project is **not** connected to Git, so a push does not redeploy it; re-run the two commands above after a
+content change. Steps 1–5 below remain the path for a Git-connected project, and step 3 lists the two settings that
+still apply (build command `npm run build`, output `dist`, `NODE_VERSION=22`, `SITE_URL`).
 
 The host used in these steps is Cloudflare Pages because it serves a plain `dist/` directory with no adapter and no server runtime. Any static host that accepts a build command and an output directory works the same way.
 

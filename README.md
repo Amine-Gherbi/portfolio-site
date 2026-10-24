@@ -2,7 +2,7 @@
 
 A static editorial hub that states one falsifiable engineering claim and proves it with three case studies. Astro 5, Tailwind v4, committed JSON/MDX content, no client-side JavaScript.
 
-Nothing is published yet. [docs/DEPLOY.md](docs/DEPLOY.md) is the five-step path to a static host.
+Live at **https://gherbi.pages.dev** — Cloudflare Pages serves the static `dist/`, uploaded with `npx wrangler pages deploy dist`. [docs/DEPLOY.md](docs/DEPLOY.md) records the settings, the two build risks and the verification commands.
 
 ## Run locally
 
