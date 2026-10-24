@@ -756,6 +756,15 @@ function runHomeChecks(errors) {
     );
   }
 
+  // The publication comes first; the case studies follow below it.
+  const thesisIndex = html.indexOf('id="thesis"');
+  const workIndex = html.indexOf('id="work"');
+  if (thesisIndex === -1 || workIndex === -1 || thesisIndex > workIndex) {
+    errors.push(
+      `[content] dist: the #thesis section must precede #work on the home page`,
+    );
+  }
+
   const thesis = /<section[^>]*\bid="thesis"[^>]*>([\s\S]*?)<\/section>/.exec(
     html,
   );

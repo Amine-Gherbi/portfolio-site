@@ -721,11 +721,16 @@ main {
   position: relative;
   width: min(100%, var(--project-grid));
   margin: 0 auto;
-  padding: 64px 32px 96px;
+  padding: 40px 32px 64px;
 }
 
-/* The rule must start and end where the work grid does, not at the section box. */
-.thesis-section::before {
+/* The rule sits above the work grid, inset to where the cards start. */
+.thesis-section + .work {
+  position: relative;
+  padding-top: 56px;
+}
+
+.thesis-section + .work::before {
   content: "";
   position: absolute;
   top: 0;
