@@ -845,6 +845,16 @@ main {
   border-bottom: 1px solid var(--ink);
 }
 
+/* One primary action; the PDF is the secondary one. */
+.thesis-actions a:first-child {
+  font-weight: 600;
+}
+
+.thesis-actions a + a {
+  color: var(--muted);
+  border-bottom-color: var(--rule);
+}
+
 .thesis-figures {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
