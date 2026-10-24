@@ -718,10 +718,21 @@ main {
 /* Home thesis section */
 
 .thesis-section {
+  position: relative;
   width: min(100%, var(--project-grid));
   margin: 0 auto;
   padding: 64px 32px 96px;
-  border-top: 1px solid var(--rule);
+}
+
+/* The rule must start and end where the work grid does, not at the section box. */
+.thesis-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 32px;
+  right: 32px;
+  height: 1px;
+  background: var(--rule);
 }
 
 .thesis-intro {
