@@ -750,6 +750,18 @@ main {
   text-wrap: balance;
 }
 
+.thesis-intro h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.thesis-intro h2 a:hover,
+.thesis-intro h2 a:focus-visible {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 6px;
+}
+
 .thesis-standfirst {
   max-width: var(--measure);
   margin-top: 18px;

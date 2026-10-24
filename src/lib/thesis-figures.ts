@@ -14,11 +14,11 @@ export interface ThesisFigure {
 export const THESIS_FIGURES: readonly ThesisFigure[] = [
   {
     file: "network.webp",
-    width: 1400,
-    height: 908,
-    alt: "Network diagram: three organisation peers on one channel with a Raft orderer.",
+    width: 962,
+    height: 590,
+    alt: "Network diagram: three organisation peers on one channel, an orderer and an application gateway.",
     caption:
-      "Three organisations on one channel, with a Raft orderer and a peer per organisation.",
+      "Three organisations on one channel, with an orderer, an application gateway and a peer per organisation.",
   },
   {
     file: "cnas-register.webp",

@@ -760,39 +760,24 @@ function runHomeChecks(errors) {
     html,
   );
   const section = thesis?.[1] ?? "";
+
+  // The section is a pointer, not a gallery: the figures live on the thesis page.
   const figures = (section.match(/<figure class="thesis-figure"/g) ?? []).length;
-  if (figures !== HOME_THESIS_FIGURES.length) {
+  if (figures !== 0) {
     errors.push(
-      `[content] dist: home #thesis has ${figures} figures, expected ${HOME_THESIS_FIGURES.length}`,
+      `[content] dist: home #thesis should not carry figures, found ${figures}`,
     );
   }
 
-  const images = [...section.matchAll(/<img\b[^>]*>/g)].map((match) => match[0]);
-  for (const expected of HOME_THESIS_FIGURES) {
-    const image = images.find((tag) =>
-      tag.includes(`/assets/thesis/figures/${expected.file}`),
+  if (!/<h2[^>]*id="thesis-heading"[^>]*>[\s\S]*?<a href="\/projects\/thesis\/"/.test(section)) {
+    errors.push(
+      `[content] dist: home #thesis heading does not link to /projects/thesis/`,
     );
-    if (!image) {
-      errors.push(
-        `[content] dist: home #thesis is missing the figure ${expected.file}`,
-      );
-      continue;
-    }
-    if (!/\balt="[^"]+"/.test(image)) {
-      errors.push(
-        `[content] dist: home #thesis figure ${expected.file} has no alt text`,
-      );
-    }
-    if (!new RegExp(`\\bwidth="${expected.width}"`).test(image)) {
-      errors.push(
-        `[content] dist: home #thesis figure ${expected.file} has the wrong width`,
-      );
-    }
-    if (!new RegExp(`\\bheight="${expected.height}"`).test(image)) {
-      errors.push(
-        `[content] dist: home #thesis figure ${expected.file} has the wrong height`,
-      );
-    }
+  }
+  if (!/<a href="\/projects\/thesis\/"[^>]*>Read the thesis<\/a>/.test(section)) {
+    errors.push(
+      `[content] dist: home #thesis has no link to the thesis page`,
+    );
   }
 }
 
