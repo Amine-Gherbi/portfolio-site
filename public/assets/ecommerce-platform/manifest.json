@@ -1,12 +1,12 @@
 {
   "project": "ecommerce-platform",
   "title": "E-commerce platform",
-  "oneLiner": "Search, authentication, cart and Stripe test checkout with server-side price validation.",
+  "oneLiner": "Search, authentication, cart and a server-priced checkout with a replayed payment webhook.",
   "stack": [
     "Next.js",
     "TypeScript",
     "PostgreSQL",
-    "Stripe"
+    "Prisma"
   ],
   "generatedAt": "",
   "seeded": true,

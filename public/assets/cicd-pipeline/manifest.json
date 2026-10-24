@@ -6,7 +6,6 @@
     "GitHub Actions",
     "Docker Buildx",
     "Trivy",
-    "cosign",
     "Fastify",
     "PostgreSQL"
   ],
