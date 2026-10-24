@@ -10,13 +10,14 @@ export async function getStaticPaths() {
   const entries = await getCollection("projects");
   entries.sort((a, b) => a.data.order - b.data.order);
 
+  const total = String(entries.length).padStart(2, "0");
   const home = {
     params: { slug: "home" },
     props: {
       copy: {
-        eyebrow: "Full-stack developer / 2026",
+        eyebrow: "Full-stack developer",
         title: "Web applications built with TypeScript, Next.js, PostgreSQL and Python.",
-        body: "Three case studies, each with a committed snapshot and the limits behind it.",
+        body: "Three case studies and a Master's thesis, each with the limits behind it.",
         footer: "Biskra, Algeria",
       },
     },
@@ -26,7 +27,10 @@ export async function getStaticPaths() {
     params: { slug: entry.id },
     props: {
       copy: {
-        eyebrow: `Case ${String(entry.data.order).padStart(2, "0")} / 03`,
+        eyebrow:
+          entry.data.kind === "thesis"
+            ? `Thesis / ${total}`
+            : `Case ${String(entry.data.order).padStart(2, "0")} / ${total}`,
         title: entry.data.title,
         body: entry.data.oneLiner,
         footer: entry.data.stack.join(" · "),

@@ -1,4 +1,5 @@
 ---
+kind: case-study
 order: 2
 title: CI/CD deployment pipeline
 oneLiner: Pull-request gates, a Docker image and a local release lane with a recorded rollback.
@@ -63,8 +64,4 @@ links:
     href: /assets/cicd-pipeline/proof/deploy.log
   - label: Workflow structure check
     href: /assets/cicd-pipeline/proof/docs/evidence/workflow-structure.txt
-next:
-  - Add a git remote and capture the first Actions run, including a red PR.
-  - Verify the GitHub ruleset that makes ci-ok required.
-  - Keep the local lane as the only deploy path until a staging host exists.
 ---

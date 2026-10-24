@@ -2,13 +2,7 @@ import { getCollection } from "astro:content";
 import type { APIRoute } from "astro";
 import { SITE_URL } from "../lib/site";
 
-const STATIC_ROUTES = [
-  "/",
-  "/about/",
-  "/resume/",
-  "/colophon/",
-  "/projects/thesis/",
-];
+const STATIC_ROUTES = ["/", "/about/", "/resume/"];
 
 function escapeXml(value: string): string {
   return value

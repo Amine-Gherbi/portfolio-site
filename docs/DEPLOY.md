@@ -11,7 +11,7 @@ npm ci
 npm run verify
 ```
 
-`npm run verify` runs the full gate and ends with `astro build`. The publishable output is `dist/`; it must contain `index.html`, `about/index.html`, `resume/index.html`, `colophon/index.html`, `projects/`, `sitemap.xml`, `robots.txt`, `favicon.svg`, `favicon.ico`, and `apple-touch-icon.png`. Nothing is published by this step.
+`npm run verify` runs the full gate and ends with `astro build`. The publishable output is `dist/`; it must contain `index.html`, `about/index.html`, `resume/index.html`, `projects/`, `thesis.pdf`, `sitemap.xml`, `robots.txt`, `favicon.svg`, `favicon.ico`, and `apple-touch-icon.png`. Nothing is published by this step.
 
 ## Step 2 — Create the Cloudflare Pages project
 

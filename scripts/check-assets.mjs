@@ -13,6 +13,7 @@
 import { access, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
+import { parse as parseYaml } from "yaml";
 import {
   describeIssues,
   projectManifestSchema,
@@ -48,6 +49,16 @@ async function inspectShot(filePath) {
   } catch {
     return null;
   }
+}
+
+async function frontmatterKind(filePath) {
+  const raw = await readFile(filePath, "utf8");
+  const match = /^---\r?\n([\s\S]*?)\r?\n---/.exec(raw);
+  if (!match) {
+    return null;
+  }
+  const data = parseYaml(match[1] ?? "");
+  return data && typeof data === "object" ? data.kind : null;
 }
 
 async function checkProofFiles(manifest, slug, assetDirectory) {
@@ -132,9 +143,19 @@ if (projectFiles.length === 0) {
 const failures = [];
 let ready = 0;
 let comingSoon = 0;
+let theses = 0;
 
 for (const projectFile of projectFiles) {
   const slug = path.basename(projectFile, ".mdx");
+
+  if ((await frontmatterKind(path.join(projectsDirectory, projectFile))) === "thesis") {
+    console.log(
+      `[assets] ${slug}: thesis entry — static cover and PDF, no manifest`,
+    );
+    theses += 1;
+    continue;
+  }
+
   const assetDirectory = path.join(assetsDirectory, slug);
   const manifestPath = path.join(assetDirectory, "manifest.json");
 
@@ -189,5 +210,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `[assets] ${ready} ready, ${comingSoon} without a manifest; snapshot check passed`,
+  `[assets] ${ready} ready, ${comingSoon} without a manifest, ${theses} thesis entry with static assets; snapshot check passed`,
 );

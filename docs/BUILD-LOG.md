@@ -1,7 +1,7 @@
 # Build log — portfolio-site (P1)
 
 Ten lines, per `_planning/05-CONVENTIONS.md` §3 and master plan §8.10. What the agent produced, and what the
-supervisor specified or checked by hand. Repeated in one line on `/colophon` when that route exists.
+supervisor specified or checked by hand.
 
 - Agent (Claude Code 2.1.308, deepseek-v4.1-flash) wrote every file in `src/`, `scripts/` and `public/assets/` across P1 and the P5 integration phase.
 - Supervisor wrote: the positioning sentence (original wording), the P1 and P5 task cards and their DoDs, the asset-manifest rules, `CLAUDE.md`, `docs/INVARIANTS.md`, `docs/INTERVIEW.md`, `.gitattributes`, `docs/VERIFY.txt`.

@@ -2,21 +2,27 @@
 import { getCollection } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import { readProjectManifest } from "../../lib/manifest";
-import {
-  assertCaseStudy,
-  formatUpdated,
-  SECTION_ORDER,
-} from "../../lib/case-study";
+import { assertCaseStudy, SECTION_ORDER } from "../../lib/case-study";
 import { SITE_URL } from "../../lib/site";
 
 export async function getStaticPaths() {
-  const entries = await getCollection("projects");
+  const entries = (await getCollection("projects")).sort(
+    (a, b) => a.data.order - b.data.order,
+  );
+  const total = entries.length;
+
   return entries
-    .sort((a, b) => a.data.order - b.data.order)
-    .map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+    .filter((entry) => entry.data.kind === "case-study")
+    .map((entry) => ({
+      params: { slug: entry.id },
+      props: { entry, total },
+    }));
 }
 
-const { entry } = Astro.props;
+const { entry, total } = Astro.props;
+if (entry.data.kind !== "case-study") {
+  throw new Error(`Expected a case study at ${entry.id}`);
+}
 const study = entry.data;
 assertCaseStudy(study, entry.id);
 
@@ -26,8 +32,8 @@ const screenshots = study.screenshots.map((screenshot, index) => {
   return { ...screenshot, shot };
 });
 
-const updatedLabel = formatUpdated(study.updatedAt);
 const number = String(study.order).padStart(2, "0");
+const totalLabel = String(total).padStart(2, "0");
 
 /**
  * Keep a rendered paragraph inside four lines at 1280 px. The article measure
@@ -89,14 +95,13 @@ const creativeWork = {
     <header id="claim" class="case-header">
       <div class="case-topline">
         <a class="case-back" href="/">Case index</a>
-        <span class="case-title">{study.title} / {number} of 03</span>
+        <span class="case-title">{study.title} / {number} of {totalLabel}</span>
       </div>
       <p class="kicker">Claim</p>
       <h1>{study.claim}</h1>
       <p class="case-oneliner"><em>{study.oneLiner}</em></p>
       <div class="case-meta">
         <p class="stack">({study.stack.join(", ")})</p>
-        <p class="updated-label">Updated {updatedLabel}</p>
       </div>
     </header>
 
@@ -307,10 +312,6 @@ const creativeWork = {
           <p>No committed limit list is published for this project.</p>
         )
       }
-      <h3>What I would do next</h3>
-      <ul class="next-list">
-        {study.next.map((step) => <li>{step}</li>)}
-      </ul>
       <p class="case-return"><a href="/">Back to the case index</a></p>
     </section>
   </article>

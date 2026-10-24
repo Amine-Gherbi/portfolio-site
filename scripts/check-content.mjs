@@ -10,8 +10,9 @@
  * It also checks the other fixed sections, writing rules, and (with --dist) the
  * order of the rendered sections in the built HTML.
  */
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
+import sharp from "sharp";
 import { parse as parseYaml } from "yaml";
 
 const ROOT = process.cwd();
@@ -35,8 +36,27 @@ const SECTION_HEADINGS = [
   "Measured",
   "Limits",
 ];
+const THESIS_SECTION_ORDER = [
+  "what-it-is",
+  "hard-part",
+  "design",
+  "proves",
+  "limits",
+];
+const THESIS_SECTION_HEADINGS = [
+  "What it is",
+  "The hard part",
+  "The design",
+  "What it proves",
+  "Limits",
+];
 const WORD_MIN = 250;
 const WORD_MAX = 450;
+const THESIS_WORD_MIN = 250;
+const THESIS_WORD_MAX = 800;
+const THESIS_COVER = path.join(ROOT, "public", "assets", "thesis", "cover.webp");
+const THESIS_PDF = path.join(ROOT, "public", "thesis.pdf");
+const THESIS_PDF_BYTES = 2786769;
 const BANNED_WORDS = [
   "seamless",
   "robust",
@@ -169,8 +189,35 @@ function narrativeWords(study, limits) {
     }
   }
 
-  parts.push(...(Array.isArray(study.next) ? study.next : []));
   parts.push(...(Array.isArray(limits) ? limits : []));
+
+  return parts.reduce((total, part) => total + countWords(part), 0);
+}
+
+function thesisNarrativeWords(study) {
+  const parts = [
+    study.oneLiner,
+    study.claim,
+    study.what,
+    study.hardPart,
+    study.design,
+    study.proves,
+    ...(Array.isArray(study.limits) ? study.limits : []),
+  ];
+
+  for (const organisation of Array.isArray(study.organisations)
+    ? study.organisations
+    : []) {
+    if (isObject(organisation)) {
+      parts.push(organisation.name, organisation.role);
+    }
+  }
+
+  for (const fn of Array.isArray(study.functions) ? study.functions : []) {
+    if (isObject(fn)) {
+      parts.push(fn.name, fn.role);
+    }
+  }
 
   return parts.reduce((total, part) => total + countWords(part), 0);
 }
@@ -207,14 +254,13 @@ function checkWriting(study, errors) {
   }
 }
 
-function validateStudy(study, label, limits = []) {
-  const errors = [];
-
+function validateCommon(study, label, errors) {
   if (!isObject(study)) {
-    return [`${label}: frontmatter must be an object`];
+    errors.push(`${label}: frontmatter must be an object`);
+    return false;
   }
 
-  for (const field of ["claim", "what", "hardPart", "measured"]) {
+  for (const field of ["claim", "what", "hardPart"]) {
     if (!filled(study[field])) {
       errors.push(`${field}: ${field} is required`);
     }
@@ -234,6 +280,23 @@ function validateStudy(study, label, limits = []) {
   }
   if (!isIsoDate(study.updatedAt)) {
     errors.push("updatedAt: updatedAt must be YYYY-MM-DD");
+  }
+
+  return true;
+}
+
+function validateStudy(study, label, limits = []) {
+  const errors = [];
+
+  if (!validateCommon(study, label, errors)) {
+    return errors;
+  }
+
+  if (study.kind !== "case-study") {
+    errors.push('kind: expected "case-study"');
+  }
+  if (!filled(study.measured)) {
+    errors.push("measured: measured is required");
   }
 
   if (!isObject(study.decision)) {
@@ -313,16 +376,6 @@ function validateStudy(study, label, limits = []) {
     }
   });
 
-  const next = Array.isArray(study.next) ? study.next : [];
-  if (next.length === 0) {
-    errors.push("next: at least one next step is required");
-  }
-  next.forEach((step, index) => {
-    if (!filled(step)) {
-      errors.push(`next[${index}]: next step must be a non-empty string`);
-    }
-  });
-
   const words = narrativeWords(study, limits);
   if (words < WORD_MIN || words > WORD_MAX) {
     errors.push(
@@ -333,6 +386,161 @@ function validateStudy(study, label, limits = []) {
   checkWriting(study, errors);
 
   return errors;
+}
+
+function validateThesis(study, label) {
+  const errors = [];
+
+  if (!validateCommon(study, label, errors)) {
+    return errors;
+  }
+
+  if (study.kind !== "thesis") {
+    errors.push('kind: expected "thesis"');
+  }
+
+  for (const field of [
+    "thesisTitle",
+    "design",
+    "proves",
+    "pdfLabel",
+    "coverAlt",
+    "author",
+    "institution",
+    "department",
+    "degree",
+    "session",
+  ]) {
+    if (!filled(study[field])) {
+      errors.push(`${field}: ${field} is required`);
+    }
+  }
+
+  const limits = Array.isArray(study.limits) ? study.limits : [];
+  if (limits.length < 3) {
+    errors.push("limits: at least three limits are required");
+  }
+  limits.forEach((limit, index) => {
+    if (!filled(limit)) {
+      errors.push(`limits[${index}]: limit must be a non-empty string`);
+    }
+  });
+
+  const supervisors = Array.isArray(study.supervisors) ? study.supervisors : [];
+  if (supervisors.length === 0) {
+    errors.push("supervisors: at least one supervisor is required");
+  }
+  supervisors.forEach((supervisor, index) => {
+    if (!filled(supervisor)) {
+      errors.push(`supervisors[${index}]: supervisor must be a non-empty string`);
+    }
+  });
+
+  const organisations = Array.isArray(study.organisations)
+    ? study.organisations
+    : [];
+  if (organisations.length !== 3) {
+    errors.push(
+      `organisations: exactly three organisations are required, found ${organisations.length}`,
+    );
+  }
+  organisations.forEach((organisation, index) => {
+    if (!isObject(organisation) || !filled(organisation.name) || !filled(organisation.role)) {
+      errors.push(
+        `organisations[${index}]: organisation needs a name and a role`,
+      );
+    }
+  });
+
+  const functions = Array.isArray(study.functions) ? study.functions : [];
+  if (functions.length !== 9) {
+    errors.push(
+      `functions: exactly nine chaincode functions are required, found ${functions.length}`,
+    );
+  }
+  functions.forEach((fn, index) => {
+    if (!isObject(fn) || !filled(fn.name) || !filled(fn.role)) {
+      errors.push(`functions[${index}]: function needs a name and a role`);
+    }
+  });
+
+  if (study.cover !== "/assets/thesis/cover.webp") {
+    errors.push("cover: cover must be /assets/thesis/cover.webp");
+  }
+  if (study.pdf !== "/thesis.pdf") {
+    errors.push("pdf: pdf must be /thesis.pdf");
+  }
+
+  const links = Array.isArray(study.links) ? study.links : [];
+  if (links.length === 0) {
+    errors.push("links: at least one link is required");
+  }
+  links.forEach((link, index) => {
+    if (!isObject(link) || !filled(link.label)) {
+      errors.push(`links[${index}].label: link label is required`);
+    }
+    if (!isObject(link) || typeof link.href !== "string" || !/^(https?:\/\/|\/)/.test(link.href)) {
+      errors.push(
+        `links[${index}].href: link href must be an absolute URL or a site path`,
+      );
+    }
+  });
+  if (!links.some((link) => isObject(link) && link.href === "/thesis.pdf")) {
+    errors.push("links: the thesis must link /thesis.pdf");
+  }
+  if (
+    links.some(
+      (link) =>
+        isObject(link) &&
+        typeof link.href === "string" &&
+        /^https?:\/\//.test(link.href),
+    )
+  ) {
+    errors.push("links: the thesis must not link to a repository");
+  }
+
+  const words = thesisNarrativeWords(study);
+  if (words < THESIS_WORD_MIN || words > THESIS_WORD_MAX) {
+    errors.push(
+      `word count: ${words} thesis narrative words; expected ${THESIS_WORD_MIN}-${THESIS_WORD_MAX}`,
+    );
+  }
+
+  checkWriting(study, errors);
+
+  return errors;
+}
+
+async function validateThesisFiles(slug, errors) {
+  if (!existsSync(THESIS_COVER)) {
+    errors.push(`${slug}: cover is absent from public/assets/thesis/cover.webp`);
+  } else {
+    try {
+      const metadata = await sharp(THESIS_COVER).metadata();
+      if (
+        metadata.format !== "webp" ||
+        metadata.width !== 2880 ||
+        metadata.height !== 1800
+      ) {
+        errors.push(
+          `${slug}: cover is ${String(metadata.format)} ${String(metadata.width)}x${String(metadata.height)}, expected webp 2880x1800`,
+        );
+      }
+    } catch (error) {
+      errors.push(`${slug}: cover is not a readable image (${error.message})`);
+    }
+  }
+
+  if (!existsSync(THESIS_PDF)) {
+    errors.push(`${slug}: public/thesis.pdf is absent`);
+  } else {
+    const size = statSync(THESIS_PDF).size;
+    if (size !== THESIS_PDF_BYTES) {
+      errors.push(
+        `${slug}: public/thesis.pdf is ${size} bytes, expected ${THESIS_PDF_BYTES}`,
+      );
+    }
+  }
 }
 
 function readManifest(slug) {
@@ -411,47 +619,99 @@ function readStudies() {
   });
 }
 
-function runSelfTests(study) {
-  if (!study) {
+function runSelfTests(study, thesis) {
+  const failures = [];
+  let caseCount = 0;
+
+  if (study) {
+    const limits = ["A manifest limit.", "Another manifest limit.", "A third limit."];
+    const cases = [];
+    const emptyRejected = structuredClone(study);
+    emptyRejected.decision.rejected = "";
+    cases.push(["empty decision.rejected", emptyRejected, "decision.rejected"]);
+
+    const noFailures = structuredClone(study);
+    noFailures.failures = [];
+    cases.push(["zero failures", noFailures, "expected exactly one dated failure"]);
+
+    const twoFailures = structuredClone(study);
+    twoFailures.failures = [twoFailures.failures[0], twoFailures.failures[0]];
+    cases.push(["two failures", twoFailures, "expected exactly one dated failure"]);
+
+    const missingWhat = structuredClone(study);
+    missingWhat.what = "";
+    cases.push(["missing what-it-is prose", missingWhat, "what: what is required"]);
+
+    const tooLong = structuredClone(study);
+    tooLong.what = "word ".repeat(500);
+    cases.push(["word ceiling", tooLong, "word count"]);
+
+    caseCount = cases.length;
+    for (const [name, mutated, expected] of cases) {
+      const errors = validateStudy(mutated, name, limits);
+      if (!errors.some((error) => error.includes(expected))) {
+        failures.push(
+          `[content] FAIL self-test "${name}": expected an error containing "${expected}", got ${errors.length} errors`,
+        );
+      }
+    }
+  } else {
     console.warn("[content] self-test skipped: no parsed case study available");
-    return [];
   }
 
-  const limits = ["A manifest limit.", "Another manifest limit.", "A third limit."];
-  const cases = [];
-  const emptyRejected = structuredClone(study);
-  emptyRejected.decision.rejected = "";
-  cases.push(["empty decision.rejected", emptyRejected, "decision.rejected"]);
+  let thesisCount = 0;
+  if (thesis) {
+    const thesisCases = [];
+    const emptyDesign = structuredClone(thesis);
+    emptyDesign.design = "";
+    thesisCases.push([
+      "thesis with no design prose",
+      emptyDesign,
+      "design: design is required",
+    ]);
 
-  const noFailures = structuredClone(study);
-  noFailures.failures = [];
-  cases.push(["zero failures", noFailures, "expected exactly one dated failure"]);
+    const twoLimits = structuredClone(thesis);
+    twoLimits.limits = twoLimits.limits.slice(0, 2);
+    thesisCases.push([
+      "thesis with two limits",
+      twoLimits,
+      "limits: at least three limits are required",
+    ]);
 
-  const twoFailures = structuredClone(study);
-  twoFailures.failures = [twoFailures.failures[0], twoFailures.failures[0]];
-  cases.push(["two failures", twoFailures, "expected exactly one dated failure"]);
+    const eightFunctions = structuredClone(thesis);
+    eightFunctions.functions = eightFunctions.functions.slice(0, 8);
+    thesisCases.push([
+      "thesis with eight chaincode functions",
+      eightFunctions,
+      "functions: exactly nine chaincode functions are required",
+    ]);
 
-  const missingWhat = structuredClone(study);
-  missingWhat.what = "";
-  cases.push(["missing what-it-is prose", missingWhat, "what: what is required"]);
+    const repositoryLink = structuredClone(thesis);
+    repositoryLink.links = [
+      { label: "Repository", href: "https://example.invalid/repo" },
+    ];
+    thesisCases.push([
+      "thesis with a repository link",
+      repositoryLink,
+      "links: the thesis must link /thesis.pdf",
+    ]);
 
-  const tooLong = structuredClone(study);
-  tooLong.what = "word ".repeat(500);
-  cases.push(["word ceiling", tooLong, "word count"]);
-
-  const failures = [];
-  for (const [name, mutated, expected] of cases) {
-    const errors = validateStudy(mutated, name, limits);
-    if (!errors.some((error) => error.includes(expected))) {
-      failures.push(
-        `[content] FAIL self-test "${name}": expected an error containing "${expected}", got ${errors.length} errors`,
-      );
+    thesisCount = thesisCases.length;
+    for (const [name, mutated, expected] of thesisCases) {
+      const errors = validateThesis(mutated, name);
+      if (!errors.some((error) => error.includes(expected))) {
+        failures.push(
+          `[content] FAIL self-test "${name}": expected an error containing "${expected}", got ${errors.length} errors`,
+        );
+      }
     }
+  } else {
+    console.warn("[content] self-test skipped: no parsed thesis available");
   }
 
   if (failures.length === 0) {
     console.log(
-      `[content] self-test: ${cases.length} negative cases rejected as expected`,
+      `[content] self-test: ${caseCount + thesisCount} negative cases rejected as expected`,
     );
   }
   return failures;
@@ -477,6 +737,9 @@ function runDistChecks(studies, errors) {
     return;
   }
 
+  let caseCount = 0;
+  let thesisCount = 0;
+
   for (const { slug, filePath, raw } of studies) {
     const htmlPath = path.join(DIST_ROOT, slug, "index.html");
     if (!existsSync(htmlPath)) {
@@ -484,22 +747,34 @@ function runDistChecks(studies, errors) {
       continue;
     }
 
+    let study;
+    try {
+      study = parseFrontmatter(raw, filePath);
+    } catch (error) {
+      errors.push(`[content] dist: ${error.message}`);
+      continue;
+    }
+
+    const isThesis = study.kind === "thesis";
+    const expectedSections = isThesis ? THESIS_SECTION_ORDER : SECTION_ORDER;
+    const expectedHeadings = isThesis ? THESIS_SECTION_HEADINGS : SECTION_HEADINGS;
+
     const html = readFileSync(htmlPath, "utf8");
     const sections = [...html.matchAll(/data-section="([^"]+)"/g)].map(
       (match) => match[1],
     );
-    if (sections.join(",") !== SECTION_ORDER.join(",")) {
+    if (sections.join(",") !== expectedSections.join(",")) {
       errors.push(
-        `[content] dist: ${slug} sections are [${sections.join(", ")}], expected [${SECTION_ORDER.join(", ")}]`,
+        `[content] dist: ${slug} sections are [${sections.join(", ")}], expected [${expectedSections.join(", ")}]`,
       );
     }
 
     const headings = [...html.matchAll(/<h2[^>]*>([\s\S]*?)<\/h2>/g)].map(
       (match) => textOf(match[1] ?? ""),
     );
-    if (headings.join(",") !== SECTION_HEADINGS.join(",")) {
+    if (headings.join(",") !== expectedHeadings.join(",")) {
       errors.push(
-        `[content] dist: ${slug} headings are [${headings.join(", ")}], expected [${SECTION_HEADINGS.join(", ")}]`,
+        `[content] dist: ${slug} headings are [${headings.join(", ")}], expected [${expectedHeadings.join(", ")}]`,
       );
     }
 
@@ -509,18 +784,48 @@ function runDistChecks(studies, errors) {
     }
 
     const captions = (html.match(/<figcaption[\s>]/g) ?? []).length;
+    if (isThesis) {
+      thesisCount += 1;
+      if (captions !== 0) {
+        errors.push(
+          `[content] dist: ${slug} has ${captions} figcaptions, expected 0`,
+        );
+      }
+      if (!html.includes("/thesis.pdf")) {
+        errors.push(`[content] dist: ${slug} does not link /thesis.pdf`);
+      }
+      if (filled(study.pdfLabel) && !html.includes(study.pdfLabel)) {
+        errors.push(
+          `[content] dist: ${slug} does not render the PDF label "${study.pdfLabel}"`,
+        );
+      }
+      if (filled(study.coverAlt) && !html.includes(study.coverAlt)) {
+        errors.push(`[content] dist: ${slug} does not render the cover alt text`);
+      }
+      if (/https?:\/\/(www\.)?(github|gitlab)\./i.test(html)) {
+        errors.push(
+          `[content] dist: ${slug} contains a repository link; the thesis must not`,
+        );
+      }
+      const distPdf = path.join(ROOT, "dist", "thesis.pdf");
+      if (!existsSync(distPdf)) {
+        errors.push(`[content] dist: ${distPdf} is absent`);
+      } else {
+        const size = statSync(distPdf).size;
+        if (size !== THESIS_PDF_BYTES) {
+          errors.push(
+            `[content] dist: ${distPdf} is ${size} bytes, expected ${THESIS_PDF_BYTES}`,
+          );
+        }
+      }
+      continue;
+    }
+
+    caseCount += 1;
     if (captions !== 3) {
       errors.push(
         `[content] dist: ${slug} has ${captions} figcaptions, expected 3`,
       );
-    }
-
-    let study;
-    try {
-      study = parseFrontmatter(raw, filePath);
-    } catch (error) {
-      errors.push(`[content] dist: ${error.message}`);
-      continue;
     }
 
     const manifestPath = path.join(
@@ -552,7 +857,7 @@ function runDistChecks(studies, errors) {
 
   if (errors.length === 0) {
     console.log(
-      `[content] dist: ${studies.length} case studies render six sections in fixed order with 3 captioned screenshots`,
+      `[content] dist: ${caseCount} case studies render six sections in fixed order with 3 captioned screenshots; ${thesisCount} thesis renders five thesis sections`,
     );
   }
 }
@@ -567,6 +872,9 @@ if (studies.length === 0) {
 }
 
 let firstStudy;
+let firstThesis;
+let caseCount = 0;
+let thesisCount = 0;
 for (const { slug, filePath, raw } of studies) {
   let study;
   try {
@@ -575,6 +883,25 @@ for (const { slug, filePath, raw } of studies) {
     errors.push(`[content] ${error.message}`);
     continue;
   }
+
+  if (study.kind === "thesis") {
+    thesisCount += 1;
+    firstThesis ??= study;
+    for (const error of validateThesis(study, slug)) {
+      errors.push(`[content] ${slug}: ${error}`);
+    }
+    await validateThesisFiles(slug, errors);
+    continue;
+  }
+
+  if (study.kind !== "case-study") {
+    errors.push(
+      `[content] ${slug}: kind must be "case-study" or "thesis", got ${String(study.kind)}`,
+    );
+    continue;
+  }
+
+  caseCount += 1;
   firstStudy ??= study;
   for (const error of validateStudy(study, slug, manifestLimits(readManifest(slug)))) {
     errors.push(`[content] ${slug}: ${error}`);
@@ -588,8 +915,12 @@ for (const warning of warnings) {
 
 if (mode === "dist") {
   runDistChecks(studies, errors);
+} else if (firstStudy && firstThesis) {
+  errors.push(...runSelfTests(firstStudy, firstThesis));
 } else {
-  errors.push(...runSelfTests(firstStudy));
+  errors.push(
+    "[content] self-tests need at least one case study and one thesis in the collection",
+  );
 }
 
 if (errors.length > 0) {
@@ -604,6 +935,6 @@ if (errors.length > 0) {
 
 if (mode === "source") {
   console.log(
-    `[content] ${studies.length} case studies valid: six sections, one decision with rejected + cost, exactly one failure, ${WORD_MIN}-${WORD_MAX} narrative words`,
+    `[content] ${caseCount} case studies valid: six sections, one decision with rejected + cost, exactly one failure, ${WORD_MIN}-${WORD_MAX} narrative words; ${thesisCount} thesis valid: five adapted sections, three organisations, nine chaincode functions, three or more limits`,
   );
 }

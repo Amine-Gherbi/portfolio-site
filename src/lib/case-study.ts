@@ -41,6 +41,7 @@ const linkSchema = z.object({
 });
 
 export const caseStudySchema = projectSchema.extend({
+  kind: z.literal("case-study"),
   claim: required("claim"),
   what: required("what it is"),
   hardPart: required("hard part"),
@@ -65,12 +66,69 @@ export const caseStudySchema = projectSchema.extend({
       });
     }),
   links: z.array(linkSchema).min(1, "at least one link is required"),
-  next: z
-    .array(required("next step"))
-    .min(1, "at least one next step is required"),
 });
 
+const organisationSchema = z.object({
+  name: required("organisation name"),
+  role: required("organisation role"),
+});
+
+const chaincodeFunctionSchema = z.object({
+  name: required("chaincode function name"),
+  role: required("chaincode function role"),
+});
+
+/**
+ * The thesis has no repository and no asset manifest. Its content entry owns
+ * the page copy, the generated cover and the PDF link; the page deliberately
+ * offers no code link.
+ */
+export const thesisSchema = projectSchema.extend({
+  kind: z.literal("thesis"),
+  thesisTitle: required("thesis title").max(200),
+  claim: required("claim"),
+  what: required("what it is"),
+  hardPart: required("hard part"),
+  design: required("design"),
+  proves: required("what it proves"),
+  limits: z
+    .array(required("limit"))
+    .min(3, "at least three limits are required"),
+  cover: z
+    .string()
+    .regex(/^\/assets\/thesis\/cover\.webp$/, "cover must be /assets/thesis/cover.webp"),
+  coverCard: z
+    .string()
+    .regex(
+      /^\/assets\/thesis\/cover-card\.webp$/,
+      "coverCard must be /assets/thesis/cover-card.webp",
+    ),
+  coverAlt: required("cover alt"),
+  pdf: z.string().regex(/^\/thesis\.pdf$/, "pdf must be /thesis.pdf"),
+  pdfLabel: required("pdf label"),
+  author: required("author"),
+  institution: required("institution"),
+  department: required("department"),
+  degree: required("degree"),
+  session: required("session"),
+  supervisors: z.array(required("supervisor")).min(1),
+  organisations: z
+    .array(organisationSchema)
+    .length(3, "exactly three organisations are required"),
+  functions: z
+    .array(chaincodeFunctionSchema)
+    .length(9, "exactly nine chaincode functions are required"),
+  links: z.array(linkSchema).min(1, "at least one link is required"),
+});
+
+export const projectEntrySchema = z.discriminatedUnion("kind", [
+  caseStudySchema,
+  thesisSchema,
+]);
+
 export type CaseStudy = z.infer<typeof caseStudySchema>;
+export type Thesis = z.infer<typeof thesisSchema>;
+export type ProjectEntry = z.infer<typeof projectEntrySchema>;
 export type CaseStudyDecision = z.infer<typeof decisionSchema>;
 export type CaseStudyFailure = z.infer<typeof failureSchema>;
 
@@ -85,6 +143,19 @@ export const SECTION_ORDER = [
   { id: "decision", label: "The decision" },
   { id: "what-broke", label: "What broke" },
   { id: "measured", label: "Measured" },
+  { id: "limits", label: "Limits" },
+] as const;
+
+/**
+ * The thesis has no failure log, no screenshot manifest and no decision record
+ * in the case-study shape. Its five sections keep the same argument order:
+ * context, difficulty, design, evidence, honesty about the evidence.
+ */
+export const THESIS_SECTION_ORDER = [
+  { id: "what-it-is", label: "What it is" },
+  { id: "hard-part", label: "The hard part" },
+  { id: "design", label: "The design" },
+  { id: "proves", label: "What it proves" },
   { id: "limits", label: "Limits" },
 ] as const;
 

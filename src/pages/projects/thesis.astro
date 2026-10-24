@@ -1,42 +1,190 @@
 ---
+import { getEntry } from "astro:content";
 import Base from "../../layouts/Base.astro";
+import { THESIS_SECTION_ORDER } from "../../lib/case-study";
+import { SITE_URL } from "../../lib/site";
 
-const thesisTitle =
-  "Enhancing the Integrity of Algeria's Social Security System: Addressing Fraudulent Activities through Blockchain Technology";
+const entry = await getEntry("projects", "thesis");
+if (!entry || entry.data.kind !== "thesis") {
+  throw new Error("The thesis content entry is missing or is not kind: thesis");
+}
+
+const study = entry.data;
+
+/**
+ * Keep a rendered paragraph inside four lines at 1280 px, using the same
+ * measure as the case-study template.
+ */
+function paragraphs(text: string): string[] {
+  const sentences = text.split(/(?<=\.)\s+(?=[A-Z(])/);
+  const groups: string[] = [];
+  let current = "";
+  for (const sentence of sentences) {
+    const candidate = current ? `${current} ${sentence}` : sentence;
+    if (current && candidate.length > 300) {
+      groups.push(current);
+      current = sentence;
+    } else {
+      current = candidate;
+    }
+  }
+  if (current) groups.push(current);
+  return groups;
+}
+
+const thesisWork = {
+  "@context": "https://schema.org",
+  "@type": "CreativeWork",
+  name: study.thesisTitle,
+  headline: study.claim,
+  abstract: study.oneLiner,
+  datePublished: study.updatedAt,
+  url: `${SITE_URL}/projects/thesis/`,
+  author: {
+    "@type": "Person",
+    name: study.author,
+  },
+  keywords: study.stack.join(", "),
+};
 ---
 
 <Base
-  title="Master's thesis"
-  description="Master's thesis on a blockchain platform for the integrity of Algeria's social security system."
-  ogImage="/og/home.png"
+  title={study.title}
+  description={study.oneLiner}
+  jsonLd={thesisWork}
+  ogImage="/og/thesis.png"
 >
-  <article class="prose-page thesis-page">
-    <header class="page-header">
-      <p class="kicker">Master's thesis / University Mohamed Khider Biskra / 2023-2025</p>
-      <h1>{thesisTitle}</h1>
-      <p class="resume-role">Software Engineering and Distributed Systems (GLSD)</p>
+  <article class="case-study thesis-study">
+    <header class="case-header">
+      <h1>{study.thesisTitle}</h1>
+      <p class="case-oneliner"><em>{study.claim}</em></p>
+      <div class="case-meta">
+        <p class="stack">({study.stack.join(", ")})</p>
+      </div>
+      <dl class="thesis-details">
+        <div>
+          <dt>Author</dt>
+          <dd>{study.author}</dd>
+        </div>
+        <div>
+          <dt>Institution</dt>
+          <dd>{study.institution}, {study.department}</dd>
+        </div>
+        <div>
+          <dt>Degree</dt>
+          <dd>{study.degree}</dd>
+        </div>
+        <div>
+          <dt>Session</dt>
+          <dd>{study.session}</dd>
+        </div>
+        <div>
+          <dt>Supervisors</dt>
+          <dd>{study.supervisors.join(", ")}</dd>
+        </div>
+      </dl>
+      <p class="thesis-pdf">
+        <a href={study.pdf}>{study.pdfLabel}</a>
+      </p>
     </header>
 
-    <div class="prose-body">
-      <p>
-        A blockchain platform built to strengthen the integrity of Algeria's
-        social security system and counter fraud across three organisations.
-        The backend runs on Hyperledger Fabric and the frontend is built with
-        Next.js.
-      </p>
-      <p>
-        The thesis belongs to the Master's degree in Software Engineering and
-        Distributed Systems at University Mohamed Khider Biskra, 2023-2025.
-      </p>
-      <p>
-        This page is text only. It does not carry a repository card or a demo
-        link.
-      </p>
-      <p>
-        The <a href="/about/">about page</a> carries the short CV, and the
-        <a href="/resume/">resume</a> has the full record.
-      </p>
-      <p class="case-return"><a href="/">Back to the case index</a></p>
-    </div>
+    <nav class="section-nav" aria-label="Thesis sections">
+      <ol>
+        {
+          THESIS_SECTION_ORDER.map((section, index) => (
+            <li>
+              <a href={`#${section.id}`}>
+                <span aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                {section.label}
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </nav>
+
+    <section id="what-it-is" data-section="what-it-is" class="case-section">
+      <p class="kicker">01 / What it is</p>
+      <h2>What it is</h2>
+      {paragraphs(study.what).map((paragraph) => <p>{paragraph}</p>)}
+      <figure class="thesis-cover">
+        <img
+          src={study.cover}
+          srcset={`${study.cover} 2880w`}
+          sizes="(min-width: 960px) 720px, 100vw"
+          width="2880"
+          height="1800"
+          alt={study.coverAlt}
+          loading="eager"
+          decoding="async"
+        />
+      </figure>
+    </section>
+
+    <section id="hard-part" data-section="hard-part" class="case-section">
+      <p class="kicker">02 / The hard part</p>
+      <h2>The hard part</h2>
+      {paragraphs(study.hardPart).map((paragraph) => <p>{paragraph}</p>)}
+    </section>
+
+    <section id="design" data-section="design" class="case-section">
+      <p class="kicker">03 / The design</p>
+      <h2>The design</h2>
+      {paragraphs(study.design).map((paragraph) => <p>{paragraph}</p>)}
+
+      <div class="design-blocks">
+        <div class="design-block">
+          <h3>Three organisations</h3>
+          <ul class="definition-list">
+            {
+              study.organisations.map((organisation) => (
+                <li>
+                  <strong>{organisation.name}</strong>
+                  {organisation.role}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+        <div class="design-block">
+          <h3>Nine chaincode functions</h3>
+          <ul class="definition-list function-list">
+            {
+              study.functions.map((fn) => (
+                <li>
+                  <code>{fn.name}</code>
+                  {fn.role}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="proves" data-section="proves" class="case-section">
+      <p class="kicker">04 / What it proves</p>
+      <h2>What it proves</h2>
+      {paragraphs(study.proves).map((paragraph) => <p>{paragraph}</p>)}
+    </section>
+
+    <section id="limits" data-section="limits" class="case-section">
+      <p class="kicker">05 / Limits</p>
+      <h2>Limits</h2>
+      <ul class="limit-list">
+        {study.limits.map((limit) => <li>{limit}</li>)}
+      </ul>
+      <h3>Read</h3>
+      <ul class="case-links">
+        {
+          study.links.map((link) => (
+            <li>
+              <a href={link.href}>{link.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="case-return"><a href="/">Back to the work</a></p>
+    </section>
   </article>
 </Base>

@@ -15,22 +15,14 @@ entries.sort((a, b) => a.data.order - b.data.order);
 
 const cards = await Promise.all(
   entries.map(async (entry) => {
-    const manifest = await readProjectManifest(entry.id);
+    const manifest =
+      entry.data.kind === "case-study"
+        ? await readProjectManifest(entry.id)
+        : null;
 
     return { entry, manifest };
   }),
 );
-
-const updatedFormatter = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-  timeZone: "UTC",
-});
-
-function formatUpdated(isoDate: string): string {
-  return updatedFormatter.format(new Date(`${isoDate}T00:00:00.000Z`));
-}
 
 const person = {
   "@context": "https://schema.org",
@@ -47,7 +39,7 @@ const person = {
 
 <Base
   title="Full-stack developer"
-  description="Three case studies: an e-commerce platform, a CI/CD deployment pipeline and a document Q&A assistant."
+  description="Three case studies and a Master's thesis: an e-commerce platform, a CI/CD deployment pipeline, a document Q&A assistant, and a Hyperledger Fabric network for social security."
   jsonLd={person}
   ogImage="/og/home.png"
 >
@@ -59,37 +51,34 @@ const person = {
   <section id="work" class="work" aria-labelledby="work-heading">
     <div class="section-head">
       <h2 id="work-heading">Selected work</h2>
-      <p class="section-meta">Three case studies</p>
     </div>
     <div class="project-grid">
       {
-        cards.map(({ entry, manifest }) => (
-          <ProjectCard
-            project={entry.data}
-            slug={entry.id}
-            manifest={manifest}
-            updatedLabel={formatUpdated(entry.data.updatedAt)}
-          />
-        ))
+        cards.map(({ entry, manifest }) =>
+          entry.data.kind === "thesis" ? (
+            <ProjectCard
+              project={entry.data}
+              slug={entry.id}
+              manifest={manifest}
+              cover={{
+                src: entry.data.coverCard,
+                alt: entry.data.coverAlt,
+                width: 1600,
+                height: 1000,
+              }}
+              actionLabel="Read the thesis"
+            />
+          ) : (
+            <ProjectCard
+              project={entry.data}
+              slug={entry.id}
+              manifest={manifest}
+              cover={null}
+              actionLabel="Read the case study"
+            />
+          ),
+        )
       }
     </div>
-  </section>
-
-  <section class="work thesis-note" aria-labelledby="thesis-heading">
-    <div class="section-head">
-      <h2 id="thesis-heading">Master's thesis</h2>
-      <p class="section-meta">Text only</p>
-    </div>
-    <p class="thesis-line">
-      <a href="/projects/thesis/"
-        >Enhancing the Integrity of Algeria's Social Security System:
-        Addressing Fraudulent Activities through Blockchain Technology</a
-      >
-    </p>
-    <p class="thesis-summary">
-      A blockchain platform built to strengthen the integrity of Algeria's
-      social security system and counter fraud across three organisations. The
-      backend runs on Hyperledger Fabric and the frontend is built with Next.js.
-    </p>
   </section>
 </Base>

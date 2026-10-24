@@ -11,7 +11,6 @@ export const NAV_ROUTES = [
   { path: "/about/", label: "About" },
   { path: "/#work", label: "Work" },
   { path: "/resume/", label: "Resume" },
-  { path: "/colophon/", label: "Colophon" },
 ] as const;
 
 export function absoluteUrl(pathname: string): string {

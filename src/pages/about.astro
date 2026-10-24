@@ -5,7 +5,7 @@ import resume from "../data/resume.json";
 
 <Base
   title="About"
-  description={`${resume.name}, ${resume.role} in ${resume.location}. Education, experience, skills and languages.`}
+  description={`${resume.name}, ${resume.role} in ${resume.location}. Freelance work, education, skills and languages.`}
   ogImage="/og/home.png"
 >
   <article class="prose-page">
@@ -17,12 +17,22 @@ import resume from "../data/resume.json";
 
     <div class="prose-body">
       <p>{resume.summary}</p>
-      <p>
-        The three case studies cover an e-commerce checkout, a CI/CD
-        deployment pipeline and a document Q&amp;A assistant. The Master's
-        thesis on blockchain and social security is on
-        <a href="/projects/thesis/">its own page</a>.
-      </p>
+
+      <section class="resume-section" aria-labelledby="about-freelance">
+        <h2 id="about-freelance">Freelance work</h2>
+        <p class="freelance-years">Selected engagements, 2023-2026.</p>
+        <div class="freelance-list">
+          {
+            resume.freelance.map((entry) => (
+              <article class="freelance-entry">
+                <h3>{entry.sector}</h3>
+                <p>{entry.problem}</p>
+                <p class="freelance-stack">{entry.stack}</p>
+              </article>
+            ))
+          }
+        </div>
+      </section>
 
       <section class="resume-section" aria-labelledby="about-education">
         <h2 id="about-education">Education</h2>
@@ -38,22 +48,10 @@ import resume from "../data/resume.json";
         </ul>
       </section>
 
-      <section class="resume-section" aria-labelledby="about-experience">
-        <h2 id="about-experience">Experience</h2>
-        {
-          resume.experience.map((entry) => (
-            <p>
-              {entry.role}, {entry.organisation}, {entry.location}.{" "}
-              {entry.period}.
-            </p>
-          ))
-        }
-      </section>
-
       <section class="resume-section" aria-labelledby="about-skills">
         <h2 id="about-skills">Skills</h2>
         <ul class="resume-skills">
-          {resume.skills.map((skill) => <li>{skill}</li>)}
+          {resume.aboutSkills.map((skill) => <li>{skill}</li>)}
         </ul>
       </section>
 

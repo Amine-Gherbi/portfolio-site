@@ -1,0 +1,116 @@
+---
+kind: thesis
+order: 4
+title: Master's thesis
+thesisTitle: "Enhancing the Integrity of Algeria's Social Security System: Addressing Fraudulent Activities through Blockchain Technology"
+oneLiner: A Hyperledger Fabric network for Algeria's social security system, with an endorsement policy per transaction.
+stack:
+  - Hyperledger Fabric
+  - Node.js
+  - Next.js
+  - Hyperledger Caliper
+updatedAt: "2025-06-30"
+claim: >-
+  A permissioned blockchain is useful here only if CNAS, providers and
+  pharmacies must endorse each other's transactions.
+what: >-
+  The thesis asks whether a permissioned blockchain can make Algeria's social
+  security transactions harder to falsify. It connects CNAS, healthcare
+  providers and pharmacies to one Hyperledger Fabric channel and moves patient
+  registration, eligibility, prescriptions and invoice settlement into
+  chaincode. A Next.js front end gives each organisation its own section. The
+  prototype is a local Fabric v2.5 network: three organisation peers, one
+  orderer, one channel and one Node.js chaincode.
+hardPart: >-
+  The fraud problem is not a missing database. CNAS, providers and pharmacies
+  keep separate records and can act on them without the others seeing the
+  change. A patient's eligibility can be changed without a coverage review; a
+  prescription can be issued without CNAS; an invoice can be settled without a
+  matching prescription. The hard part is making each of those actions require
+  the right parties before it reaches the ledger, without giving one
+  organisation unilateral write authority.
+design: >-
+  Each organisation runs a peer on mychannel: CNASMSP, HealthcareMSP and
+  PharmacyMSP, with one Raft orderer and TLS. The chaincode is a single Node.js
+  contract, basic. Endorsement is set per transaction category: patient
+  management needs AND('CNAS.peer'); prescription issuance needs
+  AND('Healthcare.peer','CNAS.peer'); invoice settlement needs
+  AND('Pharmacy.peer','CNAS.peer'). The front end is Next.js with Tailwind CSS,
+  split into CNAS, healthcare and pharmacy sections.
+proves: >-
+  The Caliper run exercised three functions, registerPatient, issuePrescription
+  and settleInvoice, at send rates from 100 to 1000 TPS (page 62). It reports
+  100% success with zero failures. The report says throughput tracked the
+  offered load to about 400 TPS, then plateaued at roughly 80-100 TPS. Average
+  latency started at 4-8 s, maximum latency reached 10-14 s at the peak, and
+  minimum latency stayed at 1-4 s (page 62). The discussion on page 66 gives a
+  different summary: 400-500 TPS, 24,000-30,000 transactions per minute, 4-10 s
+  average latency and a fastest path under 4 s. The two summaries do not
+  reconcile. This page keeps both instead of choosing the friendlier set. What
+  the run does establish, even with that conflict, is that the three workflows
+  executed without failed transactions under the recorded load.
+limits:
+  - >-
+    One machine: Ubuntu 24.04.1 LTS under WSL on Windows 11, a Ryzen 5 5500U,
+    16 GB of RAM and LevelDB on each peer. The figures do not describe a
+    production cluster.
+  - >-
+    The report's throughput and latency summaries conflict: page 62 describes a
+    plateau near 80-100 TPS, while page 66 claims 400-500 TPS and
+    24,000-30,000 transactions per minute. The Caliper charts are images, so
+    this page cannot reconcile the series.
+  - >-
+    The load is synthetic. Nothing was connected to a live CNAS, provider or
+    pharmacy system, and the thesis does not test key management, privacy
+    regulation or operational rollout.
+  - >-
+    The network is one channel with one chaincode and one ordering node. It has
+    no private data collections, no fault injection and no horizontal scaling,
+    so the effect of a peer or orderer failure is unmeasured.
+  - >-
+    The front end was built but not evaluated with users; the thesis measures
+    the ledger path, not the interface.
+cover: /assets/thesis/cover.webp
+coverCard: /assets/thesis/cover-card.webp
+coverAlt: "Thesis cover: Enhancing the Integrity of Algeria's Social Security System, University of Mohamed Khider, Biskra, session 2024-2025."
+pdf: /thesis.pdf
+pdfLabel: Read the thesis (PDF, 2.8 MB)
+author: Mohamed Lamine Gherbi
+institution: University of Mohamed Khider, Biskra
+department: Computer Science Department
+degree: Master's in Computer Science, Software Engineering and Distributed Systems (GLSD)
+session: 2024-2025
+supervisors:
+  - R. Bettira
+  - S. Lanani
+  - L. Kahloul
+organisations:
+  - name: CNAS
+    role: Registers patients and changes eligibility status.
+  - name: Healthcare providers
+    role: Issue prescriptions for existing patients.
+  - name: Pharmacies
+    role: Settle invoices against a patient and a prescription.
+functions:
+  - name: registerPatient
+    role: Creates a patient record on the ledger.
+  - name: updatePatient
+    role: Updates specified fields on an existing patient record.
+  - name: verifyEligibility
+    role: Returns the patient's current eligibility status.
+  - name: updateEligibility
+    role: Changes a patient's eligibility status and persists the new value.
+  - name: issuePrescription
+    role: Creates a prescription for an existing patient.
+  - name: settleInvoice
+    role: Validates patient and prescription, then builds and saves an invoice.
+  - name: getPatient
+    role: Reads one patient record.
+  - name: getPrescription
+    role: Runs a range query over prescriptions.
+  - name: getAllInvoices
+    role: Runs a range query over invoices.
+links:
+  - label: Read the thesis (PDF, 2.8 MB)
+    href: /thesis.pdf
+---

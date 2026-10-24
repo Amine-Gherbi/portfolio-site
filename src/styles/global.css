@@ -192,9 +192,8 @@ img {
 
 .kicker,
 .section-meta,
-.card-meta,
-.updated-label,
 .footer-note,
+.footer-disclosure,
 .case-topline,
 .section-nav a,
 .case-links a,
@@ -210,7 +209,6 @@ img {
 .metric-table thead th,
 .screenshot-placeholder,
 .return-link,
-.resume-source,
 .card-read,
 .hero-stack,
 .site-role {
@@ -221,9 +219,7 @@ img {
 }
 
 .kicker,
-.section-meta,
-.updated-label,
-.card-meta {
+.section-meta {
   color: var(--muted);
   text-transform: uppercase;
 }
@@ -280,8 +276,8 @@ main {
 
 .project-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 44px 28px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 44px 24px;
   padding-top: 24px;
 }
 
@@ -298,6 +294,11 @@ main {
   aspect-ratio: 16 / 10;
 }
 
+.card-media a {
+  display: block;
+  height: 100%;
+}
+
 .card-media img {
   width: 100%;
   height: 100%;
@@ -305,14 +306,10 @@ main {
 }
 
 .card-copy {
-  padding-top: 12px;
-}
-
-.card-meta {
   display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  letter-spacing: 0.04em;
+  flex: 1;
+  flex-direction: column;
+  padding-top: 12px;
 }
 
 .card-copy h2 {
@@ -348,7 +345,8 @@ main {
 }
 
 .card-read {
-  margin-top: 10px;
+  margin-top: auto;
+  padding-top: 10px;
 }
 
 .card-read a {
@@ -369,24 +367,6 @@ main {
   text-transform: uppercase;
 }
 
-.thesis-note {
-  padding-top: 0;
-}
-
-.thesis-line {
-  max-width: var(--measure);
-  margin-top: 20px;
-  font-family: var(--serif);
-  font-size: var(--text-title);
-  line-height: 1.35;
-}
-
-.thesis-summary {
-  max-width: var(--measure);
-  margin-top: 10px;
-  color: var(--muted);
-}
-
 /* Footer */
 
 .site-footer {
@@ -401,6 +381,12 @@ main {
 }
 
 .footer-note {
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.footer-disclosure {
+  margin-top: 2px;
   text-transform: none;
   letter-spacing: 0.02em;
 }
@@ -729,14 +715,152 @@ main {
   text-transform: uppercase;
 }
 
-.next-list {
+.limit-list {
   max-width: var(--measure);
   margin: 14px 0 0;
   padding-left: 20px;
 }
 
-.next-list li + li {
+.limit-list li + li {
   margin-top: 8px;
+}
+
+/* Thesis */
+
+.thesis-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px 32px;
+  max-width: 1040px;
+  margin: 28px 0 0;
+}
+
+.thesis-details div {
+  padding-top: 10px;
+  border-top: 1px solid var(--rule);
+}
+
+.thesis-details dt {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.thesis-details dd {
+  margin: 4px 0 0;
+}
+
+.thesis-pdf {
+  margin-top: 24px;
+}
+
+.thesis-pdf a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 1px solid var(--ink);
+}
+
+.thesis-cover {
+  margin: 24px 0 0;
+}
+
+.thesis-cover img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  background: #e9e5dd;
+  object-fit: cover;
+}
+
+.design-blocks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 40px;
+  max-width: var(--measure);
+  margin-top: 28px;
+}
+
+.design-block h3 {
+  margin-top: 0;
+  font-size: var(--text-title);
+}
+
+.definition-list {
+  margin: 10px 0 0;
+  padding: 0 !important;
+  list-style: none;
+}
+
+.definition-list li {
+  padding: 9px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.definition-list li + li {
+  margin-top: 0;
+}
+
+.definition-list strong {
+  display: block;
+  font-family: var(--serif);
+  font-size: var(--text-title);
+  font-weight: 400;
+}
+
+.function-list code {
+  margin-right: 6px;
+  padding: 1px 4px;
+  background: #f0ece5;
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+}
+
+/* Freelance */
+
+.freelance-years {
+  margin-top: 10px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.04em;
+}
+
+.freelance-list {
+  display: grid;
+  gap: 22px;
+  margin-top: 20px;
+}
+
+.freelance-entry {
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+}
+
+.freelance-entry h3 {
+  font-size: var(--text-title);
+}
+
+.freelance-entry p {
+  margin-top: 6px;
+}
+
+.freelance-entry p + p {
+  margin-top: 4px;
+}
+
+.freelance-stack {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.03em;
 }
 
 .case-return {
@@ -753,7 +877,7 @@ main {
   text-transform: uppercase;
 }
 
-/* Editorial pages: about, resume, colophon, thesis */
+/* Editorial pages: about, resume, thesis */
 
 .prose-page {
   width: min(100%, var(--project-grid));
@@ -810,10 +934,6 @@ main {
 .prose-body h3 {
   font-size: var(--text-title);
   line-height: 1.2;
-}
-
-.colophon-lines p + p {
-  margin-top: 10px;
 }
 
 .resume-role {
@@ -911,17 +1031,13 @@ main {
   font-size: var(--text-meta);
 }
 
-.resume-source {
-  margin-top: 36px;
-  padding-top: 14px;
-  border-top: 1px solid var(--rule);
-  color: var(--muted);
-  text-transform: none;
-}
-
 @media (max-width: 900px) {
   .project-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .design-blocks {
+    grid-template-columns: 1fr;
   }
 
   .screenshot-grid {

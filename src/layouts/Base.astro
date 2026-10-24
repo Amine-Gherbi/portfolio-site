@@ -14,7 +14,7 @@ const { title, description, jsonLd, ogImage } = Astro.props;
 const pageTitle = `${title} · ${SITE_NAME}`;
 const metaDescription =
   description ??
-  "An engineering case index: three systems, each stated as a claim and shown against a committed snapshot.";
+  "Full-stack developer in Biskra, Algeria. Three case studies and a Master's thesis on blockchain for social security.";
 const site = Astro.site ?? new URL(SITE_URL);
 const canonical = new URL(Astro.url.pathname, site).toString();
 const socialImage = new URL(ogImage ?? "/og/home.png", site).toString();
@@ -99,9 +99,11 @@ function isCurrent(path: string): boolean {
       <footer class="site-footer">
         <div class="footer-inner">
           <p class="footer-note">
-            Case studies are reproduced from snapshots committed to this
-            repository. Static site, no tracking.
+            Biskra, Algeria · <a href="mailto:meh.amine.gherbi@gmail.com"
+              >meh.amine.gherbi@gmail.com</a
+            >
           </p>
+          <p class="footer-disclosure">Built with Claude Code, reviewed by me.</p>
         </div>
       </footer>
     </div>

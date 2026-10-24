@@ -4,8 +4,8 @@
  *   - banned marketing words
  *   - emoji
  *   - more than 3 badges on a rendered page
- *   - a sentence in a case study that carries a measurement number without a
- *     method, artifact or commit nearby
+ *   - a sentence in a case study or the thesis that carries a measurement
+ *     number without a method, artifact, commit or page nearby
  *   - an /about page longer than 250 words
  *
  * Source mode validates the MDX before the build; --dist validates the
@@ -40,7 +40,7 @@ const BANNED_WORDS = [
 const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u;
 
 const METHOD_SIGNAL =
-  /\b(method|measured|measure|recorded|counted|seeded|seed|fixture|run|runs|tested|asserts|asserted|commit|snapshot|manifest|artifact|validator|sample)\b/i;
+  /\b(method|measured|measure|recorded|counted|seeded|seed|fixture|run|runs|tested|asserts|asserted|commit|snapshot|manifest|artifact|validator|sample|caliper|benchmark|machine|page|report|thesis)\b/i;
 
 const IDENTIFIER_DIGITS = [
   /\bpostgresql\s+\d+(?:\.\d+)*/gi,
@@ -49,9 +49,21 @@ const IDENTIFIER_DIGITS = [
   /\bsha[- ]?\d+/gi,
   /\bnode(?:\.js)?\s+\d+(?:\.\d+)*/gi,
   /\bpython\s+\d+(?:\.\d+)*/gi,
+  /\bfabric\s+v?\d+(?:\.\d+)*/gi,
 ];
 
-const SKIP_KEYS = new Set(["artifact", "href", "file", "commit", "updatedAt", "date", "order"]);
+const SKIP_KEYS = new Set([
+  "artifact",
+  "href",
+  "file",
+  "commit",
+  "updatedAt",
+  "date",
+  "order",
+  "pdfLabel",
+  "session",
+  "coverAlt",
+]);
 
 function walkFiles(directory, extensions) {
   if (!existsSync(directory)) {
@@ -270,6 +282,6 @@ if (errors.length > 0) {
 
 console.log(
   mode === "source"
-    ? "[copy] source: no banned words or emoji; case-study numbers carry a method, artifact or commit"
+    ? "[copy] source: no banned words or emoji; measurement numbers carry a method, artifact, commit or page"
     : "[copy] dist: no banned words or emoji; no page has more than 3 badges; /about is within 250 words",
 );

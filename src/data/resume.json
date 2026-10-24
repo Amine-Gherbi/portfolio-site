@@ -36,6 +36,43 @@
       "period": "January 2025 - present"
     }
   ],
+  "freelance": [
+    {
+      "sector": "Retail and e-commerce",
+      "problem": "Storefronts where price, stock and order state had to be decided by the server, not the browser. Checkout, admin and order flows built on Next.js and PostgreSQL.",
+      "stack": "Next.js, TypeScript, PostgreSQL, Prisma"
+    },
+    {
+      "sector": "Logistics and delivery",
+      "problem": "Internal boards that replace spreadsheets for orders, routes and delivery status, with one place for dispatchers to update a job.",
+      "stack": "React, Node.js, PostgreSQL"
+    },
+    {
+      "sector": "Education and training",
+      "problem": "Course platforms with enrolment, progress and completion records that staff can audit without a second spreadsheet.",
+      "stack": "Next.js, FastAPI, PostgreSQL"
+    },
+    {
+      "sector": "Healthcare administration",
+      "problem": "Booking and patient-record tools where each role sees only the records it needs, and changes stay traceable.",
+      "stack": "Next.js, Django, PostgreSQL"
+    },
+    {
+      "sector": "Document-heavy teams",
+      "problem": "Search and question answering over PDFs, with every answer tied back to the page it came from.",
+      "stack": "Python, FastAPI, pgvector, React"
+    }
+  ],
+  "aboutSkills": [
+    "TypeScript",
+    "Python",
+    "Next.js",
+    "FastAPI",
+    "PostgreSQL",
+    "Docker",
+    "Linux",
+    "LLM APIs"
+  ],
   "skills": [
     "Python",
     "JavaScript",

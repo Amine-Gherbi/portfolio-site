@@ -10,7 +10,7 @@ import resume from "../data/resume.json";
 >
   <article class="prose-page resume-page">
     <header class="page-header resume-header">
-      <p class="kicker">Resume / updated {resume.generatedAt}</p>
+      <p class="kicker">Resume</p>
       <h1>{resume.name}</h1>
       <p class="resume-role">{resume.role} / {resume.location}</p>
       <p class="resume-contact">
@@ -94,11 +94,6 @@ import resume from "../data/resume.json";
         </ul>
       </section>
 
-      <p class="resume-source">
-        The <a href="/resume.pdf" download>PDF</a> is generated from
-        <code>src/data/resume.json</code> by <code>scripts/build-resume-pdf.mjs</code>
-        during <code>npm run build</code>.
-      </p>
     </div>
   </article>
 </Base>

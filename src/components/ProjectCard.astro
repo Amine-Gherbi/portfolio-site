@@ -1,34 +1,60 @@
 ---
 import type { ManifestShot, Project, ProjectManifest } from "../lib/manifest";
 
+interface CardImage {
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+}
+
 interface Props {
   project: Project;
   slug: string;
   manifest: ProjectManifest | null;
-  updatedLabel: string;
+  cover?: CardImage | null;
+  actionLabel?: string;
 }
 
-const { project, slug, manifest, updatedLabel } = Astro.props;
+const {
+  project,
+  slug,
+  manifest,
+  cover = null,
+  actionLabel = "Read the case study",
+} = Astro.props;
+
 const hero: ManifestShot | undefined = manifest?.shots[0];
-const number = String(project.order).padStart(2, "0");
+const image: CardImage | null =
+  cover ??
+  (hero
+    ? {
+        src: `/assets/${slug}/${hero.file}`,
+        alt: hero.alt,
+        width: hero.width,
+        height: hero.height,
+      }
+    : null);
 const headingId = `project-${slug}`;
-const imageSrc = hero ? `/assets/${slug}/${hero.file}` : "";
+const href = `/projects/${slug}/`;
 ---
 
 <article class="project-card" aria-labelledby={headingId}>
   {
-    hero ? (
+    image ? (
       <figure class="card-media">
-        <img
-          src={imageSrc}
-          srcset={`${imageSrc} ${hero.width}w`}
-          sizes="(min-width: 1120px) 336px, (min-width: 641px) 46vw, 100vw"
-          width={hero.width}
-          height={hero.height}
-          alt={hero.alt}
-          loading={project.order === 1 ? "eager" : "lazy"}
-          decoding="async"
-        />
+        <a href={href} tabindex="-1" aria-hidden="true">
+          <img
+            src={image.src}
+            srcset={`${image.src} ${image.width}w`}
+            sizes="(min-width: 1120px) 250px, (min-width: 641px) 46vw, 100vw"
+            width={image.width}
+            height={image.height}
+            alt={image.alt}
+            loading={project.order === 1 ? "eager" : "lazy"}
+            decoding="async"
+          />
+        </a>
       </figure>
     ) : (
       <div class="card-coming-soon">
@@ -37,17 +63,13 @@ const imageSrc = hero ? `/assets/${slug}/${hero.file}` : "";
     )
   }
   <div class="card-copy">
-    <div class="card-meta">
-      <span>Case {number}</span>
-      <span>Updated {updatedLabel}</span>
-    </div>
     <h2 id={headingId}>
-      <a class="card-link" href={`/projects/${slug}/`}>{project.title}</a>
+      <a class="card-link" href={href}>{project.title}</a>
     </h2>
     <p class="one-liner">{project.oneLiner}</p>
     <p class="stack">{project.stack.join(", ")}</p>
     <p class="card-read">
-      <a href={`/projects/${slug}/`}>Read the case study</a>
+      <a href={href}>{actionLabel}</a>
     </p>
   </div>
 </article>
