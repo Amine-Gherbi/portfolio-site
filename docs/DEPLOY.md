@@ -1,13 +1,19 @@
 # Deploy
 
 **Deployed 2026-10-24:** `https://gherbi.pages.dev` on Cloudflare Pages, project `gherbi`, production branch
-`master`. The build ran on this machine with `SITE_URL=https://gherbi.pages.dev npm run build` and the output was
-uploaded with `npx wrangler pages deploy dist --project-name gherbi --branch master`. Lighthouse against the
-deployed origin: performance 95, accessibility 100, best practices 100, SEO 100, LCP 3.0 s, CLS 0.
+`master`, connected to GitHub — every push to `master` builds and deploys. Build command `npm run build`, output
+`dist`, no environment variables: `SITE_URL` defaults to the deployed origin in `astro.config.mjs` and
+`src/lib/site.ts`, and `.nvmrc` pins Node 22. Lighthouse against the deployed origin: performance 95, accessibility
+100, best practices 100, SEO 100, LCP 3.0 s, CLS 0.
 
-The project is **not** connected to Git, so a push does not redeploy it; re-run the two commands above after a
-content change. Steps 1–5 below remain the path for a Git-connected project, and step 3 lists the two settings that
-still apply (build command `npm run build`, output `dist`, `NODE_VERSION=22`, `SITE_URL`).
+The first Git build failed, and the build log named the cause: `public/assets/cicd-pipeline/proof/deploy.log` was
+excluded by the repository's `*.log` rule, so a manifest asserted an artifact that the Linux build could not read.
+`.gitignore` now carries `!public/assets/*/proof/*.log`, and the build has been green since. `src/lib/og.ts` also
+uses a bundled DejaVu Serif pair (`src/assets/fonts/`), so the Open Graph images no longer depend on a font being
+installed on the build host.
+
+The manual path still works as a fallback: `npm run build` then `npx wrangler pages deploy dist --project-name gherbi
+--branch master`. Steps 1–5 below remain the full click path for a new project.
 
 The host used in these steps is Cloudflare Pages because it serves a plain `dist/` directory with no adapter and no server runtime. Any static host that accepts a build command and an output directory works the same way.
 
