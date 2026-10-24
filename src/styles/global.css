@@ -152,13 +152,6 @@ img {
   text-decoration: none;
 }
 
-/* Home: the heading wrapper stays out of the wordmark's way. */
-.wordmark-heading {
-  margin: 0;
-  font: inherit;
-  letter-spacing: inherit;
-}
-
 .site-role {
   color: var(--muted);
   text-transform: uppercase;
