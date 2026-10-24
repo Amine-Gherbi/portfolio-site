@@ -17,7 +17,7 @@ export async function getStaticPaths() {
       copy: {
         eyebrow: "Full-stack developer",
         title: "Web applications built with TypeScript, Next.js, PostgreSQL and Python.",
-        body: "Three case studies and a Master's thesis, each with the limits behind it.",
+        body: "Three case studies and a Master's thesis, with the evidence behind each claim.",
         footer: "Biskra, Algeria",
       },
     },

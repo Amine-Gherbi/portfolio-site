@@ -276,7 +276,7 @@ main {
 
 .project-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 44px 24px;
   padding-top: 24px;
 }
@@ -715,14 +715,106 @@ main {
   text-transform: uppercase;
 }
 
-.limit-list {
-  max-width: var(--measure);
-  margin: 14px 0 0;
-  padding-left: 20px;
+/* Home thesis section */
+
+.thesis-section {
+  width: min(100%, var(--project-grid));
+  margin: 0 auto;
+  padding: 64px 32px 96px;
+  border-top: 1px solid var(--rule);
 }
 
-.limit-list li + li {
+.thesis-intro {
+  max-width: 1040px;
+}
+
+.thesis-intro h2 {
+  max-width: 22ch;
+  margin-top: 10px;
+  font-family: var(--serif);
+  font-size: clamp(28px, 3.4vw, 40px);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.thesis-standfirst {
+  max-width: var(--measure);
+  margin-top: 18px;
+  color: var(--muted);
+  font-family: var(--serif);
+  font-size: var(--text-title);
+  line-height: 1.4;
+}
+
+.thesis-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px 32px;
+  max-width: 1040px;
+  margin: 28px 0 0;
+}
+
+.thesis-facts div {
+  padding-top: 10px;
+  border-top: 1px solid var(--rule);
+}
+
+.thesis-facts dt {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.thesis-facts dd {
+  margin: 4px 0 0;
+}
+
+.thesis-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 28px;
+  margin-top: 24px;
+}
+
+.thesis-actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 1px solid var(--ink);
+}
+
+.thesis-figures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 32px;
+  margin-top: 40px;
+}
+
+.thesis-figure {
+  margin: 0;
+}
+
+.thesis-figure img {
+  width: 100%;
+  height: auto;
+  background: #e9e5dd;
+}
+
+.thesis-figure figcaption {
   margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
 }
 
 /* Thesis */
@@ -1049,6 +1141,7 @@ main {
   .site-header,
   .hero,
   .work,
+  .thesis-section,
   .footer-inner,
   .not-found,
   .case-study,
@@ -1086,6 +1179,16 @@ main {
   .work {
     padding-top: 20px;
     padding-bottom: 56px;
+  }
+
+  .thesis-section {
+    padding-top: 44px;
+    padding-bottom: 64px;
+  }
+
+  .thesis-figures {
+    grid-template-columns: 1fr;
+    gap: 24px;
   }
 
   .project-grid {

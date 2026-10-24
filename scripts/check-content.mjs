@@ -2,7 +2,7 @@
 /**
  * Validates case-study MDX frontmatter against the rules the template relies on:
  *
- *   1. The six fixed sections exist and the decision names a rejected
+ *   1. The five fixed sections exist and the decision names a rejected
  *      alternative and its cost.
  *   2. Exactly one dated failure with a commit SHA.
  *   3. The narrative is between 250 and 450 words.
@@ -26,7 +26,6 @@ const SECTION_ORDER = [
   "decision",
   "what-broke",
   "measured",
-  "limits",
 ];
 const SECTION_HEADINGS = [
   "What it is",
@@ -34,21 +33,19 @@ const SECTION_HEADINGS = [
   "The decision",
   "What broke",
   "Measured",
-  "Limits",
 ];
-const THESIS_SECTION_ORDER = [
-  "what-it-is",
-  "hard-part",
-  "design",
-  "proves",
-  "limits",
-];
+const THESIS_SECTION_ORDER = ["what-it-is", "hard-part", "design", "proves"];
 const THESIS_SECTION_HEADINGS = [
   "What it is",
   "The hard part",
   "The design",
   "What it proves",
-  "Limits",
+];
+const HOME_THESIS_FIGURES = [
+  { file: "network.webp", width: 1400, height: 908 },
+  { file: "cnas-register.webp", width: 990, height: 856 },
+  { file: "provider-prescribe.webp", width: 903, height: 854 },
+  { file: "sequence.webp", width: 1400, height: 1213 },
 ];
 const WORD_MIN = 250;
 const WORD_MAX = 450;
@@ -152,11 +149,12 @@ function countWords(text) {
 }
 
 /**
- * The word ceiling applies to the narrative a reader sees in the six sections:
+ * The word ceiling applies to the narrative a reader sees in the five sections:
  * the claim, one-liner, what/hard-part/measured paragraphs, the decision and
- * failure fields, the next steps, screenshot captions and the committed
- * manifest limits. The metric table, link labels, stack tokens and headings are
- * evidence or metadata, not narrative, and are excluded.
+ * failure fields, the next steps and screenshot captions. The committed
+ * manifest entries stay in the budget so the frontmatter cannot grow prose the
+ * page no longer shows. The metric table, link labels, stack tokens and
+ * headings are evidence or metadata, not narrative, and are excluded.
  */
 function narrativeWords(study, limits) {
   const parts = [
@@ -729,6 +727,75 @@ function textOf(html) {
     .trim();
 }
 
+/**
+ * The home page is not a project entry, so its shape is asserted here: three
+ * case-study cards in #work and one separate thesis section carrying the four
+ * figures at their committed intrinsic sizes.
+ */
+function runHomeChecks(errors) {
+  const homePath = path.join(ROOT, "dist", "index.html");
+  if (!existsSync(homePath)) {
+    errors.push(`[content] dist: missing rendered home page ${homePath}`);
+    return;
+  }
+
+  const html = readFileSync(homePath, "utf8");
+  const work = /<section[^>]*\bid="work"[^>]*>([\s\S]*?)<\/section>/.exec(html);
+  const workCards = (work?.[1]?.match(/<article class="project-card"/g) ?? [])
+    .length;
+  if (workCards !== 3) {
+    errors.push(
+      `[content] dist: home #work has ${workCards} project cards, expected 3`,
+    );
+  }
+
+  const thesisSections = (html.match(/\bid="thesis"/g) ?? []).length;
+  if (thesisSections !== 1) {
+    errors.push(
+      `[content] dist: home has ${thesisSections} #thesis sections, expected 1`,
+    );
+  }
+
+  const thesis = /<section[^>]*\bid="thesis"[^>]*>([\s\S]*?)<\/section>/.exec(
+    html,
+  );
+  const section = thesis?.[1] ?? "";
+  const figures = (section.match(/<figure class="thesis-figure"/g) ?? []).length;
+  if (figures !== HOME_THESIS_FIGURES.length) {
+    errors.push(
+      `[content] dist: home #thesis has ${figures} figures, expected ${HOME_THESIS_FIGURES.length}`,
+    );
+  }
+
+  const images = [...section.matchAll(/<img\b[^>]*>/g)].map((match) => match[0]);
+  for (const expected of HOME_THESIS_FIGURES) {
+    const image = images.find((tag) =>
+      tag.includes(`/assets/thesis/figures/${expected.file}`),
+    );
+    if (!image) {
+      errors.push(
+        `[content] dist: home #thesis is missing the figure ${expected.file}`,
+      );
+      continue;
+    }
+    if (!/\balt="[^"]+"/.test(image)) {
+      errors.push(
+        `[content] dist: home #thesis figure ${expected.file} has no alt text`,
+      );
+    }
+    if (!new RegExp(`\\bwidth="${expected.width}"`).test(image)) {
+      errors.push(
+        `[content] dist: home #thesis figure ${expected.file} has the wrong width`,
+      );
+    }
+    if (!new RegExp(`\\bheight="${expected.height}"`).test(image)) {
+      errors.push(
+        `[content] dist: home #thesis figure ${expected.file} has the wrong height`,
+      );
+    }
+  }
+}
+
 function runDistChecks(studies, errors) {
   if (!existsSync(DIST_ROOT)) {
     errors.push(
@@ -786,10 +853,17 @@ function runDistChecks(studies, errors) {
     const captions = (html.match(/<figcaption[\s>]/g) ?? []).length;
     if (isThesis) {
       thesisCount += 1;
-      if (captions !== 0) {
+      if (captions !== HOME_THESIS_FIGURES.length) {
         errors.push(
-          `[content] dist: ${slug} has ${captions} figcaptions, expected 0`,
+          `[content] dist: ${slug} has ${captions} figcaptions, expected ${HOME_THESIS_FIGURES.length}`,
         );
+      }
+      for (const figure of HOME_THESIS_FIGURES) {
+        if (!html.includes(`/assets/thesis/figures/${figure.file}`)) {
+          errors.push(
+            `[content] dist: ${slug} does not render the figure ${figure.file}`,
+          );
+        }
       }
       if (!html.includes("/thesis.pdf")) {
         errors.push(`[content] dist: ${slug} does not link /thesis.pdf`);
@@ -855,9 +929,11 @@ function runDistChecks(studies, errors) {
     }
   }
 
+  runHomeChecks(errors);
+
   if (errors.length === 0) {
     console.log(
-      `[content] dist: ${caseCount} case studies render six sections in fixed order with 3 captioned screenshots; ${thesisCount} thesis renders five thesis sections`,
+      `[content] dist: ${caseCount} case studies render five sections in fixed order with 3 captioned screenshots; ${thesisCount} thesis renders four sections and 4 figures; home renders 3 cards and one thesis section`,
     );
   }
 }
@@ -935,6 +1011,6 @@ if (errors.length > 0) {
 
 if (mode === "source") {
   console.log(
-    `[content] ${caseCount} case studies valid: six sections, one decision with rejected + cost, exactly one failure, ${WORD_MIN}-${WORD_MAX} narrative words; ${thesisCount} thesis valid: five adapted sections, three organisations, nine chaincode functions, three or more limits`,
+    `[content] ${caseCount} case studies valid: five sections, one decision with rejected + cost, exactly one failure, ${WORD_MIN}-${WORD_MAX} narrative words; ${thesisCount} thesis valid: four adapted sections, three organisations, nine chaincode functions, three or more recorded limits`,
   );
 }

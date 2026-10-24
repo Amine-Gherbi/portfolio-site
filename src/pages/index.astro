@@ -4,6 +4,7 @@ import Base from "../layouts/Base.astro";
 import ProjectCard from "../components/ProjectCard.astro";
 import { readProjectManifest } from "../lib/manifest";
 import { SITE_URL } from "../lib/site";
+import { THESIS_FIGURES } from "../lib/thesis-figures";
 
 const positioningSentence =
   "I build full-stack web systems for teams that need to prove their software works.";
@@ -13,8 +14,11 @@ const coreStack = ["TypeScript", "Next.js", "PostgreSQL", "Python"];
 const entries = await getCollection("projects");
 entries.sort((a, b) => a.data.order - b.data.order);
 
+// The thesis is a publication, not a fourth card: it gets its own section.
+const workEntries = entries.filter((entry) => entry.data.kind !== "thesis");
+
 const cards = await Promise.all(
-  entries.map(async (entry) => {
+  workEntries.map(async (entry) => {
     const manifest =
       entry.data.kind === "case-study"
         ? await readProjectManifest(entry.id)
@@ -23,6 +27,12 @@ const cards = await Promise.all(
     return { entry, manifest };
   }),
 );
+
+const thesisEntry = entries.find((entry) => entry.data.kind === "thesis");
+if (!thesisEntry || thesisEntry.data.kind !== "thesis") {
+  throw new Error("The thesis content entry is missing or is not kind: thesis");
+}
+const thesis = thesisEntry.data;
 
 const person = {
   "@context": "https://schema.org",
@@ -54,30 +64,64 @@ const person = {
     </div>
     <div class="project-grid">
       {
-        cards.map(({ entry, manifest }) =>
-          entry.data.kind === "thesis" ? (
-            <ProjectCard
-              project={entry.data}
-              slug={entry.id}
-              manifest={manifest}
-              cover={{
-                src: entry.data.coverCard,
-                alt: entry.data.coverAlt,
-                width: 1600,
-                height: 1000,
-              }}
-              actionLabel="Read the thesis"
+        cards.map(({ entry, manifest }) => (
+          <ProjectCard
+            project={entry.data}
+            slug={entry.id}
+            manifest={manifest}
+            cover={null}
+            actionLabel="Read the case study"
+          />
+        ))
+      }
+    </div>
+  </section>
+
+  <section id="thesis" class="thesis-section" aria-labelledby="thesis-heading">
+    <div class="thesis-intro">
+      <p class="kicker">Master's thesis · 2025</p>
+      <h2 id="thesis-heading">{thesis.thesisTitle}</h2>
+      <p class="thesis-standfirst">{thesis.oneLiner}</p>
+      <dl class="thesis-facts">
+        <div>
+          <dt>Degree</dt>
+          <dd>Master GLSD</dd>
+        </div>
+        <div>
+          <dt>Institution</dt>
+          <dd>University of Biskra</dd>
+        </div>
+        <div>
+          <dt>Year</dt>
+          <dd>2025</dd>
+        </div>
+        <div>
+          <dt>Stack</dt>
+          <dd>{thesis.stack.join(", ")}</dd>
+        </div>
+      </dl>
+      <p class="thesis-actions">
+        <a href="/projects/thesis/">Read the thesis</a>
+        <a href="/thesis.pdf">PDF · 2.8 MB</a>
+      </p>
+    </div>
+    <div class="thesis-figures">
+      {
+        THESIS_FIGURES.map((figure) => (
+          <figure class="thesis-figure">
+            <img
+              src={`/assets/thesis/figures/${figure.file}`}
+              srcset={`/assets/thesis/figures/${figure.file} ${figure.width}w`}
+              sizes="(min-width: 1120px) 540px, (min-width: 641px) 46vw, 100vw"
+              width={figure.width}
+              height={figure.height}
+              alt={figure.alt}
+              loading="lazy"
+              decoding="async"
             />
-          ) : (
-            <ProjectCard
-              project={entry.data}
-              slug={entry.id}
-              manifest={manifest}
-              cover={null}
-              actionLabel="Read the case study"
-            />
-          ),
-        )
+            <figcaption>{figure.caption}</figcaption>
+          </figure>
+        ))
       }
     </div>
   </section>

@@ -133,7 +133,7 @@ export type CaseStudyDecision = z.infer<typeof decisionSchema>;
 export type CaseStudyFailure = z.infer<typeof failureSchema>;
 
 /**
- * The six sections, in the order the case-study page renders them. The page,
+ * The five sections, in the order the case-study page renders them. The page,
  * the source check and the built-HTML check all read this list, so the order
  * cannot drift between the template and the gate.
  */
@@ -143,20 +143,18 @@ export const SECTION_ORDER = [
   { id: "decision", label: "The decision" },
   { id: "what-broke", label: "What broke" },
   { id: "measured", label: "Measured" },
-  { id: "limits", label: "Limits" },
 ] as const;
 
 /**
  * The thesis has no failure log, no screenshot manifest and no decision record
- * in the case-study shape. Its five sections keep the same argument order:
- * context, difficulty, design, evidence, honesty about the evidence.
+ * in the case-study shape. Its four sections keep the same argument order:
+ * context, difficulty, design, evidence.
  */
 export const THESIS_SECTION_ORDER = [
   { id: "what-it-is", label: "What it is" },
   { id: "hard-part", label: "The hard part" },
   { id: "design", label: "The design" },
   { id: "proves", label: "What it proves" },
-  { id: "limits", label: "Limits" },
 ] as const;
 
 const updatedFormatter = new Intl.DateTimeFormat("en-GB", {

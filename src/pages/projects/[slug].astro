@@ -298,20 +298,6 @@ const creativeWork = {
           }
         </ul>
       </div>
-    </section>
-
-    <section id="limits" data-section="limits" class="case-section">
-      <p class="kicker">06 / Limits</p>
-      <h2>Limits</h2>
-      {
-        proof ? (
-          <ul class="limit-list">
-            {proof.limits.map((limit) => <li>{limit}</li>)}
-          </ul>
-        ) : (
-          <p>No committed limit list is published for this project.</p>
-        )
-      }
       <p class="case-return"><a href="/">Back to the case index</a></p>
     </section>
   </article>
