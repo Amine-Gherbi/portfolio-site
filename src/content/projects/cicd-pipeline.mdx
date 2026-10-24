@@ -55,11 +55,11 @@ measured: >-
   topology; the local lane is the source of the runtime evidence.
 screenshots:
   - file: shot-01.webp
-    caption: Recorded rollback timeline from deploy.log, deploy.start through rollback.smoke.ok.
+    caption: Rollback timeline read from deploy.log, deploy.start through rollback.smoke.ok.
   - file: shot-02.webp
-    caption: The eight PR gates feeding the single ci-ok check, rendered from pr.yml.
+    caption: "Verification transcript — ESLint, tsc --noEmit and nine integration tests against PostgreSQL 16, ending in verify: ok."
   - file: shot-03.webp
-    caption: Recorded local release transcript with five passing smoke assertions on 127.0.0.1:8787.
+    caption: Local Trivy scan of invoice-api:slim at CRITICAL and HIGH with ignore-unfixed — zero findings, exit 0; the gate flags are read from pr.yml.
 links:
   - label: Rollback transcript
     href: /assets/cicd-pipeline/proof/deploy.log
