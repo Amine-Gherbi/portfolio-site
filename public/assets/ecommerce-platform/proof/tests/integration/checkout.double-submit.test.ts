@@ -1,10 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { placeOrder } from "@/lib/checkout";
-
 import {
   createOrderAttempt,
   createVariant,
+  placeOrderForTest,
   resetDatabase,
   testDb,
 } from "./helpers";
@@ -22,8 +21,8 @@ describe("double submit of one cart version", () => {
     const attempt = await createOrderAttempt({ variantId });
 
     const [first, second] = await Promise.all([
-      placeOrder(attempt),
-      placeOrder(attempt),
+      placeOrderForTest(attempt),
+      placeOrderForTest(attempt),
     ]);
 
     // Either call may win the race; only the set of outcomes is fixed.

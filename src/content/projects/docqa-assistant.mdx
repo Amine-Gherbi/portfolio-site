@@ -2,7 +2,7 @@
 kind: case-study
 order: 3
 title: Marginalia
-oneLiner: Ask a question about a PDF corpus and get claims whose quotes are verbatim, highlighted on the page, with an inspectable retrieval trace and a calibrated refusal.
+oneLiner: Ask a hosted reader a question about a PDF corpus and get claims whose quotes are verbatim, highlighted on the page, with an inspectable retrieval trace and a calibrated refusal.
 stack:
   - Python 3.12
   - FastAPI
@@ -10,16 +10,17 @@ stack:
   - React + Vite
   - PDF.js
   - ONNX Runtime
-updatedAt: "2026-10-24"
 claim: >-
-  On the recorded 30-question eval, retrieval recall@8 is 18/24 (75.0%), the
-  answer rate is 8/24, refusal of unanswerable questions is 6/6, and citation
-  precision and faithfulness are 7/9 each.
+  The keyed production eval measured retrieval recall@8 at 18/24 (75.0%), the
+  answer rate at 15/24 (62.5%), refusal of unanswerable questions at 6/6, and
+  citation precision and faithfulness at 13/15 and 12/15.
 what: >-
-  A Python 3.12 FastAPI service with PostgreSQL 16 and pgvector. Ingest refuses
-  a PDF whose SHA-256 differs from corpus.lock.json; retrieval fuses embeddings
-  and lexical search, then reranks; the answer path keeps a claim when its
-  quote appears in the cited chunk and drops it otherwise.
+  A Python 3.12 FastAPI service with PostgreSQL 16 and pgvector, served with a
+  React reader. Ingest refuses a PDF whose SHA-256 differs from
+  corpus.lock.json; retrieval fuses embeddings and lexical search, then
+  reranks; the answer path keeps a claim when its quote appears in the cited
+  chunk and drops it otherwise. The /ready report counts five papers and 260
+  chunks.
 hardPart: >-
   A retrieval answer is easy to make plausible and hard to check. A claim can
   cite a passage outside the retrieved set, quote text outside the cited chunk,
@@ -35,7 +36,7 @@ decision:
     afterwards can point at text outside the claim.
   cost: >-
     The validator drops a reply whose quote is not a verbatim substring, so the
-    answer rate is 8/24.
+    answer rate is 15/24.
   evidence: >-
     The citation tests cover the rejection path; the eval records answer rate,
     citation precision and faithfulness for every run.
@@ -50,24 +51,28 @@ failures:
       is returned; the refusal threshold is read from eval/calibration.json at
       boot.
 measured: >-
-  The recorded eval measured recall@8 at 18/24 (75.0%, [55.1%, 88.0%]), answer
-  rate at 8/24 (33.3%, [18.0%, 53.3%]) and refusal at 6/6 (100.0%, [61.0%,
-  100.0%]). Citation precision and faithfulness are 7/9 each. The run took
-  778.6 s with 26 model requests, 0 retries and 0 rate limits.
+  The keyed eval measured the five gates: recall@8 18/24, answer rate 15/24,
+  refusal 6/6, citation precision 13/15 and faithfulness 12/15. The run took
+  710.3 s with 26 model requests, 0 retries and 0 rate limits. The hosted /ask
+  answered in 27.5 s with a citation on page 8 of the Sentence-BERT paper.
 screenshots:
   - file: shot-01.webp
-    caption: "Citation view for the training question: claim 1 quote marked on page 3 in the daylight reader, beside the three-claim answer and navy source list."
+    caption: "Citation view: claim 1 quote marked on page 3, beside the three-claim answer and source list."
   - file: shot-02.webp
-    caption: Retrieval trail overlay with second-pass rank, score, evidence probability, included status and passage, then the final decision.
+    caption: Retrieval trail overlay with rank, score, evidence probability, included status, passage and the final decision.
   - file: shot-03.webp
-    caption: Evaluation page with 2 of 5 checks met, rates, counts, 95% confidence ranges and where each question stopped.
+    caption: Evaluation page with per-gate rates, counts, 95% confidence ranges and where each question stopped.
 links:
-  - label: Eval report
-    href: /assets/docqa-assistant/proof/eval-report.json
-  - label: Eval method and gates
-    href: /assets/docqa-assistant/proof/docs/EVAL.md
-  - label: Ablation report
-    href: /assets/docqa-assistant/proof/eval-report-ablation.json
+  - label: Hosted API proof (GitHub)
+    href: https://github.com/Amine-Gherbi/docqa-assistant/blob/master/docs/PROOF.md#hosted-pair
+  - label: Eval method and gates (GitHub)
+    href: https://github.com/Amine-Gherbi/docqa-assistant/blob/master/docs/EVAL.md
+  - label: Eval report (GitHub)
+    href: https://github.com/Amine-Gherbi/docqa-assistant/blob/master/eval-report.json
+  - label: Ablation report (GitHub)
+    href: https://github.com/Amine-Gherbi/docqa-assistant/blob/master/eval-report-ablation.json
+  - label: Live reader
+    href: https://marginalia-ui.onrender.com
 tour:
   - file: hero.webp
     shortName: Cited answer
@@ -95,10 +100,10 @@ tour:
     shortName: Evaluation
     heading: The evaluation table behind the claim
     body: >-
-      The report lists 30 questions, 24 answerable and 6 unanswerable, with
-      rates of 18/24, 8/24, 6/6, 7/9 and 7/9 and Wilson 95% ranges. The check
-      column marks 2 of 5 checks met and the last row counts where each
-      question stopped.
+      The report lists 30 questions, 24 answerable and 6 unanswerable, with a
+      rate, a denominator and a Wilson 95% range for each gate. The check
+      column marks each gate and the last row counts where each question
+      stopped.
   - file: shot-03.webp
     shortName: Edge cases
     heading: Three cases where the pipeline withholds

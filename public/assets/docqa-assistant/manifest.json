@@ -1,7 +1,7 @@
 {
   "project": "docqa-assistant",
   "title": "Marginalia",
-  "oneLiner": "Ask a question about a PDF corpus and get claims whose quotes are verbatim, highlighted on the page, with an inspectable retrieval trace and a calibrated refusal.",
+  "oneLiner": "Ask a hosted reader a question about a PDF corpus and get claims whose quotes are verbatim, highlighted on the page, with an inspectable retrieval trace and a calibrated refusal.",
   "stack": [
     "Python 3.12",
     "FastAPI",
@@ -10,7 +10,19 @@
     "PDF.js",
     "ONNX Runtime"
   ],
+  "generatedAt": "",
   "seeded": true,
+  "live": {
+    "url": "https://marginalia-ui.onrender.com",
+    "secondary": "https://marginalia-api-4pvl.onrender.com",
+    "firstAction": "Ask the seeded Sentence-BERT paper why SBERT is more efficient than a BERT cross-encoder.",
+    "repository": "https://github.com/Amine-Gherbi/docqa-assistant",
+    "limits": [
+      "The free instance sleeps after 15 minutes idle and takes about a minute to wake.",
+      "The hosted corpus is five papers and 260 chunks; a question outside it is refused.",
+      "A warm answer takes 17–25 s on the free instance."
+    ]
+  },
   "previewCommand": "uv run docqa serve --port 8788  # then, in a second shell: npm --prefix ui run dev",
   "shots": [
     {
@@ -41,40 +53,40 @@
   "proof": {
     "measured": [
       {
-        "label": "retrieval recall@8, production (hybrid + RRF + rerank)",
+        "label": "Retrieval recall@8, keyed production eval",
         "value": "18/24 (75.0%), Wilson 95% [55.1%, 88.0%]",
-        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU",
-        "artifact": "eval-report.json"
+        "method": "bash scripts/live.sh eval; generator gemini-flash-lite-latest, embedder bge-small-en-v1.5, reranker ms-marco-MiniLM-L-6-v2 on ONNX CPU",
+        "artifact": "docs/EVAL.md"
       },
       {
-        "label": "answer rate, production, free endpoint",
-        "value": "8/24 (33.3%), Wilson 95% [18.0%, 53.3%]",
-        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU",
-        "artifact": "eval-report.json"
+        "label": "Answer rate, keyed production eval",
+        "value": "15/24 (62.5%), Wilson 95% [42.7%, 78.8%]",
+        "method": "bash scripts/live.sh eval; generator gemini-flash-lite-latest on the keyed free tier",
+        "artifact": "docs/EVAL.md"
       },
       {
-        "label": "unanswerable refusal, production",
+        "label": "Unanswerable refusal, keyed production eval",
         "value": "6/6 (100.0%), Wilson 95% [61.0%, 100.0%]",
-        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU",
-        "artifact": "eval-report.json"
+        "method": "bash scripts/live.sh eval over 6 unanswerable questions; threshold read from eval/calibration.json",
+        "artifact": "docs/EVAL.md"
       },
       {
-        "label": "citation precision and faithfulness, rule-based",
-        "value": "7/9 (77.8%), Wilson 95% [45.3%, 93.7%] each",
-        "method": "bash scripts/live.sh eval; generator openai-compatible:openai-fast, fastembed bge-small-en-v1.5 + ms-marco-MiniLM-L-6-v2; Windows 11 Pro 10.0.26200, ONNX CPU",
-        "artifact": "eval-report.json"
+        "label": "Citation precision and faithfulness, rule-based",
+        "value": "13/15 (86.7%) and 12/15 (80.0%), Wilson 95% [62.1%, 96.3%] and [54.8%, 93.0%]",
+        "method": "bash scripts/live.sh eval; rule-based citation and quote checks, not a model judge",
+        "artifact": "docs/EVAL.md"
       },
       {
-        "label": "production eval run cost",
-        "value": "778.6 s; 30 questions; 26 model requests; 0 retries; 0 rate limits",
+        "label": "Production eval run cost",
+        "value": "710.3 s · 30 questions · 26 model requests · 0 retries · 0 rate limits",
         "method": "bash scripts/live.sh eval; provenance.run in eval-report.json",
         "artifact": "docs/ENV.md"
       },
       {
-        "label": "forced-generation diagnostic (separate diagnostic run)",
-        "value": "8/24 (33.3%), Wilson 95% [18.0%, 53.3%]",
-        "method": "bash scripts/live.sh eval --force-generation; openai-compatible:openai-fast",
-        "artifact": "eval-report-forced.json"
+        "label": "Hosted /ask contract",
+        "value": "HTTP 200 · 27.5 s · chunk 128 · page 8",
+        "method": "curl -X POST https://marginalia-api-4pvl.onrender.com/ask with the SBERT question; transcript in docs/PROOF.md",
+        "artifact": "src/docqa/api.py"
       }
     ],
     "invariants": [
@@ -85,10 +97,6 @@
       {
         "claim": "A claim without an in-context citation, or whose quote is not a normalised substring of the cited chunk, is dropped.",
         "test": "tests/test_citations.py"
-      },
-      {
-        "claim": "Ingest refuses a PDF whose SHA-256 differs from corpus.lock.json.",
-        "test": "tests/test_lock.py"
       },
       {
         "claim": "The refusal threshold comes from eval/calibration.json at boot and is never hand-tuned.",
@@ -108,10 +116,9 @@
       }
     ],
     "limits": [
-      "The free endpoint answered 8/24 answerable questions.",
-      "Citation precision and faithfulness are rule-based, rest on n=9, and reach down to 45.3%.",
-      "The calibration is fitted in-sample on the same 30 eval questions.",
-      "The eval set is 30 questions (24 answerable, 6 unanswerable); the intervals are wide."
+      "Citation precision and faithfulness are rule-based, rest on n=15, and reach down to 54.8%.",
+      "Calibration is fitted in-sample on the same 30 questions.",
+      "The eval set is 30 questions; the intervals are wide."
     ]
   }
 }

@@ -2,23 +2,24 @@
 kind: case-study
 order: 2
 title: CI/CD pipeline with gates that block and a recorded rollback
-oneLiner: "Eight PR gates feed one required ci-ok check; the local release lane builds, swaps, waits for health, proves five smoke assertions, and records a rollback."
+oneLiner: "Eight PR gates feed one required ci-ok check; the demo page starts the gate run, ships a bad image, and redeploys the previous release."
 stack:
   - GitHub Actions
   - Docker Buildx
   - Trivy
   - Fastify
   - PostgreSQL
-updatedAt: "2026-10-24"
 claim: >-
   The release lane gates on five live smoke assertions: a build that misses one
-  is rolled back to the previous release, and deploy.log records the order.
+  is rolled back to the previous release, and the hosted demo page records the
+  order.
 what: >-
   A Fastify invoice API on PostgreSQL 16 with a GitHub Actions workflow, a
-  Dockerfile and a local release script. The workflow defines eight gates and
-  a ci-ok aggregator; the release script swaps a current pointer, waits on
-  /health and /ready, runs five smoke assertions and rolls back to the previous
-  release when an assertion misses.
+  Dockerfile and a release script. The workflow defines eight gates and a ci-ok
+  aggregator; the hosted demo page dispatches the gate run, the bad-image run
+  and the rollback from a server-side token. The release lane swaps a current
+  pointer, waits on /health and /ready, runs five smoke assertions and
+  redeploys the previous release when an assertion misses.
 hardPart: >-
   A process can answer /health and /ready while its invoice route returns
   errors, and a release with no return path leaves that process in front of
@@ -48,11 +49,13 @@ failures:
       triggers rollback.start, restores the previous release, and re-runs the
       same smoke gate. deploy.log records every step in order.
 measured: >-
-  The local lane is measured: nine integration tests passed, the smoke gate
-  passed five of five assertions with /ready p95 7.7 ms, and deploy.log records
-  the rollback order. The workflow structure check found eight gates feeding
-  ci-ok and zero unpinned actions. The workflow is the source of the gate
-  topology; the local lane is the source of the runtime evidence.
+  Local run: nine integration tests passed, the smoke gate passed five of five
+  assertions with /ready p95 7.7 ms, and demo.txt records the rollback order.
+  The workflow structure check found 20 pinned actions and zero unpinned.
+  Green demo run 40929946794; red run 40930412365 stopped at bad-image-trivy
+  with 10 HIGH. A rollback moved Render from dep-dbhonnk9v7es73bg70f0 to
+  dep-dbhoo3rbc2fs73f1b85g and re-ran the assertions. The ruleset requires
+  ci-ok, so a direct push to master is refused.
 screenshots:
   - file: shot-01.webp
     caption: Rollback timeline read from deploy.log, deploy.start through rollback.smoke.ok.
@@ -61,10 +64,16 @@ screenshots:
   - file: shot-03.webp
     caption: "Local Trivy report of invoice-api:slim at CRITICAL and HIGH with ignore-unfixed — zero findings, exit 0; flags read from pr.yml."
 links:
-  - label: Rollback transcript
-    href: /assets/cicd-pipeline/proof/deploy.log
-  - label: Workflow structure check
-    href: /assets/cicd-pipeline/proof/docs/evidence/workflow-structure.txt
+  - label: Green demo run 40929946794
+    href: https://github.com/Amine-Gherbi/cicd-pipeline/actions/runs/40929946794
+  - label: Red demo run 40930412365
+    href: https://github.com/Amine-Gherbi/cicd-pipeline/actions/runs/40930412365
+  - label: Rollback transcript (GitHub)
+    href: https://github.com/Amine-Gherbi/cicd-pipeline/blob/master/deploy.log
+  - label: Workflow structure check (GitHub)
+    href: https://github.com/Amine-Gherbi/cicd-pipeline/blob/master/docs/evidence/workflow-structure.txt
+  - label: Deployed API
+    href: https://invoice-api-26b4.onrender.com
 tour:
   - file: hero.webp
     shortName: Release command

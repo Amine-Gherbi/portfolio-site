@@ -16,11 +16,11 @@ Missing is a supported state (card says "coming soon"): `src/lib/manifest.ts:80-
 **3. How is an invalid manifest caught before the build?**
 `npm run check:assets` runs `scripts/check-assets.mjs` before `astro build` inside `npm run verify` (`package.json`). It validates slug, `generatedAt`, `seeded`, shot count and order (`:53-54`, `:64-66`), dimensions (`:68`), alt text (`:71`), and that each shot exists (`:133`).
 
-**4. Why a `glob` loader rather than Markdown frontmatter?**
-The card fields are a contract shared with the asset pipeline (`projectSchema` at `src/lib/manifest.ts:9-15`). JSON keeps the shape identical to what `sync:assets` will write, so a schema change breaks one place, not two.
+**4. Why a loader rather than Markdown body content?**
+The card fields are a contract shared with the asset pipeline (`projectSchema` at `src/lib/manifest.ts`). The MDX frontmatter keeps the shape identical to what `sync:assets` writes, so a schema change breaks one place, not two.
 
-**5. How do you stop `updatedAt` from churning the diff every build?**
-It is committed content, not derived at build time: `src/content/projects/*.json` carries the date, and `src/pages/index.astro:29-31` only formats it. `grep -rn "Date.now" src` → no matches.
+**5. How do you keep a build timestamp out of the diff?**
+There is no build timestamp. `sync:assets` removes any legacy `updatedAt` field, the manifest contract accepts only an empty `generatedAt`, and `src/data/resume.json` carries no generation date. `grep -rnE "20[0-9]{2}-[0-9]{2}-[0-9]{2}" src public` → no matches.
 
 **6. Why is the positioning sentence in the template and not in content?**
 It is one sentence that must appear verbatim on the built page and be falsifiable against three projects; keeping it at `src/pages/index.astro:7-8` makes a change to it an explicit code change. Verification: `grep -c "I build full-stack systems" dist/index.html` → 1.
@@ -65,4 +65,4 @@ A 1440×900 screenshot captured from the built output exists at `_orchestration/
 The build fails: `src/lib/manifest.ts:21-22` uses `z.literal(2880)`/`z.literal(1800)`, and `scripts/check-assets.mjs:68` reports `must declare 2880x1800`. The reason for 2× is the retina card grid, not decoration.
 
 **20. What is the weakest part of this repository right now?**
-The content is fixture. Slugs (`ledger-lock`, `merge-gate`, `citation-desk`) do not match the real repos, the manifests carry no `proof{}` block, and `updatedAt` dates are invented. All three must be replaced in P5 before any claim on this site is true: **unverified**.
+The Marginalia card leads with the seeded corpus question: the visitor-upload path was planned in W2-c but is not deployed, so the manifest describes the action a visitor can actually take. The screenshot sets were captured before the live migration; their alt text records the seeded data. Both are recorded as reviewer flags in `_orchestration/runs/W4-a-result.md`.

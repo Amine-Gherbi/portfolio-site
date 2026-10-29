@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { parseCheckoutBody, placeOrder } from "@/lib/checkout";
+import { parseCheckoutBody } from "@/lib/checkout";
 
 import {
   createCartWithLine,
   createAddress,
   createUser,
   createVariant,
+  placeOrderForTest,
   resetDatabase,
   testDb,
 } from "./helpers";
@@ -39,7 +40,7 @@ describe("client-supplied prices", () => {
     }
     expect(parsed).not.toHaveProperty("totalCents");
 
-    const result = await placeOrder({ userId, ...parsed });
+    const result = await placeOrderForTest({ userId, ...parsed });
     expect(result.kind).toBe("created");
     if (result.kind !== "created") {
       throw new Error("expected a created order");
@@ -74,7 +75,7 @@ describe("client-supplied prices", () => {
       data: { priceCents: 3_000 },
     });
 
-    const result = await placeOrder({ userId, addressId, cartVersion: version });
+    const result = await placeOrderForTest({ userId, addressId, cartVersion: version });
     expect(result.kind).toBe("created");
     if (result.kind !== "created") {
       throw new Error("expected a created order");

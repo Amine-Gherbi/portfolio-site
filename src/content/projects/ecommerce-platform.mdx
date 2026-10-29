@@ -2,21 +2,20 @@
 kind: case-study
 order: 1
 title: E-commerce platform
-oneLiner: Search, authentication, cart and a server-priced checkout with a replayed payment webhook.
+oneLiner: A hosted storefront whose sandbox checkout moves an order to PAID through a signed Stripe webhook, with stock decided under concurrency.
 stack:
   - Next.js
   - TypeScript
   - PostgreSQL
   - Prisma
-updatedAt: "2026-10-24"
 claim: >-
   A recorded run of 20 concurrent checkouts against stock 5 created 5 orders
   and 15 rejections, leaving stock 0 and 5 open reservations.
 what: >-
   A seeded Next.js 15 storefront on PostgreSQL 16 with accounts, cart and
-  admin. Checkout turns a cart into an order, reserves stock and records a
-  payment webhook. The PaymentIntent is a locally generated pi_demo_* value
-  recorded by the webhook replay.
+  admin. Checkout turns a cart into an order, reserves stock and creates a
+  Stripe PaymentIntent from the total. A signed webhook moves the order to
+  PAID, and a recorded replay answers 200 duplicate.
 hardPart: >-
   Stock, price and idempotency are decided under concurrency. Reading stock
   then writing a reservation lets concurrent buyers observe the same last
@@ -46,25 +45,31 @@ failures:
       retry into the existing order. A zero-row update aborts the transaction
       as OUT_OF_STOCK.
 measured: >-
-  Four checkout invariants hold under test: a forged total is ignored; one
-  order exists per (userId, idempotencyKey); 20 concurrent checkouts on stock 5
-  produced 5 orders and 15 rejections; a replayed webhook is a 200 no-op. The
-  gate run recorded 181 tests across 33 files and 5 Playwright tests. The load
-  run measured p95 4.58 s over 250 checkout requests, with 2 P2028 timeouts.
+  Recorded hosted payment: order KST-2610-53808809, a 14900-cent PaymentIntent,
+  one signed webhook delivery, and a replay answering 200 duplicate. Four
+  invariants hold: a forged total is ignored; one order per (userId,
+  idempotencyKey); 20 concurrent checkouts on stock 5 produced 5 orders and 15
+  rejections; a replayed webhook is a 200 no-op. The gate recorded 181 tests
+  across 33 files and 5 Playwright tests. The load run measured p95 4.58 s over
+  250 requests, with 2 P2028 timeouts.
 screenshots:
   - file: shot-01.webp
-    caption: Headphones category beneath a header with no notice bar, with brand and price filters, a four-column grid of pale product tiles and from-prices.
+    caption: Headphones category with brand and price filters, a four-column grid of tiles and from-prices.
   - file: shot-02.webp
-    caption: Cart with two seeded lines at quantity 2 and 1, line totals, a server-computed summary and one teal checkout action.
+    caption: Cart with two seeded lines at quantity 2 and 1, line totals, a server-computed summary and one checkout action.
   - file: shot-03.webp
-    caption: Admin orders console with two seeded orders, customer, total, status and age columns, and a teal Filter action.
+    caption: Admin console with two orders, customer, total, status and age columns, and a Filter action.
 links:
-  - label: Concurrency transcript
-    href: /assets/ecommerce-platform/proof/docs/proof/concurrency-run.txt
-  - label: Checkout load report
-    href: /assets/ecommerce-platform/proof/docs/load/checkout.md
-  - label: Verification transcript
-    href: /assets/ecommerce-platform/proof/docs/proof/verify.txt
+  - label: Live payment proof (GitHub)
+    href: https://github.com/Amine-Gherbi/ecommerce-platform/blob/master/docs/PROOF.md#live-deployment
+  - label: Concurrency transcript (GitHub)
+    href: https://github.com/Amine-Gherbi/ecommerce-platform/blob/master/docs/proof/concurrency-run.txt
+  - label: Checkout load report (GitHub)
+    href: https://github.com/Amine-Gherbi/ecommerce-platform/blob/master/docs/load/checkout.md
+  - label: Verification transcript (GitHub)
+    href: https://github.com/Amine-Gherbi/ecommerce-platform/blob/master/docs/proof/verify.txt
+  - label: CI run 40081391256
+    href: https://github.com/Amine-Gherbi/ecommerce-platform/actions/runs/40081391256
 tour:
   - file: shot-01.webp
     shortName: Category grid

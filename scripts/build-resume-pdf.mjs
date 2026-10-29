@@ -2,8 +2,8 @@
 /**
  * Emits public/resume.pdf from src/data/resume.json — the same data the
  * /resume page renders. pdf-lib draws the text directly; no headless browser
- * and no HTML-to-PDF guesswork. Output is deterministic: the document dates
- * come from resume.generatedAt, never from the clock.
+ * and no HTML-to-PDF guesswork. The document carries no date metadata: the hub
+ * renders no timestamp, and a committed PDF should not acquire one.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -63,9 +63,6 @@ pdf.setTitle(`${ascii(resume.name)} - ${ascii(resume.role)}`);
 pdf.setAuthor(ascii(resume.name));
 pdf.setSubject("Resume");
 pdf.setProducer("scripts/build-resume-pdf.mjs");
-const generated = new Date(`${resume.generatedAt}T00:00:00.000Z`);
-pdf.setCreationDate(generated);
-pdf.setModificationDate(generated);
 
 let page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
 let y = PAGE_HEIGHT - MARGIN;

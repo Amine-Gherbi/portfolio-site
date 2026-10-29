@@ -27,6 +27,9 @@ const study = entry.data;
 assertCaseStudy(study, entry.id);
 
 const manifest = await readProjectManifest(entry.id);
+const live = manifest?.live ?? null;
+const liveHost = live ? new URL(live.url).host : null;
+const secondaryHost = live?.secondary ? new URL(live.secondary).host : null;
 const screenshots = study.screenshots.map((screenshot, index) => {
   const shot = manifest?.shots[index + 1];
   return { ...screenshot, shot };
@@ -102,6 +105,32 @@ const creativeWork = {
       <div class="case-meta">
         <p class="stack">({study.stack.join(", ")})</p>
       </div>
+      {
+        live && (
+          <div class="case-live">
+            <p class="kicker">Live</p>
+            <p class="case-live-action">
+              <a href={live.url} rel="noreferrer">{live.firstAction}</a>
+            </p>
+            <p class="case-live-links">
+              <a href={live.url} rel="noreferrer">{liveHost}</a>
+              {secondaryHost && (
+                <a href={live.secondary} rel="noreferrer">{secondaryHost}</a>
+              )}
+              <a href={live.repository} rel="noreferrer">View the code</a>
+            </p>
+            {live.credentials && (
+              <p class="case-live-credentials">
+                Demo sign-in <code>{live.credentials}</code>
+              </p>
+            )}
+            <p class="case-live-expect">What to expect on the free instance</p>
+            <ul class="case-live-limits">
+              {live.limits.map((limit) => <li>{limit}</li>)}
+            </ul>
+          </div>
+        )
+      }
       <p class="case-tour">
         <a href={`/projects/${entry.id}/tour/`}>Five-step walkthrough</a>
       </p>

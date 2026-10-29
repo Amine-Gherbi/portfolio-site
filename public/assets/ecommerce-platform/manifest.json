@@ -1,7 +1,7 @@
 {
   "project": "ecommerce-platform",
   "title": "E-commerce platform",
-  "oneLiner": "Search, authentication, cart and a server-priced checkout with a replayed payment webhook.",
+  "oneLiner": "A hosted storefront whose sandbox checkout moves an order to PAID through a signed Stripe webhook, with stock decided under concurrency.",
   "stack": [
     "Next.js",
     "TypeScript",
@@ -10,6 +10,17 @@
   ],
   "generatedAt": "",
   "seeded": true,
+  "live": {
+    "url": "https://kestrel-store.onrender.com",
+    "firstAction": "Pay with the sandbox card 4242 4242 4242 4242 and watch the order move to PAID.",
+    "credentials": "demo@kestrel.test / demo-password-123",
+    "repository": "https://github.com/Amine-Gherbi/ecommerce-platform",
+    "limits": [
+      "The free instance sleeps after 15 minutes idle and takes about a minute to wake.",
+      "Payments run in Stripe test mode with the 4242 card; no money moves.",
+      "The catalogue is seeded: 30 products, 4 categories and 22 brands."
+    ]
+  },
   "demoLogin": "demo@kestrel.test / demo-password-123",
   "previewCommand": "npm run dev",
   "previewPort": 3000,
@@ -42,28 +53,28 @@
   "proof": {
     "measured": [
       {
-        "label": "Checkout latency, 50 concurrent virtual users",
-        "value": "p50 2000 ms · p95 2660 ms · p99 2880 ms",
-        "method": "k6 load/checkout.js against localhost:3000 on this Windows 11 machine, 50 VUs, 250 checkouts in a 1-minute run",
-        "artifact": "docs/load/checkout.md"
+        "label": "Hosted sandbox payment",
+        "value": "order KST-2610-53808809 PAID · 14900 cents · replay 200 duplicate",
+        "method": "node scripts/live-payment-proof.mjs against the hosted store with Stripe test keys; order and webhook detail in docs/PROOF.md",
+        "artifact": "scripts/live-payment-proof.mjs"
       },
       {
-        "label": "Orders created by 20 concurrent checkouts on stock 5",
-        "value": "5 orders · 15 rejected · stock 0 · 5 open reservations",
-        "method": "npx vitest run tests/integration/checkout.oversell.test.ts, real Postgres on shop_test",
-        "artifact": "docs/proof/concurrency-run.txt"
+        "label": "Checkout concurrency on stock 5",
+        "value": "5 orders · 15 rejections · stock 0 · 5 open reservations",
+        "method": "npx vitest run tests/integration/checkout.oversell.test.ts against PostgreSQL 16; transcript in docs/proof/concurrency-run.txt",
+        "artifact": "tests/integration/checkout.oversell.test.ts"
       },
       {
-        "label": "Hub screenshot set",
-        "value": "4 images · 2880x1800 · 291-470 KB each",
-        "method": "npm run assets (Playwright at 1440x900 CSS px, deviceScaleFactor 2) against npm run build && npm run start after npx prisma db seed -- --seed 42",
-        "artifact": "docs/proof/screenshots.txt"
+        "label": "Checkout load, 50 virtual users",
+        "value": "p95 4.58 s · 250 checkout requests · 248 orders · 2 P2028",
+        "method": "k6 run load/checkout.js, 50 virtual users x 5 iterations against a production next start; summary in docs/load/checkout.md",
+        "artifact": "load/checkout.js"
       },
       {
         "label": "Verification gate",
-        "value": "exit 0: eslint, tsc, vitest, prisma diff, Playwright",
-        "method": "npm run verify on this Windows 11 machine",
-        "artifact": "docs/proof/verify.txt"
+        "value": "181 tests · 33 files · 5 Playwright tests",
+        "method": "npm run verify (eslint, tsc, vitest, prisma migrate diff, Playwright)",
+        "artifact": "package.json"
       }
     ],
     "invariants": [
@@ -93,9 +104,9 @@
       }
     ],
     "limits": [
-      "Single-node PostgreSQL 16 on one Windows 11 machine; load numbers do not transfer to a managed database.",
-      "Payments are Stripe test mode; without a key the PaymentIntent is a local pi_local_* value.",
-      "No partial refunds, tax engine, shipping rates or email delivery; the refund path is all-or-nothing."
+      "The live checkout is one Stripe test-mode order; the load numbers come from a local build.",
+      "A checkout serialises on the variant row; concurrent buyers queue behind the conditional UPDATE.",
+      "No partial refunds, tax engine, shipping rates or email; refunds are all-or-nothing."
     ]
   }
 }

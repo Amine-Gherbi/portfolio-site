@@ -1,7 +1,7 @@
 {
   "project": "cicd-pipeline",
   "title": "CI/CD pipeline with gates that block and a recorded rollback",
-  "oneLiner": "Eight PR gates feed one required ci-ok check; the local release lane builds, swaps, waits for health, proves five smoke assertions, and records a rollback.",
+  "oneLiner": "Eight PR gates feed one required ci-ok check; the demo page starts the gate run, ships a bad image, and redeploys the previous release.",
   "stack": [
     "GitHub Actions",
     "Docker Buildx",
@@ -9,7 +9,19 @@
     "Fastify",
     "PostgreSQL"
   ],
+  "generatedAt": "",
   "seeded": true,
+  "live": {
+    "url": "https://pipeline-demo-57mh.onrender.com",
+    "secondary": "https://invoice-api-26b4.onrender.com",
+    "firstAction": "Click Run the gates and watch each job turn green.",
+    "repository": "https://github.com/Amine-Gherbi/cicd-pipeline",
+    "limits": [
+      "The free instance sleeps after 15 minutes idle and takes about a minute to wake.",
+      "The demo page starts one action at a time; the buttons stay disabled while a run is in flight.",
+      "A full gate run takes several minutes and spends the repository's Actions minutes."
+    ]
+  },
   "shots": [
     {
       "file": "hero.webp",
@@ -39,40 +51,34 @@
   "proof": {
     "measured": [
       {
-        "label": "Integration tests",
-        "value": "9/9 integration tests passed; verify: ok; exit 0",
-        "method": "bash scripts/verify.sh (eslint, tsc --noEmit, vitest run)",
-        "artifact": "docs/evidence/verify-latest.txt"
-      },
-      {
-        "label": "Smoke gate",
-        "value": "2 runs passed 5/5 smoke assertions (healthy release and rollback); /ready p95 23.1 ms",
-        "method": "bash scripts/demo.sh against the local release on 127.0.0.1:8787",
+        "label": "Release, broken release and rollback",
+        "value": "healthy 5/5 · broken smoke FAIL · rollback 5/5",
+        "method": "bash scripts/demo.sh against the local release on 127.0.0.1:8787; summary in docs/evidence/demo.txt",
         "artifact": "docs/evidence/demo.txt"
       },
       {
-        "label": "Rollback ordering",
-        "value": "deploy.start → health.ok → smoke.fail → rollback.start → rollback.health.ok → rollback.smoke.ok",
-        "method": "read deploy.log in file order; elapsed seconds computed from the recorded timestamps",
-        "artifact": "deploy.log"
+        "label": "Smoke gate",
+        "value": "5/5 assertions · /ready p95 7.7 ms",
+        "method": "bash scripts/smoke.sh against the local release; five named behaviours",
+        "artifact": "docs/evidence/smoke.txt"
       },
       {
         "label": "Image scan",
-        "value": "0 CRITICAL/HIGH findings across 68 targets with ignore-unfixed; exit 0",
+        "value": "0 CRITICAL/HIGH findings with ignore-unfixed · exit 0",
         "method": "trivy image --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 invoice-api:slim",
         "artifact": "docs/evidence/trivy-local.txt"
       },
       {
         "label": "Workflow structure",
-        "value": "9 jobs including ci-ok; 0 unpinned uses",
+        "value": "9 jobs incl. ci-ok · 20 pinned uses · 0 unpinned",
         "method": "node structural check over .github/workflows/pr.yml",
         "artifact": "docs/evidence/workflow-structure.txt"
       },
       {
-        "label": "Docker daemon",
-        "value": "Docker 28.1.1, linux/x86_64; the image was built and scanned locally",
-        "method": "docker info",
-        "artifact": "docs/evidence/docker-info-latest.txt"
+        "label": "Verification gate",
+        "value": "9/9 integration tests · verify: ok · exit 0",
+        "method": "bash scripts/verify.sh (eslint, tsc --noEmit, vitest run)",
+        "artifact": "docs/evidence/verify-latest.txt"
       }
     ],
     "invariants": [
@@ -90,10 +96,9 @@
       }
     ],
     "limits": [
-      "The GitHub Actions lane is defined by pr.yml; the runtime evidence comes from the local release lane, and git remote -v is empty.",
-      "The Actions PostgreSQL service container is configured separately from local PostgreSQL 16.",
-      "Rollback returns one release and is built for expand/contract migrations.",
-      "The local service runs at http://127.0.0.1:8787."
+      "A full run spends the repository's Actions minutes.",
+      "The Actions PostgreSQL service is configured separately from local PostgreSQL 16.",
+      "Rollback returns one release and is built for expand/contract migrations."
     ]
   }
 }

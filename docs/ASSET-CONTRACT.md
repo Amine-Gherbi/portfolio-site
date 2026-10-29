@@ -44,9 +44,9 @@ that every cited file exists. Paths must be relative, use `/`, and contain no
 
 - `npm run sync:assets -- --from P:/portfolio/_shared/assets` — validates every
   source manifest first, then copies the manifest, shots and proof files, and
-  rewrites only `title`, `oneLiner`, `stack`, `updatedAt` in the matching MDX
-  frontmatter. Prose is never touched. Any invalid source manifest aborts the
-  whole run before a single write.
+  rewrites only `title`, `oneLiner` and `stack` in the matching MDX
+  frontmatter. A legacy `updatedAt` is removed. Prose is never touched. Any
+  invalid source manifest aborts the whole run before a single write.
 - `npm run check:assets` — validates the committed snapshot. A **missing**
   manifest is the supported "coming soon" state (exit 0). An **invalid**
   manifest, an absent shot or an absent proof file exits 1 with the field named.
@@ -59,12 +59,15 @@ committed snapshot. A `--repo <slug>=<path>` or `--repo-root <path>` overrides
 source repository lookup; otherwise sync uses `<source>/.git`, then
 `<from>/../../<slug>/.git`.
 
-## updatedAt
+## Dates
 
-Sync runs `git -C <source repo> log -1 --format=%cI` and writes the date part
-(`YYYY-MM-DD`) into the MDX `updatedAt` field. It never calls `now()`. Running
-sync twice on unchanged assets produces no byte change; the repository's
-`git status --porcelain` stays empty after the first result is committed.
+Sync writes no timestamp. If an older snapshot still carries `updatedAt` in
+the MDX frontmatter, sync removes that line; the manifest contract accepts only
+an empty `generatedAt`. The check is
+`grep -rnE "20[0-9]{2}-[0-9]{2}-[0-9]{2}" src public`, which prints nothing.
+Running sync twice on unchanged assets produces no byte change; the
+repository's `git status --porcelain` stays empty after the first result is
+committed.
 
 ## Current snapshot
 

@@ -7,16 +7,11 @@ import {
   resolveInside,
 } from "./manifest-schema.mjs";
 
-const isoDate = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "expected an ISO date (YYYY-MM-DD)");
-
 export const projectSchema = z.object({
   order: z.number().int().positive(),
   title: z.string().min(1).max(80),
   oneLiner: z.string().min(1).max(180),
   stack: z.array(z.string().min(1).max(48)).min(1).max(6),
-  updatedAt: isoDate,
 });
 
 export type Project = z.infer<typeof projectSchema>;
@@ -27,6 +22,7 @@ export { projectManifestSchema };
 
 export type ProjectManifest = z.infer<typeof projectManifestSchema>;
 export type ManifestShot = ProjectManifest["shots"][number];
+export type ManifestLive = ProjectManifest["live"];
 export type ManifestProof = ProjectManifest["proof"];
 
 const assetsRoot = path.join(process.cwd(), "public", "assets");

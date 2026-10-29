@@ -136,10 +136,6 @@ function filled(value) {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-function isIsoDate(value) {
-  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
-}
-
 function parseFrontmatter(raw, filePath) {
   const match = FRONTMATTER.exec(raw);
   if (!match) {
@@ -311,9 +307,6 @@ function validateCommon(study, label, errors) {
   }
   if (!Array.isArray(study.stack) || study.stack.length === 0) {
     errors.push("stack: at least one stack entry is required");
-  }
-  if (!isIsoDate(study.updatedAt)) {
-    errors.push("updatedAt: updatedAt must be YYYY-MM-DD");
   }
 
   return true;

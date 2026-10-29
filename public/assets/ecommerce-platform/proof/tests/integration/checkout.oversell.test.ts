@@ -1,10 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { placeOrder } from "@/lib/checkout";
-
 import {
   createOrderAttempt,
   createVariant,
+  placeOrderForTest,
   resetDatabase,
   testDb,
 } from "./helpers";
@@ -22,7 +21,9 @@ describe("20 concurrent checkouts against stock 5", () => {
       attempts.push(await createOrderAttempt({ variantId }));
     }
 
-    const results = await Promise.all(attempts.map((attempt) => placeOrder(attempt)));
+    const results = await Promise.all(
+      attempts.map((attempt) => placeOrderForTest(attempt)),
+    );
 
     const created = results.filter((result) => result.kind === "created");
     const outOfStock = results.filter(

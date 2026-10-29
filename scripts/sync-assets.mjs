@@ -5,11 +5,11 @@
  *
  *   npm run sync:assets -- --from P:/portfolio/_shared/assets
  *
- * Owned outputs only: public/assets/<slug>/** plus the four frontmatter fields
- * title, oneLiner, stack and updatedAt. Prose is never rewritten.
+ * Owned outputs only: public/assets/<slug>/** plus the three frontmatter fields
+ * title, oneLiner and stack. Prose is never rewritten.
  *
- * updatedAt comes from `git log -1 --format=%cI` in the source repository and
- * is written as its YYYY-MM-DD date. Nothing here calls now(), so re-running on
+ * No date is written anywhere: the hub renders no timestamp, so sync removes
+ * any legacy updatedAt field instead of sourcing one from git. Re-running on
  * unchanged assets produces no diff.
  *
  * Flags:
@@ -22,7 +22,6 @@
  * Discovery: direct children of --from. Underscore-prefixed directories,
  * including _fixtures, are ignored: fixtures must never reach the snapshot.
  */
-import { execFileSync } from "node:child_process";
 import {
   access,
   copyFile,
@@ -136,25 +135,6 @@ async function discoverProjects(fromDirectory) {
   return projects;
 }
 
-function readCommitTimestamp(repoPath) {
-  try {
-    const output = execFileSync(
-      "git",
-      ["-C", repoPath, "log", "-1", "--format=%cI"],
-      { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
-    ).trim();
-    if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(output)) {
-      throw new Error(`unexpected output "${output}"`);
-    }
-    return output;
-  } catch (error) {
-    const detail = error instanceof Error ? error.message.split("\n")[0] : String(error);
-    throw new SyncError(
-      `no git commit date for source repository ${repoPath} (${detail}); pass --repo <slug>=<path> or --repo-root <path>`,
-    );
-  }
-}
-
 async function resolveRepoRoot(project, options, fromDirectory) {
   if (options.repos.has(project.slug)) {
     return options.repos.get(project.slug);
@@ -203,9 +183,14 @@ function replaceStack(frontmatter, stack) {
   return `${frontmatter}\n${rendered}`;
 }
 
+function removeScalar(frontmatter, key) {
+  return frontmatter.replace(new RegExp(`^${key}:[^\\n]*\\n?`, "m"), "");
+}
+
 /**
- * Rewrites only the four fields sync owns. Every other byte of the file,
- * including all prose fields and body, is preserved verbatim.
+ * Rewrites only the three fields sync owns and removes a legacy updatedAt.
+ * Every other byte of the file, including all prose fields and body, is
+ * preserved verbatim.
  */
 function updateFrontmatter(raw, slug, fields) {
   const match = FRONTMATTER.exec(raw);
@@ -217,7 +202,7 @@ function updateFrontmatter(raw, slug, fields) {
   frontmatter = replaceScalar(frontmatter, "title", fields.title);
   frontmatter = replaceScalar(frontmatter, "oneLiner", fields.oneLiner);
   frontmatter = replaceStack(frontmatter, fields.stack);
-  frontmatter = replaceScalar(frontmatter, "updatedAt", fields.updatedAt);
+  frontmatter = removeScalar(frontmatter, "updatedAt");
 
   let parsed;
   try {
@@ -229,9 +214,9 @@ function updateFrontmatter(raw, slug, fields) {
     parsed?.title !== fields.title ||
     parsed?.oneLiner !== fields.oneLiner ||
     JSON.stringify(parsed?.stack) !== JSON.stringify(fields.stack) ||
-    parsed?.updatedAt !== fields.updatedAt
+    (parsed !== null && typeof parsed === "object" && "updatedAt" in parsed)
   ) {
-    throw new SyncError(`${slug}: sync could not set the four owned frontmatter fields`);
+    throw new SyncError(`${slug}: sync could not set the three owned frontmatter fields`);
   }
 
   return `${match[1]}${frontmatter}${match[3]}`;
@@ -323,16 +308,10 @@ async function planProject(project, options, fromDirectory) {
   }
 
   let proofFiles = new Map();
-  let updatedAt = null;
   if (repoRoot !== null) {
     const proof = await collectProofFiles(manifest, repoRoot);
     proofFiles = proof.files;
     errors.push(...proof.errors);
-    try {
-      updatedAt = readCommitTimestamp(repoRoot).slice(0, 10);
-    } catch (error) {
-      errors.push(error instanceof Error ? error.message : String(error));
-    }
   }
 
   if (errors.length > 0) {
@@ -346,7 +325,6 @@ async function planProject(project, options, fromDirectory) {
     manifest,
     rawManifest,
     proofFiles,
-    updatedAt,
   };
 }
 
@@ -397,11 +375,10 @@ async function applyProject(plan, options) {
       title: plan.manifest.title,
       oneLiner: plan.manifest.oneLiner,
       stack: plan.manifest.stack,
-      updatedAt: plan.updatedAt,
     });
     if (updated !== original) {
       actions.push(
-        `src/content/projects/${plan.slug}.mdx (title, oneLiner, stack, updatedAt)`,
+        `src/content/projects/${plan.slug}.mdx (title, oneLiner, stack)`,
       );
       if (!options.dryRun) {
         await writeFile(pagePath, updated, "utf8");
@@ -454,7 +431,7 @@ async function main() {
   for (const plan of plans) {
     writes += await applyProject(plan, options);
     console.log(
-      `[sync] ${plan.slug}: source ${plan.repoRoot}, updatedAt ${plan.updatedAt}`,
+      `[sync] ${plan.slug}: source ${plan.repoRoot}`,
     );
   }
 

@@ -9,7 +9,7 @@
  */
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { cp, mkdtemp, mkdir, readFile, rm, unlink, writeFile } from "node:fs/promises";
+import { cp, mkdtemp, mkdir, readdir, readFile, rm, unlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -216,7 +216,7 @@ async function makeSourceRepo(mutate) {
 
   // Rebuild the source layout: the snapshot stores proof files under proof/,
   // while the source repo keeps the same paths at its root.
-  for (const entry of ["docs", "tests"]) {
+  for (const entry of await readdir(path.join(COMMITTED_SNAPSHOT, "proof"))) {
     await cp(
       path.join(COMMITTED_SNAPSHOT, "proof", entry),
       path.join(source, entry),
@@ -277,7 +277,7 @@ function sync(sourceParent, targetRoot) {
   return runScript(SYNC_SCRIPT, ["--from", sourceParent, "--root", targetRoot], {});
 }
 
-test("sync copies manifest, shots and proof, and sets only the four owned fields", async () => {
+test("sync copies manifest, shots and proof, and sets only the three owned fields", async () => {
   const source = await makeSourceRepo((context) => {
     context.manifest.title = "Ecommerce Sync";
     context.manifest.oneLiner = "A synced one-liner.";
@@ -326,7 +326,7 @@ test("sync copies manifest, shots and proof, and sets only the four owned fields
     assert.match(page, /^title: Ecommerce Sync$/m);
     assert.match(page, /^oneLiner: A synced one-liner\.$/m);
     assert.match(page, /^stack:\n  - Next\.js\n  - TypeScript\n  - PostgreSQL$/m);
-    assert.match(page, new RegExp(`^updatedAt: "2026-05-04"$`, "m"));
+    assert.doesNotMatch(page, /^updatedAt:/m);
     assert.match(page, /^claim: >-\n  Prose stays put\.$/m);
     assert.match(page, /Body prose stays put\./);
     assert.doesNotMatch(page, /Old title/);
@@ -345,7 +345,8 @@ test("sync is idempotent: a second run changes no bytes", async () => {
     const files = [
       "public/assets/ecommerce-platform/manifest.json",
       "public/assets/ecommerce-platform/hero.webp",
-      "public/assets/ecommerce-platform/proof/docs/load/checkout.md",
+      "public/assets/ecommerce-platform/proof/scripts/live-payment-proof.mjs",
+      "public/assets/ecommerce-platform/proof/tests/integration/checkout.forged-price.test.ts",
       "src/content/projects/ecommerce-platform.mdx",
     ];
     const before = await Promise.all(

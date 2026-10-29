@@ -113,6 +113,23 @@ const proofSchema = z.object({
 });
 
 /**
+ * The live block names the deployment a visitor can open and the single action
+ * worth trying first. It is required: the hub describes running systems, so a
+ * snapshot without a reachable URL and a first action is incomplete.
+ */
+const liveSchema = z.object({
+  url: z.string().url("live.url must be an absolute URL"),
+  secondary: z.string().url("live.secondary must be an absolute URL").optional(),
+  firstAction: requiredText("live.firstAction", 180),
+  credentials: requiredText("live.credentials", 160).optional(),
+  repository: z.string().url("live.repository must be an absolute URL"),
+  limits: z
+    .array(requiredText("live.limits[]", 240))
+    .min(2, "live.limits must contain at least 2 entries")
+    .max(4, "live.limits must contain at most 4 entries"),
+});
+
+/**
  * A demo block is optional and never required for a snapshot to be valid. A
  * project may describe how it is previewed locally, but a missing demo is not
  * a contract failure and an invalid one remains a failure.
@@ -162,6 +179,7 @@ export const projectManifestSchema = z
     seeded: z.literal(true, {
       errorMap: () => ({ message: "seeded must be true" }),
     }),
+    live: liveSchema,
     demo: demoSchema.optional(),
     demoUrl: z.string().url("demoUrl must be an absolute URL").optional(),
     demoLogin: z.unknown().optional(),

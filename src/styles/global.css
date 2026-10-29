@@ -476,6 +476,85 @@ main {
   color: var(--muted);
 }
 
+/* The live block comes before the walkthrough: a visitor can open the
+   deployment and try the one action without reading the case study first. */
+
+.case-live {
+  max-width: var(--measure);
+  margin-top: 24px;
+  padding: 16px 20px 18px;
+  background: #f1ede5;
+  border-left: 3px solid var(--accent);
+}
+
+.case-live .kicker {
+  margin-bottom: 4px;
+}
+
+.case-live-action {
+  font-family: var(--serif);
+  font-size: var(--text-title);
+  line-height: 1.35;
+}
+
+.case-live-action a {
+  text-decoration-thickness: 1px;
+}
+
+.case-live-action a:hover {
+  color: var(--accent);
+}
+
+.case-live-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 20px;
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.case-live-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.case-live-credentials {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.case-live-credentials code {
+  color: var(--ink);
+}
+
+.case-live-expect {
+  margin-top: 12px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.case-live-limits {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.case-live-limits li + li {
+  margin-top: 4px;
+}
+
 .case-tour {
   margin-top: 16px;
 }
