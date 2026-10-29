@@ -11,57 +11,56 @@ stack:
   - PDF.js
   - ONNX Runtime
 claim: >-
-  The keyed production eval measured retrieval recall@8 at 18/24 (75.0%), the
-  answer rate at 15/24 (62.5%), refusal of unanswerable questions at 6/6, and
-  citation precision and faithfulness at 13/15 and 12/15.
+  The keyed eval measured retrieval recall@8 at 18/24 (75.0%), the answer rate
+  at 15/24 (62.5%), refusal of unanswerable questions at 6/6, and citation
+  precision and faithfulness at 13/15 and 12/15.
 what: >-
   A Python 3.12 FastAPI service with PostgreSQL 16 and pgvector, served with a
   React reader. Ingest refuses a PDF whose SHA-256 differs from
   corpus.lock.json; retrieval fuses embeddings and lexical search, then
   reranks; the answer path keeps a claim when its quote appears in the cited
-  chunk and drops it otherwise. The /ready report counts five papers and 260
-  chunks.
+  chunk and drops it otherwise.
 hardPart: >-
   A retrieval answer is easy to make plausible and hard to check. A claim can
   cite a passage outside the retrieved set, quote text outside the cited chunk,
-  or survive a question the corpus holds no evidence for. The refusal path is
-  what makes an answer checkable.
+  or survive a question the corpus holds no evidence for. The refusal path
+  makes answers checkable.
 decision:
   title: An uncited claim is dropped, not repaired
   choice: >-
     Validate each claim against its citations, require a verbatim quote from
-    the cited chunk, and drop the claim on either failure.
+    the cited chunk, and drop it on either failure.
   rejected: >-
     Generate first, then attach the nearest passage; a citation added
-    afterwards can point at text outside the claim.
+    afterwards can miss the claim.
   cost: >-
     The validator drops a reply whose quote is not a verbatim substring, so the
     answer rate is 15/24.
   evidence: >-
-    The citation tests cover the rejection path; the eval records answer rate,
-    citation precision and faithfulness for every run.
+    The citation tests cover the rejection path; the eval records answer rate
+    and both citation rates.
 failures:
   - summary: >-
       A fluent answer cites a passage outside the retrieved set, or quotes text
       outside the chunk it names.
     mechanism: >-
-      Every claim is validated against its citations: the cited passage must be
-      in the retrieved context, and the quote must be a verbatim substring of
-      that chunk. A claim that misses either check is dropped before the answer
-      is returned; the refusal threshold is read from eval/calibration.json at
+      Every claim is validated against its citations: the passage must be in
+      the retrieved context, and the quote a verbatim substring of that chunk.
+      A claim that misses either check is dropped before the answer is
+      returned; the refusal threshold is read from eval/calibration.json at
       boot.
 measured: >-
   The keyed eval measured the five gates: recall@8 18/24, answer rate 15/24,
   refusal 6/6, citation precision 13/15 and faithfulness 12/15. The run took
   710.3 s with 26 model requests, 0 retries and 0 rate limits. The hosted /ask
-  answered in 27.5 s with a citation on page 8 of the Sentence-BERT paper.
+  answered in 27.5 s with a citation on page 8.
 screenshots:
   - file: shot-01.webp
-    caption: "Citation view: claim 1 quote marked on page 3, beside the three-claim answer and source list."
+    caption: "Sentence-BERT paper page 1 with citation 1 selected: the quote is marked in the page text, and the answer pane lists three claims above their sources."
   - file: shot-02.webp
-    caption: Retrieval trail overlay with rank, score, evidence probability, included status, passage and the final decision.
+    caption: "Visitor upload panel: northwind-field-guide.pdf at the Parsing the PDF stage, beneath the model disclosure, the drop zone and the 25 MB and 80-page caps."
   - file: shot-03.webp
-    caption: Evaluation page with per-gate rates, counts, 95% confidence ranges and where each question stopped.
+    caption: "Uploaded field guide open on page 4: the Alder-9 recalibration sentence is highlighted with margin marker 1, and the source row names the uploaded file."
 links:
   - label: Hosted API proof (GitHub)
     href: https://github.com/Amine-Gherbi/docqa-assistant/blob/master/docs/PROOF.md#hosted-pair
@@ -75,41 +74,41 @@ links:
     href: https://marginalia-ui.onrender.com
 tour:
   - file: hero.webp
-    shortName: Cited answer
-    heading: One answer, one cited quote
+    shortName: Ask page
+    heading: The ask page names the model
     body: >-
-      The reader shows page 2 of the Sentence-BERT paper with citation 2
-      highlighted in the margin and the matching source row in the answer pane.
-      The claim above the sources is the sentence the quote supports.
+      The landing page sets the seeded Sentence-BERT paper beside a right column
+      with the third-party model disclosure, the Choose a PDF drop zone and the
+      24-hour deletion notice. The question field sits beneath them, above a
+      three-claim recorded answer with its source rows.
   - file: shot-01.webp
-    shortName: Three claims
-    heading: Three claims, three highlighted quotes
+    shortName: Cited page
+    heading: Citation 1 resolves on page 1
     body: >-
-      Page 3 carries the selected quote for claim 1, and the answer pane lists
-      claims 1 through 3 above three source rows. Each row names a page and
-      shows the start of the quote it matched.
+      Selecting claim 1 opens page 1 of the Sentence-BERT paper and marks the
+      quoted sentence in the page text with a margin marker. The same quote
+      appears in the selected source row, so the answer pane and the page agree.
   - file: shot-02.webp
-    shortName: Retrieval trail
-    heading: The retrieval trail behind the answer
+    shortName: Upload stage
+    heading: The stage line names the parse
     body: >-
-      The overlay reports 3 of 3 claims passed and 0 removed for a quote
-      mismatch. The second-pass table gives each passage a page, score,
-      evidence probability and INCLUDED status, and the final decision reads
-      ANSWERED at a threshold of 0.2552.
+      A visitor drops northwind-field-guide.pdf into the upload panel, and the
+      stage line on the page reads Parsing the PDF. The disclosure above the
+      drop zone names the third-party model, the 25 MB upload cap and the
+      80-page limit, and the notice says the file is deleted after 24 hours.
   - file: shot-03.webp
-    shortName: Evaluation
-    heading: The evaluation table behind the claim
+    shortName: Uploaded page
+    heading: The visitor's page answers the question
     body: >-
-      The report lists 30 questions, 24 answerable and 6 unanswerable, with a
-      rate, a denominator and a Wilson 95% range for each gate. The check
-      column marks each gate and the last row counts where each question
-      stopped.
-  - file: shot-03.webp
-    shortName: Edge cases
-    heading: Three cases where the pipeline withholds
+      The uploaded field guide opens on page 4 with the Alder-9 recalibration
+      sentence highlighted and margin marker 1 beside it. The source row names
+      northwind-field-guide.pdf, so the citation resolves against the visitor's
+      own document.
+  - file: shot-01.webp
+    shortName: Claims and sources
+    heading: Each claim carries its source
     body: >-
-      The bottom strip names a plausible near miss that is withheld, a fluent
-      claim that is removed because its quote is outside the cited chunk, and a
-      rare term that keyword search finds. Each column records a different
-      outcome.
+      The answer pane lists three claims, and each one lists the page and the
+      start of the quote it matched. The selected row is the one whose quote is
+      marked in the page text on the left.
 ---

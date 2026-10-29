@@ -31,11 +31,11 @@ decision:
     After the health wait, run five smoke assertions and roll back when any
     assertion misses, then re-smoke the restored release.
   rejected: >-
-    Treat healthy /health and /ready responses as success; a process can answer
-    both while its invoice route returns errors.
+    Treat /health and /ready as success; a process can answer both while its
+    invoice route returns errors.
   cost: >-
-    Every release pays for five live assertions and a rollback restart, and
-    rollback returns to the previous release.
+    Every release pays for five assertions and a rollback restart, and rollback
+    returns to the previous release.
   evidence: >-
     deploy.log records deploy.start, health.ok, smoke.fail, rollback.start,
     rollback.health.ok, rollback.smoke.ok.
@@ -45,24 +45,23 @@ failures:
       errors, or a release is promoted with no way back to the previous build.
     mechanism: >-
       The release lane swaps the current pointer, waits on /health and /ready,
-      then runs five smoke assertions against the live service; any miss
-      triggers rollback.start, restores the previous release, and re-runs the
-      same smoke gate. deploy.log records every step in order.
+      then runs five smoke assertions; any miss triggers rollback.start,
+      restores the previous release, and re-runs the same smoke gate. deploy.log
+      records every step.
 measured: >-
-  Local run: nine integration tests passed, the smoke gate passed five of five
+  Local run: nine integration tests passed, the smoke gate passed 5/5
   assertions with /ready p95 7.7 ms, and demo.txt records the rollback order.
   The workflow structure check found 20 pinned actions and zero unpinned.
   Green demo run 40929946794; red run 40930412365 stopped at bad-image-trivy
   with 10 HIGH. A rollback moved Render from dep-dbhonnk9v7es73bg70f0 to
-  dep-dbhoo3rbc2fs73f1b85g and re-ran the assertions. The ruleset requires
-  ci-ok, so a direct push to master is refused.
+  dep-dbhoo3rbc2fs73f1b85g.
 screenshots:
   - file: shot-01.webp
-    caption: Rollback timeline read from deploy.log, deploy.start through rollback.smoke.ok.
+    caption: "Demo page mid-run: the gate card reads running under run 40948040956, and image, lint, test (22), migration-gate, typecheck, bundle-size and git-leaks each read in progress."
   - file: shot-02.webp
-    caption: "Verification transcript — ESLint, tsc --noEmit and nine integration tests; verify: ok."
+    caption: "Rollback on the demo page: six steps from deploy.start to rollback.smoke.ok, with dep-dbhpqeeqcfc7384uzc0 live and dep-dbhpq88b9cc7c7394bfg previous."
   - file: shot-03.webp
-    caption: "Local Trivy report of invoice-api:slim at CRITICAL and HIGH with ignore-unfixed — zero findings, exit 0; flags read from pr.yml."
+    caption: "Bad-image run: the build job reports success, the Trivy job reports a HIGH finding, and the banner names bad-image-trivy while the run finishes red."
 links:
   - label: Green demo run 40929946794
     href: https://github.com/Amine-Gherbi/cicd-pipeline/actions/runs/40929946794
@@ -76,42 +75,44 @@ links:
     href: https://invoice-api-26b4.onrender.com
 tour:
   - file: hero.webp
-    shortName: Release command
-    heading: One command, two releases
+    shortName: Three actions
+    heading: Three actions and one live panel
     body: >-
-      The left pane is a recorded healthy release: five smoke assertions pass
-      and the process serves on port 8787. The right pane is a deliberately
-      broken release whose invoice request returns 500, so three of five
-      assertions miss and the script rolls back.
+      The demo page lists Run the gates, Ship a bad image and Roll back as three
+      cards, each with the command it dispatches. The Live panel beside them
+      reports no action running, and the recent-runs table lists the last three
+      gate runs with their outcomes.
   - file: shot-01.webp
-    shortName: Rollback timeline
-    heading: The rollback timeline, second by second
+    shortName: Mid-run
+    heading: The job list turns under a run
     body: >-
-      Lane A shows the healthy deploy moving from deploy.start to health.ok and
-      smoke.ok. Lane B records smoke.fail and rollback.start at 23 seconds into
-      the run, rollback.health.ok at 30 seconds and rollback.smoke.ok at 42
-      seconds.
+      The demo page opens run 40948040956 with the image job, then lint, test
+      (22), migration-gate, typecheck, bundle-size and git-leaks. Each row
+      carries a turning dot and reads in progress while the status line says
+      action in flight.
   - file: shot-02.webp
-    shortName: Verification
-    heading: Verification runs lint, types and tests
+    shortName: Rollback
+    heading: Six steps and two deploy ids
     body: >-
-      The transcript runs ESLint, tsc --noEmit and nine integration tests
-      against PostgreSQL 16 in 14.71 seconds. Three sections report 9/9 tests,
-      3/3 sections and zero failures, and the last line is verify: ok.
+      The timeline on the demo page runs deploy.start, health.ok, smoke.fail,
+      rollback.start, rollback.health.ok and rollback.smoke.ok in order. The
+      rollback step names dep-dbhpqeeqcfc7384uzc0 as the live deploy and
+      dep-dbhpq88b9cc7c7394bfg as the previous one, and the card reads six
+      steps and smoke 5/5.
   - file: shot-03.webp
-    shortName: Image gate
-    heading: The image gate, measured here
+    shortName: Bad image
+    heading: A known HIGH finding turns red
     body: >-
-      The Trivy run scans 68 targets in invoice-api:slim at CRITICAL and HIGH
-      with ignore-unfixed and reports zero findings at exit 0. The right panel
-      reads the same flags from the trivy job in pr.yml, beside the nine jobs
-      and the one required ci-ok check.
+      The bad-image run on the demo page separates the build from the scan:
+      bad-image-build reports success and bad-image-trivy reports a HIGH
+      finding. The banner names the scan job and the run finishes red, so the
+      gate withholds the release.
   - file: hero.webp
-    shortName: Demo summary
-    heading: The summary line closes the loop
+    shortName: Deploy ids
+    heading: The footer names both deploys
     body: >-
-      The table at the bottom of the transcript records five rows: the healthy
-      release and smoke pass, the broken release's smoke row reads FAIL, and
-      the rollback passes. The run ends with exit 0 and demo: ok, so the file
-      records the order the release lane followed.
+      The footer of the demo page pairs the live deploy
+      dep-dbhpqeeqcfc7384uzc0 at commit c12a00539a with the previous deploy
+      dep-dbhpq88b9cc7c7394bfg at commit ffae82df2f. Above it, the recent-runs
+      table keeps the last three gate runs and their outcomes in view.
 ---

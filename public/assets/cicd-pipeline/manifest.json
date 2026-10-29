@@ -27,25 +27,25 @@
       "file": "hero.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Terminal transcript of bash scripts/demo.sh on this machine: a healthy release passes five smoke assertions, a deliberately broken release returns 500 on POST /invoices, and rollback restores the previous release and passes smoke again."
+      "alt": "Pipeline demo page at rest: three action cards — Run the gates, Ship a bad image and Roll back — beside a Live panel that reports no action running, a recent-runs table, and a footer naming the live and previous deploys."
     },
     {
       "file": "shot-01.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Rollback timeline read from deploy.log: deploy.start, health.ok, smoke.fail, rollback.start, rollback.health.ok and rollback.smoke.ok, with elapsed seconds for the broken release."
+      "alt": "Pipeline demo page mid-run: the Run the gates card reads running under run 40948040956, and the job list shows image, lint, test (22), migration-gate, typecheck, bundle-size and git-leaks all in progress."
     },
     {
       "file": "shot-02.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Terminal transcript of bash scripts/verify.sh: ESLint and tsc --noEmit pass, nine integration tests pass against PostgreSQL 16, and the final line is verify: ok."
+      "alt": "Pipeline demo page rollback: a six-step timeline reading deploy.start, health.ok, smoke.fail, rollback.start, rollback.health.ok and rollback.smoke.ok, with the two deploy ids dep-dbhpqeeqcfc7384uzc0 and dep-dbhpq88b9cc7c7394bfg in the footer."
     },
     {
       "file": "shot-03.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Trivy report for the locally built invoice-api:slim image at CRITICAL and HIGH severity with ignore-unfixed: zero findings and exit code 0, beside the trivy job settings read from .github/workflows/pr.yml."
+      "alt": "Pipeline demo page after the bad-image run: the build job reports success, the Trivy job reports a HIGH finding, and the banner names bad-image-trivy while the run finishes red."
     }
   ],
   "proof": {

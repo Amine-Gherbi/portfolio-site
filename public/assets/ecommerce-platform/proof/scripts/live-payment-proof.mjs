@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global document, performance, window */
 // Live proof against the deployed store and the Stripe sandbox.
 //
 //   set -a; source P:/portfolio/.secrets/host.env; set +a

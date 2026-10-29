@@ -8,6 +8,7 @@ stack:
   - TypeScript
   - PostgreSQL
   - Prisma
+  - Stripe
 claim: >-
   A recorded run of 20 concurrent checkouts against stock 5 created 5 orders
   and 15 rejections, leaving stock 0 and 5 open reservations.
@@ -45,20 +46,19 @@ failures:
       retry into the existing order. A zero-row update aborts the transaction
       as OUT_OF_STOCK.
 measured: >-
-  Recorded hosted payment: order KST-2610-53808809, a 14900-cent PaymentIntent,
-  one signed webhook delivery, and a replay answering 200 duplicate. Four
-  invariants hold: a forged total is ignored; one order per (userId,
-  idempotencyKey); 20 concurrent checkouts on stock 5 produced 5 orders and 15
-  rejections; a replayed webhook is a 200 no-op. The gate recorded 181 tests
-  across 33 files and 5 Playwright tests. The load run measured p95 4.58 s over
-  250 requests, with 2 P2028 timeouts.
+  Recorded hosted payment: order KST-2610-53808809, a 14900-cent PaymentIntent
+  and one signed webhook delivery. Four invariants hold: a forged total is
+  ignored; one order per (userId, idempotencyKey); 20 concurrent checkouts on
+  stock 5 produced 5 orders and 15 rejections; a replayed webhook is a 200
+  no-op. The load run measured p95 4.58 s over 250 requests and 2 P2028
+  timeouts.
 screenshots:
   - file: shot-01.webp
-    caption: Headphones category with brand and price filters, a four-column grid of tiles and from-prices.
+    caption: "Sennheiser HD 598 product page: photograph on the left, and a buy box with 199.00, the Beige variant, In stock and Add to cart."
   - file: shot-02.webp
-    caption: Cart with two seeded lines at quantity 2 and 1, line totals, a server-computed summary and one checkout action.
+    caption: "Cart page with two lines at quantity 1, line totals, a server-computed 218.00 summary and one Continue to checkout action."
   - file: shot-03.webp
-    caption: Admin console with two orders, customer, total, status and age columns, and a Filter action.
+    caption: Checkout page with the Stripe Payment Element mounted, six payment methods, a Pay 218.00 action and the order summary.
 links:
   - label: Live payment proof (GitHub)
     href: https://github.com/Amine-Gherbi/ecommerce-platform/blob/master/docs/PROOF.md#live-deployment
@@ -71,40 +71,40 @@ links:
   - label: CI run 40081391256
     href: https://github.com/Amine-Gherbi/ecommerce-platform/actions/runs/40081391256
 tour:
-  - file: shot-01.webp
-    shortName: Category grid
-    heading: The headphones category, filtered
-    body: >-
-      The headphones category shows ten products in a four-column grid beneath
-      a left rail of brand and price filters. Each tile carries a from-price and
-      the header shows an empty cart, so this is the first screen of the path.
   - file: hero.webp
-    shortName: Product page
-    heading: The buy box is the price surface
+    shortName: Catalogue
+    heading: The storefront opens on the catalogue
     body: >-
-      The Technics SL-1200 MK5 product page puts the studio photograph on the
-      left and the buy box on the right. The box reads 1,290.00, names the
-      Silver variant, shows In stock, and offers one Add to cart action.
+      The home page leads with the featured Technics turntable, marked sold out,
+      above a New this month row of four from-priced tiles under the label Eight
+      recent additions. The header carries search, the demo account and an empty
+      cart.
+  - file: shot-01.webp
+    shortName: Product page
+    heading: The buy box carries the price
+    body: >-
+      The Sennheiser HD 598 page puts the photograph on the left and the buy box
+      on the right. The box reads 199.00, names the Beige variant, shows In
+      stock and offers one Add to cart action.
   - file: shot-02.webp
     shortName: Cart lines
-    heading: Two lines, three items
+    heading: Two lines, two items
     body: >-
-      The cart table lists two seeded lines: the turntable at quantity 2 for
-      2,580.00 and the Sennheiser HD 598 at quantity 1 for 199.00. The header
-      badge reads 3 items, which is the sum of those quantities.
+      The cart page lists the Sennheiser at 199.00 and the Kestrel Pocket DAC at
+      19.00, both at quantity 1. The server-computed summary reads 218.00 with
+      free shipping and one Continue to checkout action.
   - file: shot-03.webp
-    shortName: Order console
-    heading: The admin console records both orders
+    shortName: Checkout
+    heading: Stripe collects the sandbox card
     body: >-
-      The admin orders console lists two seeded orders for demo@kestrel.test,
-      one PAID at 218.00 and one FULFILLED at 797.00. Each row carries the
-      order number, customer, total, status and age.
+      The checkout page shows the Stripe Payment Element with card, Pay By Bank
+      and four local methods. The Pay 218.00 action sits beneath the element,
+      and the order summary repeats the server total.
   - file: shot-02.webp
     shortName: Cart summary
     heading: The summary is computed from the lines
     body: >-
-      The Order summary panel repeats the two seeded line totals as a subtotal
-      of 2,779.00, with free shipping and a total of 2,779.00. The note beneath
-      the checkout action says the final total is confirmed when you place your
-      order.
+      The Order summary panel on the cart page repeats the two line totals as a
+      218.00 subtotal with free shipping. The note beneath the checkout action
+      says the final total is confirmed when the order is placed.
 ---

@@ -6,7 +6,8 @@
     "Next.js",
     "TypeScript",
     "PostgreSQL",
-    "Prisma"
+    "Prisma",
+    "Stripe"
   ],
   "generatedAt": "",
   "seeded": true,
@@ -18,7 +19,8 @@
     "limits": [
       "The free instance sleeps after 15 minutes idle and takes about a minute to wake.",
       "Payments run in Stripe test mode with the 4242 card; no money moves.",
-      "The catalogue is seeded: 30 products, 4 categories and 22 brands."
+      "The catalogue is seeded: 30 products, 4 categories and 22 brands.",
+      "The four shots follow the visitor path — catalogue, product, cart and checkout — so the admin console is not in the set."
     ]
   },
   "demoLogin": "demo@kestrel.test / demo-password-123",
@@ -29,25 +31,25 @@
       "file": "hero.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Product page for the Technics SL-1200 MK5: studio photograph on the left, buy box with price, variant, quantity and the Add to cart action on the right."
+      "alt": "Store home page: the featured Technics SL-1200 MK5 panel with a currently-sold-out notice and a photograph of the turntable, above a New this month row of four from-priced tiles under the label Eight recent additions."
     },
     {
       "file": "shot-01.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Headphones category at 1440x900: brand, price and availability filters in the left rail, a four-column product grid with ink prices, and a sort control."
+      "alt": "Sennheiser HD 598 product page: a headphone photograph on the left and a buy box with the 199.00 price, the Beige variant, In stock, quantity 1 and one Add to cart action on the right."
     },
     {
       "file": "shot-02.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Cart table with Item, Price, Quantity and Total headers, two seeded lines at quantity 2 and 1, a server-computed order summary, and one accent checkout action."
+      "alt": "Cart with two lines at quantity 1 — Sennheiser HD 598 and Kestrel Pocket DAC — line totals, a server-computed 218.00 summary, free shipping and one Continue to checkout action."
     },
     {
       "file": "shot-03.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Admin orders console showing the two seeded orders with customer, total, status and age columns, and a single accent Filter action."
+      "alt": "Checkout with the Stripe Payment Element mounted: card, Pay By Bank, Bancontact, MB WAY, Satispay and EPS options, a Pay 218.00 action, and the recalculated order summary beside it."
     }
   ],
   "proof": {

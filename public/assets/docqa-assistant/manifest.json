@@ -20,7 +20,8 @@
     "limits": [
       "The free instance sleeps after 15 minutes idle and takes about a minute to wake.",
       "The hosted corpus is five papers and 260 chunks; a question outside it is refused.",
-      "A warm answer takes 17–25 s on the free instance."
+      "A warm answer takes 17–25 s on the free instance.",
+      "A visitor upload is capped at 25 MB and 80 pages, sent to a third-party free-tier model, and deleted after 24 hours."
     ]
   },
   "previewCommand": "uv run docqa serve --port 8788  # then, in a second shell: npm --prefix ui run dev",
@@ -29,25 +30,25 @@
       "file": "hero.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Marginalia over the Sentence-BERT paper: citation 2 selected, its verbatim quote highlighted on PDF page 2 with a margin marker, and the matching source row in the answer pane. Seeded offline demo data; no model call."
+      "alt": "Marginalia Ask page: the Sentence-BERT paper on the left; the right column carries the third-party model disclosure, the Choose a PDF drop zone, the 24-hour deletion notice, the question field and a three-claim recorded answer."
     },
     {
       "file": "shot-01.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Citation view for the sentence-embedding question: the selected source quote is highlighted on PDF page 3, beside claims 1-3 and the source list. Seeded offline demo data; no model call."
+      "alt": "Page 1 of the Sentence-BERT paper with citation 1 selected: the quoted sentence is marked in the page text with a margin marker, the matching source row is selected, and three claims sit in the answer pane."
     },
     {
       "file": "shot-02.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Retrieval trail at the second-pass cross-encoder section: rerank rank, score, calibrated evidence probability, kept status, then the final context and decision. Recorded demo trace, not a live request."
+      "alt": "Visitor upload panel: northwind-field-guide.pdf with the stage line reading Parsing the PDF, beneath the disclosure, the drop zone and the 25 MB and 80-page limits."
     },
     {
       "file": "shot-03.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Evaluation view of the committed eval-report.json: 2 of 5 checks met, counts and denominators, Wilson 95% ranges, and the stage where each question stopped."
+      "alt": "The uploaded Northwind Observatory field guide open on page 4: the Alder-9 recalibration sentence is highlighted with margin marker 1, and the matching source row names the uploaded file."
     }
   ],
   "proof": {
