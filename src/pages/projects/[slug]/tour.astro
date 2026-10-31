@@ -83,13 +83,14 @@ const steps = study.tour.map((step, index) => {
             <figure class="tour-figure">
               <img
                 src={`/assets/${entry.id}/${step.shot.file}`}
-                srcset={`/assets/${entry.id}/${step.shot.file} ${step.shot.width}w`}
+                srcset={`/assets/${entry.id}/960/${step.shot.file} 960w, /assets/${entry.id}/1440/${step.shot.file} 1440w, /assets/${entry.id}/${step.shot.file} ${step.shot.width}w`}
                 sizes="(min-width: 900px) 60vw, 100vw"
                 width={step.shot.width}
                 height={step.shot.height}
                 alt={step.shot.alt}
                 loading={step.number === 1 ? "eager" : "lazy"}
                 decoding="async"
+                fetchpriority={step.number === 1 ? "high" : undefined}
               />
             </figure>
             <div class="tour-copy">

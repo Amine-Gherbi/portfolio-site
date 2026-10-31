@@ -115,7 +115,9 @@ const creativeWork = {
             <p class="case-live-links">
               <a href={live.url} rel="noreferrer">{liveHost}</a>
               {secondaryHost && (
-                <a href={live.secondary} rel="noreferrer">{secondaryHost}</a>
+                <a href={live.secondary} rel="noreferrer">
+                  {live.secondaryLabel ?? secondaryHost}
+                </a>
               )}
               <a href={live.repository} rel="noreferrer">View the code</a>
             </p>

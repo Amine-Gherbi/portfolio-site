@@ -13,7 +13,8 @@
   "seeded": true,
   "live": {
     "url": "https://pipeline-demo-57mh.onrender.com",
-    "secondary": "https://invoice-api-26b4.onrender.com",
+    "secondary": "https://invoice-api-26b4.onrender.com/health",
+    "secondaryLabel": "Health",
     "firstAction": "Click Run the gates and watch each job turn green.",
     "repository": "https://github.com/Amine-Gherbi/cicd-pipeline",
     "limits": [
@@ -33,13 +34,13 @@
       "file": "shot-01.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Pipeline demo page mid-run: the Run the gates card reads running under run 40948040956, and the job list shows image, lint, test (22), migration-gate, typecheck, bundle-size and git-leaks all in progress."
+      "alt": "Pipeline demo page mid-run: the Run the gates card reads running under run 40949046956, and the job list shows image, lint, test (22), migration-gate, typecheck, bundle-size and git-leaks all in progress."
     },
     {
       "file": "shot-02.webp",
       "width": 2880,
       "height": 1800,
-      "alt": "Pipeline demo page rollback: a six-step timeline reading deploy.start, health.ok, smoke.fail, rollback.start, rollback.health.ok and rollback.smoke.ok, with the two deploy ids dep-dbhpqeeqcfc7384uzc0 and dep-dbhpq88b9cc7c7394bfg in the footer."
+      "alt": "Pipeline demo page rollback: a six-step timeline reading deploy.start, health.ok, smoke.fail, rollback.start, rollback.health.ok and rollback.smoke.ok, with the two deploy ids dep-dbhqqoec6qcc73842uc0 and dep-dbhqq888v5cc7396at9g in the footer."
     },
     {
       "file": "shot-03.webp",

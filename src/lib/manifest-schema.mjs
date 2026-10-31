@@ -120,6 +120,7 @@ const proofSchema = z.object({
 const liveSchema = z.object({
   url: z.string().url("live.url must be an absolute URL"),
   secondary: z.string().url("live.secondary must be an absolute URL").optional(),
+  secondaryLabel: requiredText("live.secondaryLabel", 40).optional(),
   firstAction: requiredText("live.firstAction", 180),
   credentials: requiredText("live.credentials", 160).optional(),
   repository: z.string().url("live.repository must be an absolute URL"),

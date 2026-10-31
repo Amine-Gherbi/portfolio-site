@@ -51,15 +51,15 @@ failures:
 measured: >-
   Local run: nine integration tests passed, the smoke gate passed 5/5
   assertions with /ready p95 7.7 ms, and demo.txt records the rollback order.
-  The workflow structure check found 20 pinned actions and zero unpinned.
+  The workflow check found 20 pinned actions, zero unpinned.
   Green demo run 40929946794; red run 40930412365 stopped at bad-image-trivy
-  with 10 HIGH. A rollback moved Render from dep-dbhonnk9v7es73bg70f0 to
-  dep-dbhoo3rbc2fs73f1b85g.
+  with 10 HIGH. Rollback: deploy id dep-dbhonnk9v7es73bg70f0 (ffa0422df22d)
+  to deploy id dep-dbhoo3rbc2fs73f1b85g (2690aa5fe104).
 screenshots:
   - file: shot-01.webp
-    caption: "Demo page mid-run: the gate card reads running under run 40948040956, and image, lint, test (22), migration-gate, typecheck, bundle-size and git-leaks each read in progress."
+    caption: "Demo page mid-run: the gate card reads running under run 40949046956, and image, lint, test (22), migration-gate, typecheck, bundle-size and git-leaks each read in progress."
   - file: shot-02.webp
-    caption: "Rollback on the demo page: six steps from deploy.start to rollback.smoke.ok, with dep-dbhpqeeqcfc7384uzc0 live and dep-dbhpq88b9cc7c7394bfg previous."
+    caption: "Rollback on the demo page: six steps from deploy.start to rollback.smoke.ok, with dep-dbhqqoec6qcc73842uc0 live and dep-dbhqq888v5cc7396at9g previous."
   - file: shot-03.webp
     caption: "Bad-image run: the build job reports success, the Trivy job reports a HIGH finding, and the banner names bad-image-trivy while the run finishes red."
 links:
@@ -71,8 +71,8 @@ links:
     href: https://github.com/Amine-Gherbi/cicd-pipeline/blob/master/deploy.log
   - label: Workflow structure check (GitHub)
     href: https://github.com/Amine-Gherbi/cicd-pipeline/blob/master/docs/evidence/workflow-structure.txt
-  - label: Deployed API
-    href: https://invoice-api-26b4.onrender.com
+  - label: Deployed API health
+    href: https://invoice-api-26b4.onrender.com/health
 tour:
   - file: hero.webp
     shortName: Three actions
@@ -86,7 +86,7 @@ tour:
     shortName: Mid-run
     heading: The job list turns under a run
     body: >-
-      The demo page opens run 40948040956 with the image job, then lint, test
+      The demo page opens run 40949046956 with the image job, then lint, test
       (22), migration-gate, typecheck, bundle-size and git-leaks. Each row
       carries a turning dot and reads in progress while the status line says
       action in flight.
@@ -96,9 +96,9 @@ tour:
     body: >-
       The timeline on the demo page runs deploy.start, health.ok, smoke.fail,
       rollback.start, rollback.health.ok and rollback.smoke.ok in order. The
-      rollback step names dep-dbhpqeeqcfc7384uzc0 as the live deploy and
-      dep-dbhpq88b9cc7c7394bfg as the previous one, and the card reads six
-      steps and smoke 5/5.
+      deploy.start row names dep-dbhqq888v5cc7396at9g and the rollback.start
+      row names dep-dbhqqoec6qcc73842uc0, and the card reads six steps and
+      smoke 5/5.
   - file: shot-03.webp
     shortName: Bad image
     heading: A known HIGH finding turns red
@@ -112,7 +112,7 @@ tour:
     heading: The footer names both deploys
     body: >-
       The footer of the demo page pairs the live deploy
-      dep-dbhpqeeqcfc7384uzc0 at commit c12a00539a with the previous deploy
-      dep-dbhpq88b9cc7c7394bfg at commit ffae82df2f. Above it, the recent-runs
+      dep-dbhp83rbc2fs73f2dad0 at commit c2c000539e with the previous deploy
+      dep-dbhp0m4s728c73d8pdhg at commit 0fee8b95b6. Above it, the recent-runs
       table keeps the last three gate runs and their outcomes in view.
 ---
