@@ -76,6 +76,9 @@ const tourStepSchema = z
 
 export const caseStudySchema = projectSchema.extend({
   kind: z.literal("case-study"),
+  // The product name is a subtitle inside the case study. The card title stays
+  // in one plain register and never carries a brand.
+  product: required("product name").max(64),
   claim: required("claim"),
   what: required("what it is"),
   hardPart: required("hard part"),

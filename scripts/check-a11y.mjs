@@ -2,12 +2,15 @@
 /**
  * Static accessibility checks over the built HTML. No browser: these are the
  * rules that survive as markup — one h1, a skip link to #main, alt on every
- * image, discernible text on every link, and a language on <html>.
+ * image, discernible text on every link, a language on <html>, and one
+ * new-tab contract for external links.
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 const DIST_DIR = path.join(process.cwd(), "dist");
+const EXTERNAL_HREF = /^https?:\/\//i;
+const NEW_TAB_HINT = "(opens in a new tab)";
 const ENTITIES = {
   "&amp;": "&",
   "&lt;": "<",
@@ -85,9 +88,40 @@ for (const filePath of pages) {
   }
 
   for (const match of html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)) {
-    if (!hasDiscernibleText(match[1] ?? "", match[2] ?? "")) {
+    const attributes = match[1] ?? "";
+    const inner = match[2] ?? "";
+    if (!hasDiscernibleText(attributes, inner)) {
       errors.push(
         `${relative}: link has no discernible text: ${(match[0] ?? "").slice(0, 100)}`,
+      );
+    }
+
+    const href = /\bhref="([^"]*)"/i.exec(attributes)?.[1] ?? "";
+    const external = EXTERNAL_HREF.test(href);
+    const targetBlank = /\btarget="_blank"/i.test(attributes);
+    const rel = /\brel="([^"]*)"/i.exec(attributes)?.[1] ?? "";
+    const relSafe = /\bnoopener\b/i.test(rel) && /\bnoreferrer\b/i.test(rel);
+    const hint = decode(inner.replace(/<[^>]+>/g, " ")).includes(NEW_TAB_HINT);
+
+    if (external) {
+      if (!targetBlank) {
+        errors.push(
+          `${relative}: external link has no target="_blank": ${href}`,
+        );
+      }
+      if (!relSafe) {
+        errors.push(
+          `${relative}: external link has no rel="noopener noreferrer": ${href}`,
+        );
+      }
+      if (!hint) {
+        errors.push(
+          `${relative}: external link has no screen-reader new-tab hint: ${href}`,
+        );
+      }
+    } else if (targetBlank) {
+      errors.push(
+        `${relative}: internal link ${href || "(no href)"} opens in a new tab`,
       );
     }
   }
@@ -102,5 +136,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `[a11y] ${pages.length} pages: one h1, skip link to #main, alt on every image, text on every link, lang set`,
+  `[a11y] ${pages.length} pages: one h1, skip link to #main, alt on every image, text on every link, lang set; external links open in a new tab with rel="noopener noreferrer" and a screen-reader hint, internal links stay in the tab`,
 );

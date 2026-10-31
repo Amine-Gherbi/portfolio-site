@@ -3,6 +3,7 @@ import { getCollection } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import { readProjectManifest } from "../../lib/manifest";
 import { assertCaseStudy, SECTION_ORDER } from "../../lib/case-study";
+import { primaryActionLabel } from "../../lib/actions";
 import { SITE_URL } from "../../lib/site";
 
 export async function getStaticPaths() {
@@ -37,6 +38,7 @@ const screenshots = study.screenshots.map((screenshot, index) => {
 
 const number = String(study.order).padStart(2, "0");
 const totalLabel = String(total).padStart(2, "0");
+const primaryLabel = primaryActionLabel(entry.id);
 
 /**
  * Keep a rendered paragraph inside four lines at 1280 px. The article measure
@@ -99,6 +101,7 @@ const creativeWork = {
         <a class="case-back" href="/">Case index</a>
         <span class="case-title">{study.title} / {number} of {totalLabel}</span>
       </div>
+      <p class="case-product">{study.product}</p>
       <p class="kicker">Claim</p>
       <h1>{study.claim}</h1>
       <p class="case-oneliner"><em>{study.oneLiner}</em></p>
@@ -109,17 +112,46 @@ const creativeWork = {
         live && (
           <div class="case-live">
             <p class="kicker">Live</p>
-            <p class="case-live-action">
-              <a href={live.url} rel="noreferrer">{live.firstAction}</a>
+            <p class="case-live-action">{live.firstAction}</p>
+            <p class="case-actions">
+              <a
+                class="button-primary"
+                href={live.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {primaryLabel}
+                <span class="visually-hidden"> (opens in a new tab)</span>
+              </a>
+              <a
+                class="button-secondary"
+                href={live.repository}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Read the code
+                <span class="visually-hidden"> (opens in a new tab)</span>
+              </a>
             </p>
             <p class="case-live-links">
-              <a href={live.url} rel="noreferrer">{liveHost}</a>
+              <a
+                href={live.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {liveHost}
+                <span class="visually-hidden"> (opens in a new tab)</span>
+              </a>
               {secondaryHost && (
-                <a href={live.secondary} rel="noreferrer">
+                <a
+                  href={live.secondary}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   {live.secondaryLabel ?? secondaryHost}
+                  <span class="visually-hidden"> (opens in a new tab)</span>
                 </a>
               )}
-              <a href={live.repository} rel="noreferrer">View the code</a>
             </p>
             {live.credentials && (
               <p class="case-live-credentials">
@@ -134,7 +166,9 @@ const creativeWork = {
         )
       }
       <p class="case-tour">
-        <a href={`/projects/${entry.id}/tour/`}>Five-step walkthrough</a>
+        <a class="button-secondary" href={`/projects/${entry.id}/tour/`}
+          >Five-step walkthrough</a
+        >
       </p>
     </header>
 
@@ -319,11 +353,26 @@ const creativeWork = {
         <h3>Artifacts</h3>
         <ul class="case-links">
           {
-            study.links.map((link) => (
-              <li>
-                <a href={link.href} rel="noreferrer">{link.label}</a>
-              </li>
-            ))
+            study.links.map((link) => {
+              const external = /^https?:\/\//.test(link.href);
+              return (
+                <li>
+                  <a
+                    href={link.href}
+                    target={external ? "_blank" : undefined}
+                    rel={external ? "noopener noreferrer" : undefined}
+                  >
+                    {link.label}
+                    {external && (
+                      <span class="visually-hidden">
+                        {" "}
+                        (opens in a new tab)
+                      </span>
+                    )}
+                  </a>
+                </li>
+              );
+            })
           }
         </ul>
       </div>

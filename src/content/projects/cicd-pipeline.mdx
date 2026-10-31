@@ -1,8 +1,9 @@
 ---
 kind: case-study
 order: 2
-title: CI/CD pipeline with gates that block and a recorded rollback
-oneLiner: "Eight PR gates feed one required ci-ok check; the demo page starts the gate run, ships a bad image, and redeploys the previous release."
+title: CI/CD pipeline
+product: invoice-api
+oneLiner: A release process that checks a new version before release and puts the previous one back when a check misses. Start a demo run.
 stack:
   - GitHub Actions
   - Docker Buildx

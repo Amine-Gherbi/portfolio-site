@@ -14,6 +14,7 @@ interface Props {
   manifest: ProjectManifest | null;
   cover?: CardImage | null;
   actionLabel?: string;
+  primaryLabel?: string;
 }
 
 const {
@@ -22,7 +23,12 @@ const {
   manifest,
   cover = null,
   actionLabel = "Read the case study",
+  primaryLabel = "Open the live demo",
 } = Astro.props;
+
+const title = manifest?.title ?? project.title;
+const oneLiner = manifest?.oneLiner ?? project.oneLiner;
+const liveUrl = manifest?.live.url ?? null;
 
 const hero: ManifestShot | undefined = manifest?.shots[0];
 const image: CardImage | null =
@@ -64,12 +70,24 @@ const href = `/projects/${slug}/`;
   }
   <div class="card-copy">
     <h2 id={headingId}>
-      <a class="card-link" href={href}>{project.title}</a>
+      <a class="card-link" href={href}>{title}</a>
     </h2>
-    <p class="one-liner">{project.oneLiner}</p>
-    <p class="stack">{project.stack.join(", ")}</p>
-    <p class="card-read">
-      <a href={href}>{actionLabel}</a>
+    <p class="one-liner">{oneLiner}</p>
+    <p class="card-actions">
+      {
+        liveUrl && (
+          <a
+            class="button-primary"
+            href={liveUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {primaryLabel}
+            <span class="visually-hidden"> (opens in a new tab)</span>
+          </a>
+        )
+      }
+      <a class="card-secondary" href={href}>{actionLabel}</a>
     </p>
   </div>
 </article>

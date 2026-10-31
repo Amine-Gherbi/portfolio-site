@@ -126,6 +126,18 @@ img {
   outline-color: var(--paper);
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .page-shell {
   min-height: 100vh;
   display: flex;
@@ -220,7 +232,7 @@ img {
 .metric-table thead th,
 .screenshot-placeholder,
 .return-link,
-.card-read,
+.card-secondary,
 .hero-stack,
 .site-role {
   font-family: var(--mono);
@@ -233,6 +245,47 @@ img {
 .section-meta {
   color: var(--muted);
   text-transform: uppercase;
+}
+
+/*
+ * One solid primary action and one text link, shared by the home cards and the
+ * case-study header. The primary keeps the ink/accent language already used by
+ * the walkthrough button; no new colour or component family.
+ */
+
+.button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+  line-height: 1.35;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.button-primary:hover {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.button-secondary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-underline-offset: 0.25em;
 }
 
 main {
@@ -252,6 +305,14 @@ main {
   font-size: var(--text-hero);
   line-height: 1.08;
   letter-spacing: -0.03em;
+}
+
+.hero-subline {
+  max-width: 56ch;
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: var(--text-title);
+  line-height: 1.45;
 }
 
 .hero-stack {
@@ -355,12 +416,16 @@ main {
   letter-spacing: 0.01em;
 }
 
-.card-read {
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
   margin-top: auto;
-  padding-top: 10px;
+  padding-top: 16px;
 }
 
-.card-read a {
+.card-secondary {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
@@ -463,6 +528,16 @@ main {
   text-underline-offset: 0.2em;
 }
 
+.case-product {
+  margin-top: 6px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .case-header h1 {
   margin-top: 12px;
   font-size: var(--text-heading);
@@ -509,12 +584,12 @@ main {
   line-height: 1.35;
 }
 
-.case-live-action a {
-  text-decoration-thickness: 1px;
-}
-
-.case-live-action a:hover {
-  color: var(--accent);
+.case-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin-top: 14px;
 }
 
 .case-live-links {
@@ -569,24 +644,6 @@ main {
 
 .case-tour {
   margin-top: 16px;
-}
-
-.case-tour a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 16px;
-  background: var(--ink);
-  color: var(--paper);
-  font-family: var(--mono);
-  font-size: var(--text-meta);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  text-decoration: none;
-}
-
-.case-tour a:hover {
-  background: var(--accent);
 }
 
 .section-nav {

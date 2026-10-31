@@ -3,6 +3,7 @@ import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
 import ProjectCard from "../components/ProjectCard.astro";
 import { readProjectManifest } from "../lib/manifest";
+import { primaryActionLabel } from "../lib/actions";
 import { SITE_URL } from "../lib/site";
 
 const coreStack = ["TypeScript", "Next.js", "PostgreSQL", "Python"];
@@ -50,7 +51,11 @@ const person = {
   ogImage="/og/home.png"
 >
   <header class="hero">
-    <h1>Schema, screen, test, deploy. Boring parts included.</h1>
+    <h1>Working systems, with the evidence to check.</h1>
+    <p class="hero-subline">
+      An online store, a document reader and a release process. Open each one,
+      try the main action, and read the evidence behind it.
+    </p>
   </header>
 
   <section id="thesis" class="thesis-section" aria-labelledby="thesis-heading">
@@ -98,6 +103,7 @@ const person = {
             manifest={manifest}
             cover={null}
             actionLabel="Read the case study"
+            primaryLabel={primaryActionLabel(entry.id)}
           />
         ))
       }

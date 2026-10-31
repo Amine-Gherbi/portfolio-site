@@ -1,7 +1,7 @@
 {
   "project": "ecommerce-platform",
   "title": "E-commerce platform",
-  "oneLiner": "A hosted storefront whose sandbox checkout moves an order to PAID through a signed Stripe webhook, with stock decided under concurrency.",
+  "oneLiner": "A small online store with a working checkout, built so the last item cannot be sold twice. Pay with a test card.",
   "stack": [
     "Next.js",
     "TypeScript",
@@ -13,7 +13,7 @@
   "seeded": true,
   "live": {
     "url": "https://kestrel-store.onrender.com",
-    "firstAction": "Pay with the sandbox card 4242 4242 4242 4242 and watch the order move to PAID.",
+    "firstAction": "Open the store, add something to the cart and pay with the test card. The order changes to paid in front of you.",
     "credentials": "demo@kestrel.test / demo-password-123",
     "repository": "https://github.com/Amine-Gherbi/ecommerce-platform",
     "limits": [

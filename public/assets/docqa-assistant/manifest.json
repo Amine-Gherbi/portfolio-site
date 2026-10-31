@@ -1,7 +1,7 @@
 {
   "project": "docqa-assistant",
-  "title": "Marginalia",
-  "oneLiner": "Ask a hosted reader a question about a PDF corpus and get claims whose quotes are verbatim, highlighted on the page, with an inspectable retrieval trace and a calibrated refusal.",
+  "title": "PDF question answering",
+  "oneLiner": "Ask a PDF a question and see the exact sentence behind the answer highlighted on the page. Bring your own document and see where every claim comes from.",
   "stack": [
     "Python 3.12",
     "FastAPI",
@@ -16,7 +16,7 @@
     "url": "https://marginalia-ui.onrender.com",
     "secondary": "https://marginalia-api-4pvl.onrender.com/docs",
     "secondaryLabel": "API docs",
-    "firstAction": "Ask the seeded Sentence-BERT paper why SBERT is more efficient than a BERT cross-encoder.",
+    "firstAction": "Ask the sample paper a question, then open the highlighted sentence to see where the answer came from. You can also upload your own PDF.",
     "repository": "https://github.com/Amine-Gherbi/docqa-assistant",
     "limits": [
       "The free instance sleeps after 15 minutes idle and takes about a minute to wake.",
