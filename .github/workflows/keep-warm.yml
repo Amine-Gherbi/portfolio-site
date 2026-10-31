@@ -1,0 +1,58 @@
+name: keep-warm
+
+# Holds the four Render demo services awake for one week.
+#
+# Render's free plan scales an instance to zero when nothing has asked for it
+# for a while, so the first visitor after a quiet period waits for a wake. This
+# workflow asks each health endpoint for a 200 every five minutes.
+#
+# Budget: four services awake around the clock for seven days is 4 x 168 = 672
+# instance hours, inside the 750 free instance hours a workspace gets per month.
+# The job refuses to do anything after its expiry so a forgotten workflow cannot
+# spend the allowance on its own.
+
+on:
+  schedule:
+    # Off the five-minute boundary on purpose: GitHub's scheduler is busiest at
+    # :00 and :05, where queued jobs are delayed the most. The sleep threshold is
+    # fifteen minutes, so a two-minute offset costs nothing and a delayed start
+    # is less likely.
+    - cron: "2-59/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keep-warm
+  cancel-in-progress: false
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Stop once the week is over
+        id: guard
+        run: |
+          if [ "$(date -u +%Y-%m-%d)" \> "2026-11-07" ]; then
+            echo "keep-warm expired on 2026-11-07; nothing to do"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ask each service for a 200
+        if: steps.guard.outputs.run == 'true'
+        run: |
+          set +e
+          for name in store invoice-api marginalia-api pipeline-demo; do
+            case "$name" in
+              store) url="https://kestrel-store.onrender.com/api/health" ;;
+              invoice-api) url="https://invoice-api-26b4.onrender.com/health" ;;
+              marginalia-api) url="https://marginalia-api-4pvl.onrender.com/health" ;;
+              pipeline-demo) url="https://pipeline-demo-57mh.onrender.com/health" ;;
+            esac
+            code=$(curl -sS -m 90 -o /dev/null -w "%{http_code}" "$url")
+            echo "$name $code $url"
+          done
