@@ -4,3 +4,5 @@ dist/
 .DS_Store
 *.log
 !public/assets/*/proof/*.log
+.superpowers/
+_orchestration/
