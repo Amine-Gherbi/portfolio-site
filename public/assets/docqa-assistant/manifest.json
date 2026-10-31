@@ -19,7 +19,6 @@
     "firstAction": "Ask the sample paper a question, then open the highlighted sentence to see where the answer came from. You can also upload your own PDF.",
     "repository": "https://github.com/Amine-Gherbi/docqa-assistant",
     "limits": [
-      "The free instance sleeps after 15 minutes idle and takes about a minute to wake.",
       "The hosted corpus is five papers and 260 chunks; a question outside it is refused.",
       "A warm answer takes 17–25 s on the free instance.",
       "A visitor upload is capped at 25 MB and 80 pages, sent to a third-party free-tier model, and deleted after 24 hours."

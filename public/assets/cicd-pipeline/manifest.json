@@ -18,7 +18,6 @@
     "firstAction": "Open the demo page and start a check run. Then send a bad version and watch it put the previous one back.",
     "repository": "https://github.com/Amine-Gherbi/cicd-pipeline",
     "limits": [
-      "The free instance sleeps after 15 minutes idle and takes about a minute to wake.",
       "The demo page starts one action at a time; the buttons stay disabled while a run is in flight.",
       "A full gate run takes several minutes and spends the repository's Actions minutes."
     ]

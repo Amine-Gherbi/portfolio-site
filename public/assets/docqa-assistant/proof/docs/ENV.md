@@ -30,7 +30,7 @@ the hosted pair on Render and Neon. The hosted services read the variables in
 | API | <https://marginalia-api-4pvl.onrender.com> (`/health`, `/ready`, `/ask`) |
 | UI | <https://marginalia-ui.onrender.com> |
 | Render services | `marginalia-api` (`srv-dbho7udg1s2s73aj3kd0`), `marginalia-ui` (`srv-dbho81dg1s2s73aj3rlg`); deployed from `w2-c-pdf-upload` by `commitId` through the Render API (`autoDeploy: no`) |
-| Plan | free: one 512 MB, 0.1-CPU API container; static UI; scale-to-zero after 15 minutes idle |
+| Plan | free: one 512 MB, 0.1-CPU API container; static UI; kept warm by a five-minute HTTP monitor |
 | Database | Neon PostgreSQL 16 + pgvector, database `docqa`, 5 documents / 260 chunks |
 
 The free plan runs no pre-deploy command: `preDeployCommand` is ignored and the
@@ -82,8 +82,9 @@ buffers for a process that answers one question at a time.
 
 - 512 MB RAM and 0.1 CPU for the API. The ONNX models stay resident; the
   process-wide limiter is set to 1, so inference runs one call at a time.
-- Scale-to-zero after 15 minutes idle; the first request after that waits about
-  a minute. `GET /health` and `/ready` are the warm-up probes.
+- The instance scales to zero when idle; `GET /health` and `/ready` are the
+  warm-up probes, and a five-minute monitor keeps the API serving without a
+  wake.
 - No pre-deploy command and no persistent disk. The ONNX weights are baked into
   the image at build time; the corpus PDFs are fetched and hash-checked at
   build time, while the database is external (Neon).
@@ -283,15 +284,17 @@ plus U1 and U6, so 26 calls are needed. The budget is recorded in
 `bash scripts/live.sh warm` generated `data/demo-answers.json` with the six
 demo questions. Of those, T1 and R3 are validated answers; S3, D3 and R2 are
 `validation_failed` refusals (the model's quotes failed the citation contract);
-U5 is a `low_score` refusal. Each entry carries the exact question text, the
-model id recorded at generation time (the retired keyless model), and a
-`generated_at` timestamp. The cache predates the keyed migration and the gold
-calibration refit, so each cached response embeds the then-current calibration
-snapshot (threshold `0.2552`); that is historical metadata, not the threshold now
-loaded at boot. The API serves an exact-question hit with `cached: true` and
-`cache: {model, generated_at}`, and a miss calls the live keyed endpoint. If the
-provider still rate-limits after the documented retries, the API returns HTTP
-429 `{"state": "rate_limited", …}` rather than a 500.
+U5 is a `low_score` refusal. The file was recorded on 2026-10-23, before the
+keyed migration: it no longer reports a model id, and each cached response
+carries `model: null` rather than the retired keyless stand-in. Each entry keeps
+its exact question text and a `generated_at` timestamp. The cache predates the
+gold calibration refit, so each cached response embeds the then-current
+calibration snapshot (threshold `0.2552`); that is historical metadata, not the
+threshold now loaded at boot. The API serves an exact-question hit with
+`cached: true` and `cache: {model, generated_at}` (with `model: null` for this
+file), and a miss calls the live keyed endpoint. If the provider still
+rate-limits after the documented retries, the API returns HTTP 429
+`{"state": "rate_limited", …}` rather than a 500.
 
 ### Probe verdict (keyed endpoint)
 
@@ -411,7 +414,7 @@ The k6 step is **opt-in** (`DOCQA_WITH_K6=1`) because a loopback latency gate in
 whatever else the machine is doing: two runs on this host measured p95 7.92 s and 9.22 s
 for the same code, the second while a Playwright suite was running. A gate that fails
 because another test was running is not a gate. The default `verify` is deterministic
-(lint, types, 147 tests); the load number is measured on demand and quoted with its budget.
+(lint, types, 208 tests); the load number is measured on demand and quoted with its budget.
 
 That is a measured CPU limitation, not a passing grade: the 5 s gate is crossed locally,
 and it stays crossed until inference has a GPU or a smaller model.

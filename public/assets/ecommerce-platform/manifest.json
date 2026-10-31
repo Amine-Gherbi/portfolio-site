@@ -17,7 +17,6 @@
     "credentials": "demo@kestrel.test / demo-password-123",
     "repository": "https://github.com/Amine-Gherbi/ecommerce-platform",
     "limits": [
-      "The free instance sleeps after 15 minutes idle and takes about a minute to wake.",
       "Payments run in Stripe test mode with the 4242 card; no money moves.",
       "The catalogue is seeded: 30 products, 4 categories and 22 brands.",
       "The four shots follow the visitor path — catalogue, product, cart and checkout — so the admin console is not in the set."
