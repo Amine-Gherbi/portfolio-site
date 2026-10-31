@@ -67,6 +67,18 @@ a:hover {
   text-decoration-thickness: 2px;
 }
 
+/*
+ * Evidence paths are long unbroken tokens and have to stay verbatim. Allow a
+ * break at any character when the token would otherwise overflow its line:
+ * prose, headings and captions keep their current wrapping, and nothing
+ * breaks at desktop width where the tokens already fit.
+ */
+code,
+.metric-checks a,
+.metric-invariants a {
+  overflow-wrap: anywhere;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
